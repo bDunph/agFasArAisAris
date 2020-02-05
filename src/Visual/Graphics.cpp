@@ -173,7 +173,7 @@ bool Graphics::BInitGL(bool fullscreen)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	mengerShaderProg = BCreateSceneShaders("mengerGlass");
+	mengerShaderProg = BCreateSceneShaders("kifs_sierpinski");
 	if(mengerShaderProg == NULL){
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
