@@ -1,11 +1,4 @@
 #version 410
-
-in vec4 nearPos;
-in vec4 farPos;
-//in vec2 texCoordsOut;
-
-out vec4 fragColor;
-	
 // raymarch basic setup adapted from dila's tutorial
 // https://www.youtube.com/watch?v=yxNnRSefK94
 
@@ -16,6 +9,13 @@ out vec4 fragColor;
 #define NUM_NOISE_OCTAVES 5
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
+
+in vec4 nearPos;
+in vec4 farPos;
+//in vec2 texCoordsOut;
+
+layout(location = 0) out vec4 fragColor; 
+layout(location = 1) out vec4 orbitOut;
 
 int index;
 vec4 orbit;
@@ -192,4 +192,7 @@ void main()
 	
 	// Output to screen
 	fragColor = vec4(colour,1.0);
+
+	// Output to PBO
+	orbitOut = orbit;
 }

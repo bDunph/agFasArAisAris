@@ -215,13 +215,15 @@ private:
 	bool m_bWriteInProgress;
 	
 	GLsync sync;
-	void* dataSize;
+	unsigned char* m_pDataSize;
 	bool m_bPboIndex;
 
 	GLuint m_gluiDummyTexture;
 
 	glm::vec3 m_vec3ControllerWorldPos[2];
 	glm::quat m_quatController[2];
+
+	FiveCell::PBOInfo m_structPboInfo;	
 };
 
 

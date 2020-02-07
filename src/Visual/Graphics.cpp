@@ -174,22 +174,28 @@ bool Graphics::BInitGL(bool fullscreen)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	mengerShaderProg = BCreateSceneShaders("kifs_sierpinski");
-	if(mengerShaderProg == NULL){
+	if(mengerShaderProg == NULL)
+	{
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
+
 	std::string csdFileName = "avr_mandelGrain.csd";
-	if(!fiveCell.setup(csdFileName)) {
+	if(!fiveCell.setup(csdFileName)) 
+	{
 		std::cout << "fiveCell setup failed: Graphics BInitGL" << std::endl;
 		return false;
 	}
-	if(!fiveCell.BSetupRaymarchQuad(mengerShaderProg)){
+
+	if(!fiveCell.BSetupRaymarchQuad(mengerShaderProg))
+	{
 		std::cout << "raymarch quad failed setup: Graphics::BInitGL" << std::endl;
 		return false;
 	}
 
 	//create matrices for devmode
-	if(m_bDevMode){
+	if(m_bDevMode)
+	{
 		m_fFov = 45.0f;
 		m_matDevProjMatrix = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 10000.0f);
 		float r = m_nCompanionWindowWidth * 0.5f;
@@ -842,43 +848,62 @@ void Graphics::TransferDataToCPU()
 		GLCheckError();
 	}
 
-	unsigned char* dataSize = new unsigned char[m_nRenderWidth * m_nRenderHeight * 4];
+	m_pDataSize = new unsigned char[m_nRenderWidth * m_nRenderHeight * 4];
 
 	void* pboData = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 
 	// copy memory block from pixel buffer object to memory block on cpu
-	memcpy(dataSize, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
+	memcpy(m_pDataSize, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
 
-	std::cout << "PBO : " << static_cast<unsigned>(dataSize[8]) << std::endl;
+	//std::cout << "PBO : " << static_cast<unsigned>(m_pDataSize[8]) << std::endl;
 
 	if(glUnmapBuffer(GL_PIXEL_PACK_BUFFER) != GL_TRUE)
 		std::cout << "ERROR: PBO failed to unmap: Graphics::TransferDataToCPU()" << std::endl;
 
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-	delete[] dataSize;
 }
 
 //-----------------------------------------------------------------------------
 // Update eye independent values before scene is rendered
 //-----------------------------------------------------------------------------
-void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm){
+void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
+{
 
 	glm::vec3 cameraPosition;
 
-	if(!m_bDevMode){
+	if(!m_bDevMode)
+	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
-	} else {
+	} 
+	else 
+	{
 		m_matDevViewMatrix = glm::lookAt(m_vec3DevCamPos, m_vec3DevCamPos + m_vec3DevCamFront, m_vec3DevCamUp);	
 		m_mat4CurrentViewMatrix = m_matDevViewMatrix;
 		cameraPosition = m_vec3DevCamPos;
 	}
 
-	//if(!m_bPBOFirstFrame) TransferDataToCPU();	
+	if(m_bPBOFirstFrame)
+	{
+		m_pDataSize = nullptr;	
+	}
+	else if(!m_bPBOFirstFrame)
+	{
+		TransferDataToCPU();	
+
+	}
+
+	//std::cout << "PBO : " << static_cast<unsigned>(m_pDataSize[8]) << std::endl;
+	m_structPboInfo.pboSize = m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char);
+	//m_structPboInfo.pboPtr = new unsigned char[m_structPboInfo.pboSize];
+	//m_structPboInfo.pboPtr = m_pDataSize;
 
 	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1]);
+	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, m_pDataSize);
+
+	delete[] m_pDataSize;
+	//delete[] m_structPboInfo.pboPtr;
 
 	//std::cout << shaderData.size() << std::endl;
 	// write shaderData to file each frame to see output
@@ -957,8 +982,8 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 		GetControllerEvents(vrm);
 		RenderControllerAxes(vrm);
 		RenderStereoTargets(vrm);
-		//BlitDataTexture();
-		//WriteDataToPBO();
+		BlitDataTexture();
+		WriteDataToPBO();
 		RenderCompanionWindow();
 
 		vr::Texture_t leftEyeTexture = {(void*)(uintptr_t)leftEyeDesc.m_nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
@@ -971,8 +996,8 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 		m_fDeltaTime = currentFrame - m_fLastFrame;
 		DevProcessInput(m_pGLContext);
 		RenderStereoTargets(vrm);
-		//BlitDataTexture();
-		//WriteDataToPBO();
+		BlitDataTexture();
+		WriteDataToPBO();
 		RenderCompanionWindow();
 		m_fLastFrame = currentFrame;
 	} else if(!m_bDevMode && vrm == nullptr){
@@ -1465,6 +1490,9 @@ void Graphics::CleanUpGL(std::unique_ptr<VR_Manager>& vrm){
 		glfwTerminate();
 
 		fiveCell.exit();
+		//delete[] m_structPboInfo.pboPtr;
+		//delete[] m_pDataSize;
+
 	}
 }
 

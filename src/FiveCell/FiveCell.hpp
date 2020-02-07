@@ -28,6 +28,13 @@ public:
 		float aspect;
 	};
 
+	// struct to hold PBO info
+	struct PBOInfo
+	{
+		//unsigned char* pboPtr;
+		uint32_t pboSize;		
+	};
+
 	//bools to control machine learning
 	struct MachineLearning{
 		bool bRecord;
@@ -43,7 +50,7 @@ public:
 
 	bool setup(std::string csd);
 	bool BSetupRaymarchQuad(GLuint shaderProg);
-	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1);
+	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, unsigned char* pixelptr);
 	void draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
 
@@ -202,5 +209,6 @@ private:
 	double m_dLowFreqAvg;
 	double m_dHighFreqAvg;
 
+	
 };
 #endif

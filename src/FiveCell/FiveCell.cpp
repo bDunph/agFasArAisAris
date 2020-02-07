@@ -342,7 +342,16 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //*******************************************************************************************
 // Update Stuff Here
 //*******************************************************************************************
-void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1){
+void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, unsigned char* pixelptr){
+
+	if(pixelptr == nullptr)
+	{
+		std::cout << "nullllllllll" << std::endl;
+	} 
+	else 
+	{
+		std::cout << static_cast<unsigned>(pixelptr[0]) << std::endl;
+	}
 
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
@@ -678,49 +687,14 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::default_random_engine genGrainWaveform(rd());
 		float valGrainWaveform = floor(distGrainWaveform(genGrainWaveform));
 		*m_cspGrainWaveform = (MYFLT)valGrainWaveform;
-		
-		//random visual params
-
-		// size
-		std::uniform_real_distribution<float> distribution2(0.1f, 0.8f);
-		std::default_random_engine generator2 (rd());
-		sizeVal = distribution2(generator2);
-
-		// lowFreqVal scaling amount
-		std::uniform_real_distribution<float> distBinScale(2.0f, 100.0f);
-		std::default_random_engine genBinScale(rd());
-		valBinScale = distBinScale(genBinScale);
-
-		// theta angle scaling amount
-		std::uniform_real_distribution<float> distTheta(0.1f, 1.0f);
-		std::default_random_engine genTheta(rd());
-		valThetaScale = distTheta(genTheta);
-
-		// phi angle scaling amount
-		std::uniform_real_distribution<float> distPhi(0.1f, 1.0f);
-		std::default_random_engine genPhi(rd());
-		valPhiScale = distPhi(genPhi);	
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
 	// record training examples
 	if(machineLearning.bRecord)
 	{
-		inputData.push_back((double)controllerWorldPos_0.x); //0	
-		inputData.push_back((double)controllerWorldPos_0.y); //1	
-		inputData.push_back((double)controllerWorldPos_0.z); //2	
-		inputData.push_back((double)controllerWorldPos_1.x); //3
-		inputData.push_back((double)controllerWorldPos_1.y); //4
-		inputData.push_back((double)controllerWorldPos_1.z); //5
-		inputData.push_back((double)controllerQuat_0.w); //6
-		inputData.push_back((double)controllerQuat_0.x); //7
-		inputData.push_back((double)controllerQuat_0.y); //8
-		inputData.push_back((double)controllerQuat_0.z); //9
-		inputData.push_back((double)controllerQuat_1.w); //10
-		inputData.push_back((double)controllerQuat_1.x); //11
-		inputData.push_back((double)controllerQuat_1.y); //12
+		//for(int i = 0; i
 		inputData.push_back((double)controllerQuat_1.z); //13
-
 
 		outputData.push_back((double)*m_cspGrainFreq); //0
 		outputData.push_back((double)*m_cspGrainPhase); //1
@@ -731,10 +705,6 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
 		outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
 		outputData.push_back((double)*m_cspGrainWaveform); //8
-		outputData.push_back((double)sizeVal); //9
-		outputData.push_back((double)valBinScale); //10
-		outputData.push_back((double)valThetaScale); //11
-		outputData.push_back((double)valPhiScale); //12
 
 #ifdef __APPLE__
 		trainingData.recordSingleElement(inputData, outputData);	
