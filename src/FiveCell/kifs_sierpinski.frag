@@ -10,6 +10,8 @@
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
 
+uniform float lowFreqVal;
+
 in vec4 nearPos;
 in vec4 farPos;
 //in vec2 texCoordsOut;
@@ -58,6 +60,7 @@ float DE(vec3 p)
         
         float orbPoint = dot(p, p);
         orbit = min(orbit, vec4(abs(p), orbPoint));
+	orbit *= 1.0 + (lowFreqVal * 10.0);
         
         if(length(p) > float(MAX_ITERATIONS)) break;
         
@@ -74,7 +77,7 @@ float march(vec3 o, vec3 r)
     for(int i = 0; i < MAX_ITERATIONS; ++i)
     {
      	vec3 p = o + r * t;
-        float d = DE(p);
+        float d = DE(p * 1.0 + lowFreqVal);
         if(d < EPSILON) break;
         t += d * 0.5;
         ind++;

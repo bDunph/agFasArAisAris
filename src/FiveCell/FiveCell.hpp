@@ -31,7 +31,7 @@ public:
 	// struct to hold PBO info
 	struct PBOInfo
 	{
-		//unsigned char* pboPtr;
+		unsigned char* pboPtr;
 		uint32_t pboSize;		
 	};
 
@@ -50,7 +50,7 @@ public:
 
 	bool setup(std::string csd);
 	bool BSetupRaymarchQuad(GLuint shaderProg);
-	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, unsigned char* pixelptr);
+	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo);
 	void draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
 

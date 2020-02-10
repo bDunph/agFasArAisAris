@@ -21,7 +21,6 @@
 
 #define PI 3.14159265
 
-
 //******** TERRIBLE GLOBAL VARIABLES HAVE TO FIX THIS WHEN I GET A CHANCE**********//
 bool m_bFirstMouse = true;
 double m_dLastX = 320.0f;
@@ -848,12 +847,12 @@ void Graphics::TransferDataToCPU()
 		GLCheckError();
 	}
 
-	m_pDataSize = new unsigned char[m_nRenderWidth * m_nRenderHeight * 4];
+	m_structPboInfo.pboPtr = new unsigned char[m_nRenderWidth * m_nRenderHeight * 4];
 
 	void* pboData = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 
 	// copy memory block from pixel buffer object to memory block on cpu
-	memcpy(m_pDataSize, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
+	memcpy(m_structPboInfo.pboPtr, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
 
 	//std::cout << "PBO : " << static_cast<unsigned>(m_pDataSize[8]) << std::endl;
 
@@ -886,7 +885,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	if(m_bPBOFirstFrame)
 	{
-		m_pDataSize = nullptr;	
+		m_structPboInfo.pboPtr = nullptr;	
 	}
 	else if(!m_bPBOFirstFrame)
 	{
@@ -900,10 +899,10 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	//m_structPboInfo.pboPtr = m_pDataSize;
 
 	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, m_pDataSize);
+	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo);
 
-	delete[] m_pDataSize;
-	//delete[] m_structPboInfo.pboPtr;
+	//delete[] m_pDataSize;
+	delete[] m_structPboInfo.pboPtr;
 
 	//std::cout << shaderData.size() << std::endl;
 	// write shaderData to file each frame to see output

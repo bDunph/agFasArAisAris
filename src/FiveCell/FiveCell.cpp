@@ -342,16 +342,9 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //*******************************************************************************************
 // Update Stuff Here
 //*******************************************************************************************
-void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, unsigned char* pixelptr){
+void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
 
-	if(pixelptr == nullptr)
-	{
-		std::cout << "nullllllllll" << std::endl;
-	} 
-	else 
-	{
-		std::cout << static_cast<unsigned>(pixelptr[0]) << std::endl;
-	}
+	
 
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
@@ -615,6 +608,17 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 //*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
+	// test to see if pboInfo struct is sending data
+	//if(pboInfo.pboPtr == nullptr)
+	//{
+	//	std::cout << "nullllllllll" << std::endl;
+	//} 
+	//else 
+	//{
+	//	std::cout << static_cast<unsigned>(pboInfo.pboPtr[12]) << std::endl;
+	//	std::cout << pboInfo.pboSize << std::endl;
+	//}
+
 	bool currentRandomState = m_bPrevRandomState;
 
 	// randomise parameters
@@ -693,8 +697,11 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	// record training examples
 	if(machineLearning.bRecord)
 	{
-		//for(int i = 0; i
-		inputData.push_back((double)controllerQuat_1.z); //13
+		//input every 100th orbit value from frag shader = 51,840 on the mbp 
+		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		{
+			inputData.push_back((double)pboInfo.pboPtr[i]); //13
+		}
 
 		outputData.push_back((double)*m_cspGrainFreq); //0
 		outputData.push_back((double)*m_cspGrainPhase); //1
@@ -744,21 +751,11 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
-		modelIn.push_back((double)controllerWorldPos_0.x); //0
-		modelIn.push_back((double)controllerWorldPos_0.y); //1
-		modelIn.push_back((double)controllerWorldPos_0.z); //2
-		modelIn.push_back((double)controllerWorldPos_1.x); //3
-		modelIn.push_back((double)controllerWorldPos_1.y); //4
-		modelIn.push_back((double)controllerWorldPos_1.z); //5
-		modelIn.push_back((double)controllerQuat_0.w); //6
-		modelIn.push_back((double)controllerQuat_0.x); //7
-		modelIn.push_back((double)controllerQuat_0.y); //8
-		modelIn.push_back((double)controllerQuat_0.z); //9
-		modelIn.push_back((double)controllerQuat_1.w); //10
-		modelIn.push_back((double)controllerQuat_1.x); //11
-		modelIn.push_back((double)controllerQuat_1.y); //12
-		modelIn.push_back((double)controllerQuat_1.z); //13
-
+		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		{
+			modelIn.push_back((double)pboInfo.pboPtr[i]); 
+		}
+		
 		modelOut = staticRegression.run(modelIn);
 
 		if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
@@ -796,22 +793,6 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
 		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
-
-		if(modelOut[9] > 0.8f) modelOut[9] = 0.8f;
-		if(modelOut[9] < 0.1f) modelOut[9] = 0.1f;
-		sizeVal = (float)modelOut[9];
- 
-		if(modelOut[10] > 100.0f) modelOut[10] = 100.0f;
-		if(modelOut[10] < 2.0f) modelOut[10] = 2.0f;
-		valBinScale = (float)modelOut[10];
-
-		if(modelOut[11] > 1.0f) modelOut[11] = 1.0f;
-		if(modelOut[11] < 0.1f) modelOut[11] = 0.1f;
-		valThetaScale = (float)modelOut[11];
-
-		if(modelOut[12] > 1.0f) modelOut[12] = 1.0f;
-		if(modelOut[12] < 0.1f) modelOut[12] = 0.1f;
-		valPhiScale = (float)modelOut[12];
 
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
@@ -829,20 +810,10 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
-		modelIn.push_back((double)controllerWorldPos_0.x); //0
-		modelIn.push_back((double)controllerWorldPos_0.y); //1
-		modelIn.push_back((double)controllerWorldPos_0.z); //2
-		modelIn.push_back((double)controllerWorldPos_1.x); //3
-		modelIn.push_back((double)controllerWorldPos_1.y); //4
-		modelIn.push_back((double)controllerWorldPos_1.z); //5
-		modelIn.push_back((double)controllerQuat_0.w); //6
-		modelIn.push_back((double)controllerQuat_0.x); //7
-		modelIn.push_back((double)controllerQuat_0.y); //8
-		modelIn.push_back((double)controllerQuat_0.z); //9
-		modelIn.push_back((double)controllerQuat_1.w); //10
-		modelIn.push_back((double)controllerQuat_1.x); //11
-		modelIn.push_back((double)controllerQuat_1.y); //12
-		modelIn.push_back((double)controllerQuat_1.z); //13
+		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		{
+			modelIn.push_back((double)pboInfo.pboPtr[i]); 
+		}
 
 		modelOut = staticRegression.run(modelIn);
 		
@@ -881,22 +852,6 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
 		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
-
-		if(modelOut[9] > 0.8f) modelOut[9] = 0.8f;
-		if(modelOut[9] < 0.1f) modelOut[9] = 0.1f;
-		sizeVal = (float)modelOut[9];
-		
-		if(modelOut[10] > 100.0f) modelOut[10] = 100.0f;
-		if(modelOut[10] < 2.0f) modelOut[10] = 2.0f;
-		valBinScale = (float)modelOut[10];
-		
-		if(modelOut[11] > 1.0f) modelOut[11] = 1.0f;
-		if(modelOut[11] < 0.1f) modelOut[11] = 0.1f;
-		valThetaScale = (float)modelOut[11];
-
-		if(modelOut[12] > 1.0f) modelOut[12] = 1.0f;
-		if(modelOut[12] < 0.1f) modelOut[12] = 0.1f;
-		valPhiScale = (float)modelOut[12];
 
 		bool prevRunMsgState = m_bCurrentRunMsgState;
 		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)
@@ -1027,9 +982,9 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
 	glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
 	glUniform1f(m_gliTimeValLoc, glfwGetTime()*.025f);
-	glUniform1f(m_gliValBinScaleLoc, valBinScale);
-	glUniform1f(m_gliThetaAngleLoc, valThetaScale);
-	glUniform1f(m_gliPhiAngleLoc, valPhiScale);
+	//glUniform1f(m_gliValBinScaleLoc, valBinScale);
+	//glUniform1f(m_gliThetaAngleLoc, valThetaScale);
+	//glUniform1f(m_gliPhiAngleLoc, valPhiScale);
 	
 	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 

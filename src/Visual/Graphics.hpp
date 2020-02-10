@@ -215,7 +215,7 @@ private:
 	bool m_bWriteInProgress;
 	
 	GLsync sync;
-	unsigned char* m_pDataSize;
+	//unsigned char* m_pDataSize;
 	bool m_bPboIndex;
 
 	GLuint m_gluiDummyTexture;
