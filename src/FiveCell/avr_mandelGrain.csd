@@ -281,6 +281,9 @@ iwinshape = 0
 ; route output from instrument 2 above to pvsanal
 fsig	pvsanal	gaOut8,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
+kcent	pvscent	fsig
+	chnset	kcent,	"specCentOut"
+
 ; get info from pvsanal and print
 ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
 print	ioverlap,	inbins,	iwindowsize,	iformat		

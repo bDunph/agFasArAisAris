@@ -5,12 +5,15 @@
 #define Iterations 32
 #define MAX_ITERATIONS 100
 #define Scale 2.0
-#define Offset 3.0
+#define Offset 9.0
 #define NUM_NOISE_OCTAVES 5
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
+#define NUM_FFT_BINS 512
 
+uniform float specCentVal;
 uniform float lowFreqVal;
+uniform float fftAmpBins[NUM_FFT_BINS];
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -21,6 +24,42 @@ layout(location = 1) out vec4 orbitOut;
 
 int index;
 vec4 orbit;
+
+// hash, noise and fbm implementations from morgan3d
+// https://www.shadertoy.com/view/4dS3Wd
+// By Morgan McGuire @morgan3d, http://graphicscodex.com
+// Reuse permitted under the BSD license.
+
+float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+
+float noise(vec3 x) {
+    const vec3 step = vec3(110, 241, 171);
+
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+ 
+    // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
+    // incremental change to the 1D based on the 3D -> 1D wrapping
+    float n = dot(i, step);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+}
+
+float fbm(vec3 x) {
+	float v = 0.0;
+	float a = 0.5;
+	vec3 shift = vec3(100);
+	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
+		v += a * noise(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -60,7 +99,7 @@ float DE(vec3 p)
         
         float orbPoint = dot(p, p);
         orbit = min(orbit, vec4(abs(p), orbPoint));
-	orbit *= 1.0 + (lowFreqVal * 10.0);
+	//orbit *= 1.0 + (lowFreqVal * (gl_FragCoord.x / gl_FragCoord.y));
         
         if(length(p) > float(MAX_ITERATIONS)) break;
         
@@ -77,7 +116,10 @@ float march(vec3 o, vec3 r)
     for(int i = 0; i < MAX_ITERATIONS; ++i)
     {
      	vec3 p = o + r * t;
-        float d = DE(p * 1.0 + lowFreqVal);
+        //float d = DE(p * 1.0 + lowFreqVal);
+	float d = DE(p);
+	vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
+	//float d = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
         if(d < EPSILON) break;
         t += d * 0.5;
         ind++;
@@ -96,41 +138,7 @@ vec3 norm(vec3 pos, vec3 dir)
                 			DE(pos + vec3(0.0, 0.0, EPSILON)) - DE(pos - vec3(0.0, 0.0, EPSILON))));
 }
 
-// hash, noise and fbm implementations from morgan3d
-// https://www.shadertoy.com/view/4dS3Wd
-// By Morgan McGuire @morgan3d, http://graphicscodex.com
-// Reuse permitted under the BSD license.
 
-float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
-
-float noise(vec3 x) {
-    const vec3 step = vec3(110, 241, 171);
-
-    vec3 i = floor(x);
-    vec3 f = fract(x);
- 
-    // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
-    // incremental change to the 1D based on the 3D -> 1D wrapping
-    float n = dot(i, step);
-
-    vec3 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
-               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
-}
-
-float fbm(vec3 x) {
-	float v = 0.0;
-	float a = 0.5;
-	vec3 shift = vec3(100);
-	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
-		v += a * noise(x);
-		x = x * 2.0 + shift;
-		a *= 0.5;
-	}
-	return v;
-}
 
 // ambient occlusion implementation from 
 // http://www.pouet.net/topic.php?which=7931&page=1&x=3&y=14
@@ -165,13 +173,18 @@ void main()
 	vec3 norm = norm(pos, rayDir);
 	    
 	// material colour
+	float pixToBin = mod((gl_FragCoord.x / gl_FragCoord.y), NUM_FFT_BINS);
+	int fftIndex = int(floor(pixToBin));
+
+	float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
+
 	float sq = float(Iterations) * float(Iterations);
 	float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
-	vec3 matCol1 = vec3(pow(0.25, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
-	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.15, 1.0 / log(smootherVal)), pow(0.34, 1.0 / log(smootherVal)));
-	vec3 matCol3 = vec3(pow(smootherVal, 0.15), pow(smootherVal, 0.15), pow(1.0 / smootherVal, 0.84));
-	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.y, 0.0, 1.0));
-	totMatCol = mix(totMatCol, matCol3, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0));
+	vec3 matCol1 = vec3(pow(0.85, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
+	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
+	//vec3 matCol3 = vec3(pow(specMappedVal, smootherVal), pow(specMappedVal, smootherVal), pow(specMappedVal, smootherVal));
+	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*specMappedVal, 0.0, 1.0));
+	//totMatCol = mix(totMatCol, matCol3, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + specMappedVal));
 	    
 	// lighting
 	float ao = ao(pos, norm, 0.5, 5.0);

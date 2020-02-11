@@ -378,12 +378,6 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	//std::cout << "Average amplitudes in low bins: " << m_dLowFreqAvg << std::endl;
 	//std::cout << "Average amplitudes in high bins: " << m_dHighFreqAvg << std::endl;
 
-	//matrices for raymarch shaders
-	//modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
-	//inverseMVEMat = glm::inverse(modelViewEyeMat);
-	//modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
-	//inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
-
 	glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
 
@@ -427,197 +421,8 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
 //*********************************************************************************************
-// Calculate escape values of coordinates along a ray using mandelbulb formula
-// Send these values as an array to CSound to use as a spectral filter
-//*********************************************************************************************
-
-	// lay out a grid of rays centered at the origin to sample coordinates from
-//	std::vector<glm::vec3> rayOrigin;
-//	std::vector<glm::vec3> rayDirection;
-//	std::vector<float> step;
-//	bool initialRay = true;
-//	float interval = 0.8f;
-//
-//for(int y = 0; y < NUM_RAYS; y++){
-//
-//	float yPos1, yPosMinus, yPosPlus;
-//	if(initialRay){
-//		yPos1 = 0.0f;
-//		yPosMinus = 0.0f;
-//		yPosPlus = 0.0f;
-//	} else {
-//		yPosMinus = -y * interval;
-//		yPosPlus = y * interval;
-//	}
-//	
-//	for(int i = 0; i < NUM_RAYS; i++){
-//
-//		float xPos1, xPosMinus, xPosPlus;
-//		if(initialRay){
-//			xPos1 = 0.0f;
-//			glm::vec3 rayStart = glm::vec3(xPos1, yPos1, -3.0f);
-//			rayOrigin.push_back(rayStart);
-//			glm::vec3 rayEndPointInitial = glm::vec3(xPos1, yPos1, 3.0f);
-//			glm::vec3 rayDiff = rayEndPointInitial - rayStart;
-//			glm::vec3 rayDir = glm::normalize(rayDiff);
-//			rayDirection.push_back(rayDir);
-//			float length = glm::length(rayDiff); 
-//			float rayStep = length / MAX_MANDEL_STEPS;
-//			step.push_back(rayStep);
-//			initialRay = false;
-//
-//		} else {
-//			xPosMinus = -i * interval;
-//			xPosPlus = i * interval;
-//
-//			glm::vec3 rayStartMinus = glm::vec3(xPosMinus, yPosMinus, -3.0f);
-//			glm::vec3 rayStartPlus = glm::vec3(xPosPlus, yPosPlus, -3.0f);
-//
-//			rayOrigin.push_back(rayStartMinus);
-//			rayOrigin.push_back(rayStartPlus);
-//
-//			glm::vec3 rayEndPointMinus = glm::vec3(xPosMinus, yPosMinus, 3.0f);
-//			glm::vec3 rayEndPointPlus = glm::vec3(xPosPlus, yPosPlus, 3.0f);
-//
-//			glm::vec3 rayDiffMinus = rayEndPointMinus - rayStartMinus;
-//			glm::vec3 rayDiffPlus = rayEndPointPlus - rayStartPlus;
-//
-//			glm::vec3 rayDirMinus = glm::normalize(rayDiffMinus);
-//			glm::vec3 rayDirPlus = glm::normalize(rayDiffPlus);
-//
-//			rayDirection.push_back(rayDirMinus);
-//			rayDirection.push_back(rayDirPlus);
-//
-//			float lengthMinus = glm::length(rayDiffMinus); 
-//			float lengthPlus = glm::length(rayDiffPlus); 
-//
-//			float rayStepMinus = lengthMinus / MAX_MANDEL_STEPS;
-//			float rayStepPlus = lengthPlus / MAX_MANDEL_STEPS;
-//
-//			step.push_back(rayStepMinus);
-//			step.push_back(rayStepPlus);
-//
-//			if(yPosPlus && yPosMinus && xPosMinus && xPosPlus){
-//	
-//				glm::vec3 rayStartNxPy = glm::vec3(xPosMinus, yPosPlus, -3.0f);
-//				glm::vec3 rayStartPxNy = glm::vec3(xPosPlus, yPosMinus, -3.0f);
-//
-//				rayOrigin.push_back(rayStartNxPy);
-//				rayOrigin.push_back(rayStartPxNy);
-//
-//				glm::vec3 rayEndNxPy = glm::vec3(xPosMinus, yPosPlus, 3.0f);
-//				glm::vec3 rayEndPxNy = glm::vec3(xPosPlus, yPosMinus, 3.0f);		
-//
-//				glm::vec3 rayDiffNxPy = rayEndNxPy - rayStartNxPy;
-//				glm::vec3 rayDiffPxNy = rayEndPxNy = rayStartPxNy;			
-//	
-//				glm::vec3 rayDirNxPy = glm::normalize(rayDiffNxPy);
-//				glm::vec3 rayDirPxNy = glm::normalize(rayDiffPxNy);
-//
-//				rayDirection.push_back(rayDirNxPy);
-//				rayDirection.push_back(rayDirPxNy);
-//
-//				float lengthNxPy = glm::length(rayDiffNxPy);
-//				float lengthPxNy = glm::length(rayDiffPxNy);	
-//
-//				float rayStepNxPy = lengthNxPy / MAX_MANDEL_STEPS;
-//				float rayStepPxNy = lengthPxNy / MAX_MANDEL_STEPS;
-//
-//				step.push_back(rayStepNxPy);
-//				step.push_back(rayStepPxNy);		
-//			}
-//		}
-//	}
-//}
-	
-	//march positions along ray
-	//must be power of two in order to send to Csound table
-	//m_iMaxSteps = MAX_MANDEL_STEPS;
-	//*m_cspMaxSteps = (MYFLT)m_iMaxSteps;
-
-	//float start = 0.0;
-	//int iterations = 50;
-	//float power = 3.0f;
-	//float theta = 0.0f;
-	//float phi = 0.0f;
-	//float r = 0.0f;
-	//double count = 0.0f;
-	//int rayCount = rayOrigin.size();
-	//std::vector<std::vector<float>> escapeVals;
-	//std::vector<float> rays;
-
-	//// make rays vector same size as rayOrigins
-	//for(int i = 0; i < rayCount; i++) rays.push_back((float)i);
-
-	//// loop to step through rays
-	//for(int i = 0; i < rayCount; i++){
-
-	//	//glm::vec3 position = rayOrigin + glm::vec3(sin(glfwGetTime()), 0.0f, 0.0f);	
-	//	glm::vec3 position = rayOrigin[i];	
-
-	//	// loop to step along the ray
-	//	for(int j = 0; j < m_iMaxSteps; j++){
-
-	//		glm::vec3 z = position;	
-
-	//		// loop to execute mandelbulb formula
-	//		for(int k = 0; k < iterations; k++){
-
-	//			// mandelbulb formula adapted from 
-	//			// https://www.shadertoy.com/view/tdtGRj
-	//			r = length(z);
-	//			theta = acos(z.y / r) * sineControlVal;
-	//			phi = atan2(z.z, z.x) * sineControlVal;
-	//			theta *= power;
-	//			phi *= power;
-	//			z = pow(r, power) * glm::vec3(sin(theta) * cos(phi), cos(theta), sin(phi) * sin(theta)) + position;
-
-	//			count = (double)j;
-
-	//			if(length(z) > 2.0f) break;
-
-	//		}
-
-	//		//map count value to 0 - 1 range
-	//		count /= (double)iterations;
-
-	//		//values to CSound
-	//		rays.push_back((float)count);
-
-	//		position += step[i] * rayDirection[i];
-	//	}	
-	//	
-	//	escapeVals.push_back(rays);		
-	//}
-
-	//float avgVal = 0.0f;
-
-	//for(int i = 0; i < m_iMaxSteps; i++){
-
-	//	for(int j = 0; j < rayCount; j++){
-
-	//		float escVal = escapeVals[j][i];
-	//		
-	//		avgVal += escVal;
-	//	}
-
-	//	avgVal /= rayOrigin.size();
-	//	*m_cspMandelEscapeVals[i] = (MYFLT)avgVal;
-	//}
-
-//*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
-	// test to see if pboInfo struct is sending data
-	//if(pboInfo.pboPtr == nullptr)
-	//{
-	//	std::cout << "nullllllllll" << std::endl;
-	//} 
-	//else 
-	//{
-	//	std::cout << static_cast<unsigned>(pboInfo.pboPtr[12]) << std::endl;
-	//	std::cout << pboInfo.pboSize << std::endl;
-	//}
 
 	bool currentRandomState = m_bPrevRandomState;
 
@@ -980,7 +785,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	glUniform1f(m_gliLowFreqAvgLoc, m_dLowFreqAvg);
 	glUniform1f(m_gliSineControlValLoc, sineControlVal);
 	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
-	glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
+	//glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
 	glUniform1f(m_gliTimeValLoc, glfwGetTime()*.025f);
 	//glUniform1f(m_gliValBinScaleLoc, valBinScale);
 	//glUniform1f(m_gliThetaAngleLoc, valThetaScale);
