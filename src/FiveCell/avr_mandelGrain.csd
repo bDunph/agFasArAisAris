@@ -70,7 +70,7 @@ instr 2 ; Modal Instrument
 ; get control value from application
 ;kSineControlVal	chnget	"sineControlVal"
 
-iamp    init ampdbfs(-12)
+iamp    init ampdbfs(-18)
 
 ;kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 ;kWgbowAmpVal chnget "randAmp"
@@ -89,10 +89,10 @@ kcpsMax += 3
 
 kFreqScale	rspline	kRangeMin,	kRangeMax,	kcpsMin,	kcpsMax
 
-kRangeMin2	gauss	kGaussRange * 0.33
-kRangeMin2 += -15
-kRangeMax2	gauss	kGaussRange * 0.33
-kRangeMax2 += -9
+kRangeMin2	gauss	kGaussRange * 0.1
+kRangeMin2 += -18
+kRangeMax2	gauss	kGaussRange * 0.1
+kRangeMax2 += -12
 
 kWgbowAmpVal	rspline	kRangeMin2,	kRangeMax2,	kcpsMin,	kcpsMax
 
@@ -117,10 +117,10 @@ kRangeMax5 += 10
 
 kWgbowVibF	rspline	kRangeMin5,	kRangeMax5,	kcpsMin,	kcpsMax
 
-kRangeMin6	gauss	kGaussRange * 0.33
-kRangeMin6 += -21	
-kRangeMax6	gauss	kGaussRange * 0.33
-kRangeMax6 += -15	
+kRangeMin6	gauss	kGaussRange * 0.1
+kRangeMin6 += -24	
+kRangeMax6	gauss	kGaussRange * 0.1
+kRangeMax6 += -18	
 
 kWgbowVibAmp	rspline	kRangeMin6,	kRangeMax6,	kcpsMin,	kcpsMax
 
@@ -157,15 +157,15 @@ aexc	wgbow	kamp,	kfreq,	kpres,	krat,	kvibf,	kvamp
 aexc limit	aexc,	0,	3*iamp 
 
 ; ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-ares1	mode	aexc,	100 + kGaussRange,	420 + kGaussRange
+ares1	mode	aexc,	100 + kGaussRange,	220 + kGaussRange * 0.2
 
-ares2	mode	aexc,	142 + kGaussRange,	480 + kGaussRange
+ares2	mode	aexc,	142 + kGaussRange,	280 + kGaussRange * 0.2
 
-ares3	mode	aexc,	211 + kGaussRange,	500 + kGaussRange
+ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange * 0.2
 
-ares4	mode	aexc,	247 + kGaussRange,	520 + kGaussRange
+ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange * 0.2
 
-ares5	mode	aexc,	467.9 + kGaussRange,	12 + kGaussRange	
+ares5	mode	aexc,	467.9 + kGaussRange,	12 + kGaussRange * 0.2	
 
 ;ares6	mode	aexc,	3364.2, 600	
 
@@ -326,10 +326,8 @@ ioverlap = ifftsize / 4
 iwinsize = ifftsize * 2
 iwinshape = 0
 
-aSig	sum	gaOut2,	gaOut8
-
 ; route output from instrument 2 above to pvsanal
-fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
+fsig	pvsanal	gaOut8,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
@@ -378,6 +376,7 @@ kDistanceVal chnget "distance"
 kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the distance changing too quickly
 
 asig	sum	gaOut2, gaOut8
+asig *= 0.2
 
 aLeftSig, aRightSig  hrtfmove2	asig, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 aLeftSig = aLeftSig / (kDist + 0.00001)

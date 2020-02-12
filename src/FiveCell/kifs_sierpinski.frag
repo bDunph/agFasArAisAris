@@ -99,7 +99,8 @@ float DE(vec3 p)
         p = p * Scale - Offset * (Scale - 1.0);
         
         float orbPoint = dot(p, p);
-        orbit = min(orbit, vec4(abs(p), orbPoint));
+	int ind = int(floor(mod(timeVal, NUM_FFT_BINS)));
+        orbit = min(orbit, vec4(abs(p), pow(orbPoint, fftAmpBins[ind])));
 	//orbit *= 1.0 + (lowFreqVal * (gl_FragCoord.x / gl_FragCoord.y));
         
         if(length(p) > float(MAX_ITERATIONS)) break;
@@ -188,7 +189,7 @@ void main()
 	float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
 	vec3 matCol1 = vec3(pow(0.85, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
 	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
-	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*(specMappedVal * fbm(gl_FragCoord.xyz)), 0.0, 1.0));
+	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*(pow(specMappedVal, fbm(gl_FragCoord.xyz))), 0.0, 1.0));
 	totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 	    
 	// lighting
