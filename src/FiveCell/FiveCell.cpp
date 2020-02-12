@@ -143,6 +143,13 @@ bool FiveCell::setup(std::string csd)
 		return false;
 	}
 
+	const char* gaussRange = "gaussRange";
+	if(session->GetChannelPtr(m_cspGaussRange, gaussRange, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the gaussRange value" << std::endl;
+		return false;
+	}
+
 	//for(int i = 0; i < MAX_MANDEL_STEPS; i++){
 
 	//	std::string mandelEscapeValString = "mandelEscapeVal" + std::to_string(i);
@@ -496,6 +503,15 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::default_random_engine genGrainWaveform(rd());
 		float valGrainWaveform = floor(distGrainWaveform(genGrainWaveform));
 		*m_cspGrainWaveform = (MYFLT)valGrainWaveform;
+
+		// wgbow params
+		
+		// percentage deviation range
+		std::uniform_real_distribution<float> distGaussRange(1.0f, 10.0f);
+		std::default_random_engine genGaussRange(rd());
+		float valGaussRange = floor(distGaussRange(genGaussRange));
+		*m_cspGaussRange = (MYFLT)valGaussRange;
+
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
@@ -517,6 +533,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
 		outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
 		outputData.push_back((double)*m_cspGrainWaveform); //8
+		outputData.push_back((double)*m_cspGaussRange); //9
 
 #ifdef __APPLE__
 		trainingData.recordSingleElement(inputData, outputData);	
@@ -599,6 +616,10 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
 
+		if(modelOut[9] > 10.0f) modelOut[9] = 10.0f;
+		if(modelOut[9] < 1.0f) modelOut[9] = 1.0f;
+		*m_cspGaussRange = (MYFLT)modelOut[9];
+
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
 		modelOut.clear();
@@ -657,6 +678,10 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
 		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
+
+		if(modelOut[9] > 10.0f) modelOut[9] = 10.0f;
+		if(modelOut[9] < 1.0f) modelOut[9] = 1.0f;
+		*m_cspGaussRange = (MYFLT)modelOut[9];
 
 		bool prevRunMsgState = m_bCurrentRunMsgState;
 		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)

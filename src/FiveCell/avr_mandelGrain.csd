@@ -63,75 +63,123 @@ aOut0	pvsynth	fmask
 
 endin
 
-;;**************************************************************************************
-;instr 2 ; Modal Instrument
-;;**************************************************************************************
-;
-;; get control value from application
+;**************************************************************************************
+instr 2 ; Modal Instrument
+;**************************************************************************************
+
+; get control value from application
 ;kSineControlVal	chnget	"sineControlVal"
-;
-;iamp    init ampdbfs(-12)
-;
+
+iamp    init ampdbfs(-12)
+
 ;kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 ;kWgbowAmpVal chnget "randAmp"
 ;kWgbowPressureVal chnget "randPressure"
 ;kWgbowPosVal chnget "randPos"
+kGaussRange	chnget	"gaussRange"
+
+kRangeMin	gauss	kGaussRange	
+kRangeMin += 65
+kRangeMax	gauss	kGaussRange
+kRangeMax += 80	
+kcpsMin		gauss	kGaussRange * 0.1
+kcpsMin += 2
+kcpsMax		gauss	kGaussRange * 0.1
+kcpsMax += 3
+
+kFreqScale	rspline	kRangeMin,	kRangeMax,	kcpsMin,	kcpsMax
+
+kRangeMin2	gauss	kGaussRange * 0.33
+kRangeMin2 += -15
+kRangeMax2	gauss	kGaussRange * 0.33
+kRangeMax2 += -9
+
+kWgbowAmpVal	rspline	kRangeMin2,	kRangeMax2,	kcpsMin,	kcpsMax
+
+kRangeMin3	gauss	kGaussRange * 0.1
+kRangeMin3 += 3	
+kRangeMax3	gauss	kGaussRange * 0.1
+kRangeMax3 += 4	
+
+kWgbowPressureVal	rspline	kRangeMin3,	kRangeMax3,	kcpsMin,	kcpsMax
+
+kRangeMin4	gauss	kGaussRange * 0.004
+kRangeMin4 += 0.11	
+kRangeMax4	gauss	kGaussRange * 0.004
+kRangeMax4 += 0.15	
+
+kWgbowPosVal	rspline	kRangeMin4,	kRangeMax4,	kcpsMin,	kcpsMax
+
+kRangeMin5	gauss	kGaussRange * 0.05
+kRangeMin5 += 2	
+kRangeMax5	gauss	kGaussRange * 0.05
+kRangeMax5 += 10	
+
+kWgbowVibF	rspline	kRangeMin5,	kRangeMax5,	kcpsMin,	kcpsMax
+
+kRangeMin6	gauss	kGaussRange * 0.33
+kRangeMin6 += -21	
+kRangeMax6	gauss	kGaussRange * 0.33
+kRangeMax6 += -15	
+
+kWgbowVibAmp	rspline	kRangeMin6,	kRangeMax6,	kcpsMin,	kcpsMax
+
+; mallet excitator----------------------------------
+
+; to simulate the shock between the excitator and the resonator
+;krand	random	1,	10	
+;ashock  mpulse ampdbfs(-1), krand,	2
 ;
-;; mallet excitator----------------------------------
+;; felt excitator from mode.csd
+;;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
+;aexc1	mode	ashock,	80,	8
+;aexc1 = aexc1 * iamp
 ;
-;; to simulate the shock between the excitator and the resonator
-;;krand	random	1,	10	
-;;ashock  mpulse ampdbfs(-1), krand,	2
-;;
-;;; felt excitator from mode.csd
-;;;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
-;;aexc1	mode	ashock,	80,	8
-;;aexc1 = aexc1 * iamp
-;;
-;;;aexc2	mode	ashock,	188 * (kFreqScale * 1.0),	3
-;;aexc2	mode	ashock,	188,	3
-;;aexc2 = aexc2 * iamp
-;;
-;;aexc	sum	aexc1,	aexc2
+;;aexc2	mode	ashock,	188 * (kFreqScale * 1.0),	3
+;aexc2	mode	ashock,	188,	3
+;aexc2 = aexc2 * iamp
 ;
-;; bow excitator-------------------------------------
-;
-;kamp = ampdbfs(-24) * kWgbowAmpVal 
-;kfreq = 55 + kFreqScale 
-;kpres = kWgbowPressureVal
-;krat = kWgbowPosVal 
-;kvibf = 3
-;kvamp = ampdbfs(-24);ampdbfs(-5.995) + (0.01 * kSineControlVal)
-;
-;aexc	wgbow	kamp,	kfreq,	kpres,	krat,	kvibf,	kvamp
-;
-;;"Contact" condition : when aexc reaches 0, the excitator looses 
-;;contact with the resonator, and stops "pushing it"
-;aexc limit	aexc,	0,	3*iamp 
-;
-;; Wine Glass with ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-;;ares1	mode	aexc,	220 * (kFreqScale + 1),	420 ; A3 fundamental frequency
-;ares1	mode	aexc,	220,	420 ; A3 fundamental frequency
-;
-;ares2	mode	aexc,	510.4,	480
-;
-;ares3	mode	aexc,	935,	500
-;
-;ares4	mode	aexc,	1458.6,	520
-;
-;ares5	mode	aexc,	2063.6,	540; - (kSineControlVal * 100)
-;
-;ares	sum	ares1,	ares2,	ares3,	ares4,	ares5
-;
+;aexc	sum	aexc1,	aexc2
+
+; bow excitator-------------------------------------
+
+kamp = ampdbfs(kWgbowAmpVal)
+kfreq = kFreqScale 
+kpres = kWgbowPressureVal
+krat = kWgbowPosVal 
+kvibf = kWgbowVibF 
+kvamp = ampdbfs(kWgbowVibAmp)
+
+aexc	wgbow	kamp,	kfreq,	kpres,	krat,	kvibf,	kvamp
+
+;"Contact" condition : when aexc reaches 0, the excitator looses 
+;contact with the resonator, and stops "pushing it"
+aexc limit	aexc,	0,	3*iamp 
+
+; ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
+ares1	mode	aexc,	100 + kGaussRange,	420 + kGaussRange
+
+ares2	mode	aexc,	142 + kGaussRange,	480 + kGaussRange
+
+ares3	mode	aexc,	211 + kGaussRange,	500 + kGaussRange
+
+ares4	mode	aexc,	247 + kGaussRange,	520 + kGaussRange
+
+ares5	mode	aexc,	467.9 + kGaussRange,	12 + kGaussRange	
+
+;ares6	mode	aexc,	3364.2, 600	
+
+ares	sum	ares1,	ares2,	ares3,	ares4,	ares5
+
 ;gaOut1 = (aexc + ares) * kSineControlVal 
-;;gaOut1 = aexc + ares
-;	;outs	gaOut1,	gaOut1
-;
+gaOut2 = aexc + ares
+	;outs	gaOut1,	gaOut1
+
 ;kRms	rms	gaOut1
 ;	chnset	kRms,	"rmsOut"
-;
-;endin
-;
+
+endin
+
 ;;**************************************************************************************
 ;instr 3 ; Real-time Spectral Instrument - Mandelbulb Formula Sonification 
 ;;**************************************************************************************
@@ -278,8 +326,10 @@ ioverlap = ifftsize / 4
 iwinsize = ifftsize * 2
 iwinshape = 0
 
+aSig	sum	gaOut2,	gaOut8
+
 ; route output from instrument 2 above to pvsanal
-fsig	pvsanal	gaOut8,	ifftsize,	ioverlap,	iwinsize,	iwinshape
+fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
@@ -327,13 +377,7 @@ kElevationVal chnget "elevation"
 kDistanceVal chnget "distance" 
 kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the distance changing too quickly
 
-;asig	sum	gaOut0,	gaOut1
-;asig	sum	gaOut3,	gaOut4
-asig = gaOut8 * 0.5
-;asig = asig * 0.5
-
-;kRmsGran	rms	asig	
-;	chnset	kRmsGran,	"rmsOut"
+asig	sum	gaOut2, gaOut8
 
 aLeftSig, aRightSig  hrtfmove2	asig, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 aLeftSig = aLeftSig / (kDist + 0.00001)
@@ -359,9 +403,9 @@ f1	0	1025	8	0			2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-i1	2	10000
+;i1	2	10000
 
-;i2	2	10000
+i2	2	10000
 
 ;i3	2	10000	
 

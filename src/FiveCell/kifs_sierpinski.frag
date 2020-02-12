@@ -14,6 +14,7 @@
 uniform float specCentVal;
 uniform float lowFreqVal;
 uniform float fftAmpBins[NUM_FFT_BINS];
+uniform float timeVal;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -166,25 +167,29 @@ void main()
 	
 	// raymarch the point
 	float dist = march(rayOrigin, rayDir);
-	    
-	vec3 pos = rayOrigin + dist * rayDir;
-	    
+	
+	// map audio movement 
+	//float pixToBin = mod((1.0 + gl_FragCoord.x * 1.0 + gl_FragCoord.y), NUM_FFT_BINS);
+	float pixToBin = mod(int(floor(fbm(gl_FragCoord.xyz))), NUM_FFT_BINS);
+	int fftIndex = int(floor(pixToBin));
+    
+	vec3 fftVec = vec3(float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal);
+	float noiseCalc = fbm(fftVec);
+
+	vec3 pos = rayOrigin + dist * rayDir + (noiseCalc * 0.01);
+
 	// colouring and shading
 	vec3 norm = norm(pos, rayDir);
 	    
 	// material colour
-	float pixToBin = mod((gl_FragCoord.x / gl_FragCoord.y), NUM_FFT_BINS);
-	int fftIndex = int(floor(pixToBin));
-
 	float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
 
 	float sq = float(Iterations) * float(Iterations);
 	float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
 	vec3 matCol1 = vec3(pow(0.85, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
 	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
-	//vec3 matCol3 = vec3(pow(specMappedVal, smootherVal), pow(specMappedVal, smootherVal), pow(specMappedVal, smootherVal));
-	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*specMappedVal, 0.0, 1.0));
-	//totMatCol = mix(totMatCol, matCol3, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + specMappedVal));
+	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*(specMappedVal * fbm(gl_FragCoord.xyz)), 0.0, 1.0));
+	totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 	    
 	// lighting
 	float ao = ao(pos, norm, 0.5, 5.0);

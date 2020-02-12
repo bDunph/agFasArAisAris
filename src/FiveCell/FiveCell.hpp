@@ -95,6 +95,8 @@ private:
 	MYFLT* m_cspGrainPhaseVariationDistrib;
 	MYFLT* m_cspGrainWaveform;
 
+	// params for wgbow
+	MYFLT* m_cspGaussRange;
 
 	//raymarching quad
 	unsigned int m_uiNumSceneVerts;
