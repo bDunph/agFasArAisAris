@@ -811,7 +811,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	glUniform1f(m_gliSineControlValLoc, sineControlVal);
 	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
 	//glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
-	glUniform1f(m_gliTimeValLoc, glfwGetTime()*.025f);
+	glUniform1f(m_gliTimeValLoc, glfwGetTime() * 0.1);
 	//glUniform1f(m_gliValBinScaleLoc, valBinScale);
 	//glUniform1f(m_gliThetaAngleLoc, valThetaScale);
 	//glUniform1f(m_gliPhiAngleLoc, valPhiScale);

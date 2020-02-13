@@ -62,21 +62,21 @@ aOut0	pvsynth	fmask
 	outs	aOut0 * 0.8,	aOut0 * 0.8
 
 ; use instr 1 to trigger other instruments
-kRand	random	0,	1
-kTrigger = kRand
-kMinTim = 0
-kMaxNum = 3
-kInsNum2 = 2
-kWhen = 0
-kDur = 2
-
-	schedkwhen	kTrigger,	kMinTim,	kMaxNum,	kInsNum2,	kWhen,	kDur
-
-kRand2	random 0,	1
-kTrigger2 = kRand2
-kInsNum8 = 8
-
-	schedkwhen	kTrigger2,	kMinTim,	kMaxNum,	kInsNum8,	kWhen,	kDur	
+;kRand	random	0,	1
+;kTrigger = kRand
+;kMinTim = 0
+;kMaxNum = 3
+;kInsNum2 = 2
+;kWhen = 0
+;kDur = 2
+;
+;	schedkwhen	kTrigger,	kMinTim,	kMaxNum,	kInsNum2,	kWhen,	kDur
+;
+;kRand2	random 0,	1
+;kTrigger2 = kRand2
+;kInsNum8 = 8
+;
+;	schedkwhen	kTrigger2,	kMinTim,	kMaxNum,	kInsNum8,	kWhen,	kDur	
 
 endin
 
@@ -419,13 +419,13 @@ f1	0	1025	8	0			2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-i1	2	10000
+;i1	2	10000
 
-;i2	2	10000
+i2	2	10000
 
 ;i3	2	10000	
 
-;i8	2	10000
+i8	2	10000
 
 i9	2	10000
 

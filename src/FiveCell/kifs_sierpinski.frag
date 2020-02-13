@@ -2,11 +2,11 @@
 // raymarch basic setup adapted from dila's tutorial
 // https://www.youtube.com/watch?v=yxNnRSefK94
 
-#define Iterations 32
+#define Iterations 16 
 #define MAX_ITERATIONS 100
 #define Scale 2.0
-#define Offset 9.0
-#define NUM_NOISE_OCTAVES 5
+#define Offset 2.0
+#define NUM_NOISE_OCTAVES 2
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
 #define NUM_FFT_BINS 512
@@ -100,8 +100,8 @@ float DE(vec3 p)
         p = p * Scale - Offset * (Scale - 1.0);
         
         float orbPoint = dot(p, p);
-	int ind = int(floor(mod(timeVal, NUM_FFT_BINS)));
-        orbit = min(orbit, vec4(abs(p), pow(orbPoint, fftAmpBins[ind])));
+	//int ind = int(floor(mod(timeVal, NUM_FFT_BINS)));
+        orbit = min(orbit, vec4(abs(p), orbPoint));
 	//orbit *= 1.0 + (lowFreqVal * (gl_FragCoord.x / gl_FragCoord.y));
         
         if(length(p) > float(MAX_ITERATIONS)) break;
@@ -130,15 +130,15 @@ float march(vec3 o, vec3 r)
 
 	// sine displacement
 	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
-	float factor = specCentVal;  
+	float factor = sin(specCentVal);// mod(timeVal, 360.0); 
 	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
 	//disp *= mod(timeVal, 5.0) * lowFreqVal;
-	disp *= sineControlVal * lowFreqVal;
+	//disp *= sineControlVal * lowFreqVal;
 	
 	float d = DE(p);
 
 	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
-	//float d = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
+	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
         if(d < EPSILON) break;
         t += (d + disp) * 0.5;
         ind++;
@@ -188,26 +188,26 @@ void main()
 	
 	// map audio movement 
 	//float pixToBin = mod((1.0 + gl_FragCoord.x * 1.0 + gl_FragCoord.y), NUM_FFT_BINS);
-	float pixToBin = mod(int(floor(fbm(gl_FragCoord.xyz))), NUM_FFT_BINS);
-	int fftIndex = int(floor(pixToBin));
+	//float pixToBin = mod(int(floor(fbm(gl_FragCoord.xyz))), NUM_FFT_BINS);
+	//int fftIndex = int(floor(pixToBin));
     
-	vec3 fftVec = vec3(float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal);
-	float noiseCalc = fbm(fftVec);
+	//vec3 fftVec = vec3(float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal);
+	//float noiseCalc = fbm(fftVec);
 
-	vec3 pos = rayOrigin + dist * rayDir + (noiseCalc * 0.01);
+	vec3 pos = rayOrigin + dist * rayDir;// + (noiseCalc * 0.01);
 
 	// colouring and shading
 	vec3 norm = norm(pos, rayDir);
 	    
 	// material colour
-	float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
+	//float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
 
 	float sq = float(Iterations) * float(Iterations);
 	float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
-	vec3 matCol1 = vec3(pow(0.85, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
+	vec3 matCol1 = vec3(pow(0.785, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
 	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
-	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x*(pow(specMappedVal, fbm(gl_FragCoord.xyz))), 0.0, 1.0));
-	totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
+	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
+	//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 	    
 	// lighting
 	float ao = ao(pos, norm, 0.5, 5.0);
