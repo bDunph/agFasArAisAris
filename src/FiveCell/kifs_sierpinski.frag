@@ -15,6 +15,7 @@ uniform float specCentVal;
 uniform float lowFreqVal;
 uniform float fftAmpBins[NUM_FFT_BINS];
 uniform float timeVal;
+uniform float sineControlVal;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -119,11 +120,27 @@ float march(vec3 o, vec3 r)
     {
      	vec3 p = o + r * t;
         //float d = DE(p * 1.0 + lowFreqVal);
+
+	// twisting deformation
+	//float k = 0.01 * lowFreqVal + mod(timeVal, 5.0);
+	//float c = cos(k * p.y);
+	//float s = sin(k * p.y);
+	//mat2 m = mat2(c, -s, s, c);
+	//p = vec3(m * p.xz, p.y);
+
+	// sine displacement
+	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
+	float factor = specCentVal;  
+	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
+	//disp *= mod(timeVal, 5.0) * lowFreqVal;
+	disp *= sineControlVal * lowFreqVal;
+	
 	float d = DE(p);
-	vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
+
+	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
 	//float d = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
         if(d < EPSILON) break;
-        t += d * 0.5;
+        t += (d + disp) * 0.5;
         ind++;
     }
     
