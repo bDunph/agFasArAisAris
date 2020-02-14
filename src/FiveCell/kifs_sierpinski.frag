@@ -10,6 +10,7 @@
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
 #define NUM_FFT_BINS 512
+#define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
 
 uniform float specCentVal;
 uniform float lowFreqVal;
@@ -34,7 +35,8 @@ vec4 orbit;
 
 float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
 
-float noise(vec3 x) {
+float noise(vec3 x) 
+{
     const vec3 step = vec3(110, 241, 171);
 
     vec3 i = floor(x);
@@ -51,7 +53,8 @@ float noise(vec3 x) {
                    mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
 }
 
-float fbm(vec3 x) {
+float fbm(vec3 x) 
+{
 	float v = 0.0;
 	float a = 0.5;
 	vec3 shift = vec3(100);
@@ -76,10 +79,41 @@ mat3 rotationMatrix(vec3 axis, float angle)
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
 }
 
-float DE(vec3 p)
+//----------------------------------------------------------------------------------------
+// Sphere SDF from https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+//----------------------------------------------------------------------------------------
+float sphereSDF(vec3 p, float radius)
 {
-    
-    mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), 45.0);
+
+	return abs(length(p) - radius);
+}
+
+//----------------------------------------------------------------------------------------
+// Ground plane SDF from https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
+//----------------------------------------------------------------------------------------
+
+float planeSDF(vec3 p, vec4 normal)
+{
+	int n = 0;
+	while(n < Iterations)
+    {
+	if(p.x + p.y < 0.0) p.xy = -p.yx; // fold 1
+        if(p.x + p.z < 0.0) p.xz = -p.zx; // fold 2
+        if(p.y + p.z < 0.0) p.zy = -p.yz; // fold 3
+
+        p = p * Scale - Offset * (Scale - 1.0);
+        
+        if(length(p) > float(MAX_ITERATIONS)) break;
+        
+        n++;
+    }
+
+	return dot(p, normal.xyz) + normal.w;
+}
+
+float kifSDF(vec3 p)
+{
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), 45.0 + (timeVal * 0.1));
     
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
@@ -110,7 +144,20 @@ float DE(vec3 p)
     }
     
     return length(p) * pow(Scale, -float(n));
+
 }
+
+float DE(vec3 p)
+{
+	float kifDist = kifSDF(p);
+	float planeDist = planeSDF(p, PLANE_NORMAL);
+	float sphereDist = sphereSDF(p, 10.0);
+
+	float res = min(kifDist, planeDist);    
+	return min(res, sphereDist);
+}
+
+
 
 float march(vec3 o, vec3 r)
 {
@@ -135,12 +182,13 @@ float march(vec3 o, vec3 r)
 	//disp *= mod(timeVal, 5.0) * lowFreqVal;
 	//disp *= sineControlVal * lowFreqVal;
 	
+	
 	float d = DE(p);
 
 	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
 	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
         if(d < EPSILON) break;
-        t += (d + disp) * 0.5;
+        t += (d + (disp * 0.2)) * 0.5;
         ind++;
     }
     
@@ -196,6 +244,7 @@ void main()
 
 	vec3 pos = rayOrigin + dist * rayDir;// + (noiseCalc * 0.01);
 
+		
 	// colouring and shading
 	vec3 norm = norm(pos, rayDir);
 	    

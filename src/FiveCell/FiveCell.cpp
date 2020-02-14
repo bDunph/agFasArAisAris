@@ -37,6 +37,9 @@ bool FiveCell::setup(std::string csd)
 	// set initial paramaters
 	m_bFirstLoop = true;
 
+	// initialise val for mapping
+	m_fPrevSpecCentVal = 0.0f;
+
 	std::string csdName = "";
 	if(!csd.empty()) csdName = csd;
 	session = new CsoundSession(csdName);
@@ -70,6 +73,30 @@ bool FiveCell::setup(std::string csd)
 	if(session->GetChannelPtr(hrtfVals[2], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
 		std::cout << "GetChannelPtr could not get the distance input" << std::endl;
+		return false;
+	}
+
+	std::string val4 = "azimuth2";
+	const char* azimuth2 = val4.c_str();	
+	if(session->GetChannelPtr(hrtfVals[3], azimuth2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the azimuth2 input" << std::endl;
+		return false;
+	}
+
+	std::string val5 = "elevation2";
+	const char* elevation2 = val5.c_str();
+	if(session->GetChannelPtr(hrtfVals[4], elevation2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the elevation2 input" << std::endl;
+		return false;
+	}	
+
+	std::string val6 = "distance2";
+	const char* distance2 = val6.c_str();
+	if(session->GetChannelPtr(hrtfVals[5], distance2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the distance2 input" << std::endl;
 		return false;
 	}
 
@@ -362,7 +389,11 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	// spectral centroid value from csound
 	//std::cout << "Spectral Centroid Value : " << *m_cspSpecCentOut << std::endl; 
-
+	float currentSpecCentVal = *m_cspSpecCentOut;
+	float lerpFraction = 0.8f;
+	m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
+	m_fPrevSpecCentVal = currentSpecCentVal;
+	
 	double lowFreqVals = 0.0f;
 	double highFreqVals = 0.0f;
 	//fft frequency bin values from Csound
@@ -385,42 +416,65 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	//std::cout << "Average amplitudes in low bins: " << m_dLowFreqAvg << std::endl;
 	//std::cout << "Average amplitudes in high bins: " << m_dHighFreqAvg << std::endl;
 
-	glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
+	// sound source positions
+	glm::vec4 source1Pos = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 source2Pos = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
+	glm::mat4 modelMatrix = glm::mat4(1.0f);		
 
-	glm::vec4 posCameraSpace = viewMat * mengerModelMatrix * mengerPosition;;		
+	glm::vec4 pos1CameraSpace = viewMat * modelMatrix * source1Pos;;		
+	glm::vec4 pos2CameraSpace = viewMat * modelMatrix * source2Pos;;		
 
 	//position of menger cube in world space
-	glm::vec4 posWorldSpace = mengerModelMatrix * mengerPosition;
-	
+	glm::vec4 pos1WorldSpace = modelMatrix * source1Pos;
+	glm::vec4 pos2WorldSpace = modelMatrix * source2Pos;
+
 	//calculate azimuth and elevation values for hrtf
 	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
 
-	glm::vec4 soundPosCameraSpace = posCameraSpace;
-	glm::vec4 soundPosWorldSpace = posWorldSpace;
+	glm::vec4 soundPos1CameraSpace = pos1CameraSpace;
+	glm::vec4 soundPos2CameraSpace = pos2CameraSpace;
 
-	float rCamSpace = sqrt(pow(soundPosCameraSpace.x, 2) + pow(soundPosCameraSpace.y, 2) + pow(soundPosCameraSpace.z, 2));
-		
-	float rWorldSpace = sqrt(pow(soundPosWorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPosWorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPosWorldSpace.z - viewerPosWorldSpace.z, 2));
+	glm::vec4 soundPos1WorldSpace = pos1WorldSpace;
+	glm::vec4 soundPos2WorldSpace = pos2WorldSpace;
+
+	float rCamSpace = sqrt(pow(soundPos1CameraSpace.x, 2) + pow(soundPos1CameraSpace.y, 2) + pow(soundPos1CameraSpace.z, 2));
+	float r2CamSpace = sqrt(pow(soundPos2CameraSpace.x, 2) + pow(soundPos2CameraSpace.y, 2) + pow(soundPos2CameraSpace.z, 2));
+
+	float rWorldSpace = sqrt(pow(soundPos1WorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPos1WorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPos1WorldSpace.z - viewerPosWorldSpace.z, 2));
+	float r2WorldSpace = sqrt(pow(soundPos2WorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPos2WorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPos2WorldSpace.z - viewerPosWorldSpace.z, 2));
 
 	//azimuth in camera space
-	float valX = soundPosCameraSpace.x - viewerPosCameraSpace.x;
-	float valZ = soundPosCameraSpace.z - viewerPosCameraSpace.z;
+	float valX = soundPos1CameraSpace.x - viewerPosCameraSpace.x;
+	float valZ = soundPos1CameraSpace.z - viewerPosCameraSpace.z;
 
 	float azimuth = atan2(valX, valZ);
 	azimuth *= (180.0f/PI); 	
-	
+
+	float valX2 = soundPos2CameraSpace.x - viewerPosCameraSpace.x;
+	float valZ2 = soundPos2CameraSpace.z - viewerPosCameraSpace.z;
+
+	float azimuth2 = atan2(valX2, valZ2);
+	azimuth2 *= (180.0f/PI); 	
+
 	//elevation in camera space
-	float oppSide = soundPosCameraSpace.y - viewerPosCameraSpace.y;
+	float oppSide = soundPos1CameraSpace.y - viewerPosCameraSpace.y;
 	float sinVal = oppSide / rCamSpace;
 	float elevation = asin(sinVal);
 	elevation *= (180.0f/PI);		
 	
+	float oppSide2 = soundPos2CameraSpace.y - viewerPosCameraSpace.y;
+	float sinVal2 = oppSide2 / r2CamSpace;
+	float elevation2 = asin(sinVal2);
+	elevation2 *= (180.0f/PI);		
+
 	//send values to Csound pointers
 	*hrtfVals[0] = (MYFLT)azimuth;
 	*hrtfVals[1] = (MYFLT)elevation;
 	*hrtfVals[2] = (MYFLT)rCamSpace;
+	*hrtfVals[3] = (MYFLT)azimuth2;
+	*hrtfVals[4] = (MYFLT)elevation2;
+	*hrtfVals[5] = (MYFLT)r2CamSpace;
 
 	//sine function
 	sineControlVal = sin(glfwGetTime() * 0.15f);
@@ -805,7 +859,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
-	glUniform1f(m_gliSpecCentOutLoc, *m_cspSpecCentOut);
+	glUniform1f(m_gliSpecCentOutLoc, m_fInterpolatedSpecCentVal);
 	glUniform1f(m_gliHighFreqAvgLoc, m_dHighFreqAvg);
 	glUniform1f(m_gliLowFreqAvgLoc, m_dLowFreqAvg);
 	glUniform1f(m_gliSineControlValLoc, sineControlVal);

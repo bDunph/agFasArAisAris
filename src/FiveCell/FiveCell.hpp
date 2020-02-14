@@ -75,7 +75,7 @@ private:
 
 	//Csound
 	CsoundSession *session;
-	MYFLT* hrtfVals[3];
+	MYFLT* hrtfVals[6];
 	MYFLT* m_pRmsOut;
 	MYFLT* m_cspSpecCentOut;
 	MYFLT* m_pFftAmpBinOut[NUM_FFT_BINS];
@@ -211,6 +211,7 @@ private:
 	double m_dLowFreqAvg;
 	double m_dHighFreqAvg;
 
-	
+	float m_fPrevSpecCentVal;	
+	float m_fInterpolatedSpecCentVal;
 };
 #endif

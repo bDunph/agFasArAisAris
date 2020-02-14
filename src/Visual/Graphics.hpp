@@ -22,7 +22,7 @@ class Graphics{
 public:
 
 	Graphics(std::unique_ptr<ExecutionFlags>& flagPtr);
-	bool BInitGL(bool fullscreen = true);
+	bool BInitGL(bool fullscreen = false);
 	bool BCreateDefaultShaders();
 	GLuint BCreateSceneShaders(std::string shaderName);
 	GLuint CompileGLShader( const char *pchShaderName, const char *pchVertexShader, const char *pchFragmentShader );

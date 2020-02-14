@@ -392,15 +392,28 @@ kElevationVal chnget "elevation"
 kDistanceVal chnget "distance" 
 kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the distance changing too quickly
 
-asig	sum	gaOut2, gaOut8
+;asig	sum	gaOut2, gaOut8
+asig = gaOut2
 asig *= 0.2
 
-aLeftSig, aRightSig  hrtfmove2	asig, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSig = aLeftSig / (kDist + 0.00001)
-aRightSig = aRightSig / (kDist + 0.00001)
-	
-aL = aLeftSig
-aR = aRightSig
+aLeftSig1, aRightSig1  hrtfmove2	asig, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSig1 = aLeftSig1 / (kDist + 0.00001)
+aRightSig1 = aRightSig1 / (kDist + 0.00001)
+
+kAzimuthVal2	chnget	"azimuth2"	
+kElevationVal2	chnget	"elevation2"
+kDistanceVal2	chnget	"distance2"
+kDist2	portk	kDistanceVal2,	kPortTime
+
+asig2 = gaOut8
+asig2 *= 0.2
+
+aLeftSig2, aRightSig2  hrtfmove2	asig2, kAzimuthVal2, kElevationVal2, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSig2 = aLeftSig2 / (kDist2 + 0.00001)
+aRightSig2 = aRightSig2 / (kDist2 + 0.00001)
+
+aL sum	aLeftSig1,	aLeftSig2 
+aR sum	aRightSig1,	aRightSig2
 
 outs	aL,	aR
 endin
