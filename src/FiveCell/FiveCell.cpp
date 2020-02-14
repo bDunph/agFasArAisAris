@@ -377,9 +377,6 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 // Update Stuff Here
 //*******************************************************************************************
 void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
-
-	
-
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
 	
@@ -389,11 +386,14 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	// spectral centroid value from csound
 	//std::cout << "Spectral Centroid Value : " << *m_cspSpecCentOut << std::endl; 
-	float currentSpecCentVal = *m_cspSpecCentOut;
-	float lerpFraction = 0.8f;
-	m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
-	m_fPrevSpecCentVal = currentSpecCentVal;
-	
+	if(*m_cspSpecCentOut > 0)
+	{
+		float currentSpecCentVal = *m_cspSpecCentOut;
+		float lerpFraction = 0.8f;
+		m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
+		m_fPrevSpecCentVal = currentSpecCentVal;
+	}	
+
 	double lowFreqVals = 0.0f;
 	double highFreqVals = 0.0f;
 	//fft frequency bin values from Csound
@@ -627,7 +627,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
-		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		for(int i = 0; i < pboInfo.pboSize; i+=262144)
 		{
 			modelIn.push_back((double)pboInfo.pboPtr[i]); 
 		}

@@ -177,7 +177,7 @@ float march(vec3 o, vec3 r)
 
 	// sine displacement
 	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
-	float factor = sin(specCentVal);// mod(timeVal, 360.0); 
+	float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
 	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
 	//disp *= mod(timeVal, 5.0) * lowFreqVal;
 	//disp *= sineControlVal * lowFreqVal;
