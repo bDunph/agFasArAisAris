@@ -573,7 +573,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	if(machineLearning.bRecord)
 	{
 		//input every 100th orbit value from frag shader = 51,840 on the mbp 
-		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
 			inputData.push_back((double)pboInfo.pboPtr[i]); //13
 		}
@@ -627,7 +627,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
-		for(int i = 0; i < pboInfo.pboSize; i+=262144)
+		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
 			modelIn.push_back((double)pboInfo.pboPtr[i]); 
 		}
@@ -690,7 +690,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
-		for(int i = 0; i < pboInfo.pboSize; i+=3906)
+		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
 			modelIn.push_back((double)pboInfo.pboPtr[i]); 
 		}
