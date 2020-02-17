@@ -50,14 +50,14 @@ public:
 
 	bool setup(std::string csd);
 	bool BSetupRaymarchQuad(GLuint shaderProg);
-	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo);
+	void update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec);
 	void draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
 
 private:
 
 	glm::vec4 cameraPos;
-	glm::vec3 camPosPerEye;
+	//glm::vec3 camPosPerEye;
 	float deltaTime;
 	float lastFrame;
 	float currentFrame;
@@ -68,6 +68,7 @@ private:
 	glm::mat4 fiveCellModelMatrix;
 	glm::mat4 groundModelMatrix;
 	glm::mat4 skyboxModelMatrix;
+	glm::vec3 m_vec3Translation;
 
 	//lights
 	glm::vec3 lightPos;

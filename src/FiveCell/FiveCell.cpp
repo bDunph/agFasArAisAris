@@ -368,16 +368,17 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gluiFftAmpBinsLoc = glGetUniformLocation(shaderProg, "fftAmpBins");
 	m_gliTimeValLoc = glGetUniformLocation(shaderProg, "timeVal");
 
-	raymarchQuadModelMatrix = glm::mat4(1.0f);
-
 	return true;
 }
 
 //*******************************************************************************************
 // Update Stuff Here
 //*******************************************************************************************
-void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
+void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec){
 
+	m_vec3Translation = translateVec;
+
+	modelMatrix = glm::mat4(1.0f);
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
 	
@@ -420,7 +421,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	// sound source positions
 	glm::vec4 source1Pos = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
 	glm::vec4 source2Pos = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
-	glm::mat4 modelMatrix = glm::mat4(1.0f);		
+	//glm::mat4 modelMatrix = glm::mat4(1.0f);		
 
 	glm::vec4 pos1CameraSpace = viewMat * modelMatrix * source1Pos;;		
 	glm::vec4 pos2CameraSpace = viewMat * modelMatrix * source2Pos;;		
@@ -816,16 +817,16 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 //*********************************************************************************************
 void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg)
 {
-		
+	glm::mat4 transModelMat = glm::translate(modelMatrix, m_vec3Translation);
 	//matrices for raymarch shaders
-	modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
+	modelViewEyeMat = eyeMat * viewMat * transModelMat;
 	inverseMVEMat = glm::inverse(modelViewEyeMat);
-	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
+	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * transModelMat;
 	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
 
-	glm::mat4 viewEyeMat = eyeMat * viewMat;
+	//glm::mat4 viewEyeMat = eyeMat * viewMat;
 	
-	camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
+	//camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
 	
 	//draw glass mandelbulb -----------------------------------------------------------------
 	float mengerAspect = raymarchData.aspect;

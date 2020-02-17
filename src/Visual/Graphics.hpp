@@ -227,6 +227,9 @@ private:
 	glm::quat m_quatController[2];
 
 	FiveCell::PBOInfo m_structPboInfo;	
+
+	glm::vec3 m_vec3TranslationVal;
+	glm::vec3 translationVal;
 };
 
 

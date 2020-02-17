@@ -478,6 +478,7 @@ bool Graphics::BSetupStereoRenderTargets(std::unique_ptr<VR_Manager>& vrm)
 		if(!fboR) return false;
 	}
 
+	m_vec3TranslationVal = glm::vec3(0.0f);
 
 	//delete[] dummyTex;
 
@@ -872,7 +873,8 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 {
 
 	glm::vec3 cameraPosition;
-	glm::mat4 modelMatrix = glm::mat4(1.0f);
+
+	translationVal = glm::vec3(0.0f);
 
 	if(!m_bDevMode)
 	{
@@ -880,31 +882,31 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
 		glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
 		glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-		glm::vec3 directionxyz = glm::vec3(direction.x, direction.y, direction.z);
+		glm::vec3 directionXyz = glm::vec3(direction.x, direction.y, direction.z);
 		glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-		glm::vec3 upxyz = glm::vec3(up.x, up.y, up.z);
+		glm::vec3 upXyz = glm::vec3(up.x, up.y, up.z);
 
-		
+		float camSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
 
-		std::cout << cameraPosition.x << " " << cameraPosition.y << " " << cameraPosition.z << std::endl;
-		float cameraSpeed = 5.0f * m_fDeltaTime; // adjust accordingly
     		if (m_vVRPos.x > 0.0f)
 		{
-        		cameraPosition += cameraSpeed * directionxyz;
+        		translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
 		}
     		if (m_vVRPos.x < 0.0f)
 		{
-        		cameraPosition -= cameraSpeed * directionxyz;
+        		translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
 		}
     		if (m_vVRPos.y > 0.0f)
 		{
-        		cameraPosition -= glm::normalize(glm::cross(directionxyz, upxyz)) * cameraSpeed;
+        		translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
 		}
     		if (m_vVRPos.y < 0.0f)
 		{
-        		cameraPosition += glm::normalize(glm::cross(directionxyz, upxyz)) * cameraSpeed;	
+        		translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
 		}
 		
+		std::cout << translationVal.x << "	" << translationVal.y << "	" << translationVal.z << std::endl;
+
 		//keep camera movement on the XZ plane
 		if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
 
@@ -932,7 +934,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	//m_structPboInfo.pboPtr = m_pDataSize;
 
 	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo);
+	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, translationVal);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;
@@ -1005,6 +1007,9 @@ void Graphics::BlitDataTexture()
 //-----------------------------------------------------------------------------
 bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 {
+	float currentFrame = glfwGetTime();
+	m_fDeltaTime = currentFrame - m_fLastFrame;
+
 	//update eye independent values for the scene before rendering
 	UpdateSceneData(vrm);
 
@@ -1024,8 +1029,6 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 	} else if(m_bDevMode && vrm == nullptr){
 		
-		float currentFrame = glfwGetTime();
-		m_fDeltaTime = currentFrame - m_fLastFrame;
 		DevProcessInput(m_pGLContext);
 		RenderStereoTargets(vrm);
 		BlitDataTexture();
