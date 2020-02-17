@@ -11,7 +11,10 @@
 #define EPSILON 0.01
 #define NUM_FFT_BINS 512
 #define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
+#define SPHERE_RAD 10.0
+#define FACTOR 5.0
 
+uniform mat4 MVEPMat;
 uniform float specCentVal;
 uniform float lowFreqVal;
 uniform float fftAmpBins[NUM_FFT_BINS];
@@ -147,12 +150,24 @@ float kifSDF(vec3 p)
 
 }
 
+
+float recVal = 0.0;
+
 float DE(vec3 p)
 {
+	float rad = SPHERE_RAD + recVal;
+
 	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p, PLANE_NORMAL);
-	float sphereDist = sphereSDF(p, 10.0);
+	float sphereDist = sphereSDF(p, rad);
 
+	if(length(p) > rad) 
+	{
+		recVal += FACTOR;
+		rad += recVal;
+		sphereDist = sphereSDF(p, rad);
+		kifDist = kifSDF(p);
+	}	
 	float res = min(kifDist, planeDist);    
 	return min(res, sphereDist);
 }
@@ -283,4 +298,15 @@ void main()
 
 	// Output to PBO
 	orbitOut = orbit;
+
+//-----------------------------------------------------------------------------
+// To calculate depth for use with rasterized material
+//-----------------------------------------------------------------------------
+	vec4 pClipSpace =  MVEPMat * vec4(pos, 1.0);
+	vec3 pNdc = vec3(pClipSpace.x / pClipSpace.w, pClipSpace.y / pClipSpace.w, pClipSpace.z / pClipSpace.w);
+	float ndcDepth = pNdc.z;
+	
+	float d = ((gl_DepthRange.diff * ndcDepth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0; 
+	gl_FragDepth = d;
+
 }
