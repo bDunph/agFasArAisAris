@@ -766,6 +766,8 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 	machineLearning.bSaveModel = vrm->m_bViveSaveModel;
 	machineLearning.bLoadModel = vrm->m_bViveLoadModel;
 
+	m_vVRPos = vrm->m_vMoveCam;
+
 }
 // **********************************************************************************************************
 
@@ -870,11 +872,42 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 {
 
 	glm::vec3 cameraPosition;
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
 
 	if(!m_bDevMode)
 	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
+		glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
+		glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+		glm::vec3 directionxyz = glm::vec3(direction.x, direction.y, direction.z);
+		glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+		glm::vec3 upxyz = glm::vec3(up.x, up.y, up.z);
+
+		
+
+		std::cout << cameraPosition.x << " " << cameraPosition.y << " " << cameraPosition.z << std::endl;
+		float cameraSpeed = 5.0f * m_fDeltaTime; // adjust accordingly
+    		if (m_vVRPos.x > 0.0f)
+		{
+        		cameraPosition += cameraSpeed * directionxyz;
+		}
+    		if (m_vVRPos.x < 0.0f)
+		{
+        		cameraPosition -= cameraSpeed * directionxyz;
+		}
+    		if (m_vVRPos.y > 0.0f)
+		{
+        		cameraPosition -= glm::normalize(glm::cross(directionxyz, upxyz)) * cameraSpeed;
+		}
+    		if (m_vVRPos.y < 0.0f)
+		{
+        		cameraPosition += glm::normalize(glm::cross(directionxyz, upxyz)) * cameraSpeed;	
+		}
+		
+		//keep camera movement on the XZ plane
+		if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
+
 	} 
 	else 
 	{

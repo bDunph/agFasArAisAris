@@ -104,6 +104,7 @@ private:
 	VRActionHandle_t m_actionRunModel = vr::k_ulInvalidActionHandle;
 	VRActionHandle_t m_actionSaveModel = vr::k_ulInvalidActionHandle;
 	VRActionHandle_t m_actionLoadModel = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionMoveCam = vr::k_ulInvalidActionHandle;
 
 	VRActionSetHandle_t m_actionSetMachineLearning = vr::k_ulInvalidActionSetHandle;
 #elif _WIN32
@@ -121,6 +122,7 @@ private:
 	vr::VRActionHandle_t m_actionRunModel = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionSaveModel = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionLoadModel = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionMoveCam = vr::k_ulInvalidActionHandle;
 
 	vr::VRActionSetHandle_t m_actionSetMachineLearning = vr::k_ulInvalidActionSetHandle;
 #endif
@@ -133,6 +135,9 @@ private:
 	bool m_bViveSaveModel;
 	bool m_bViveLoadModel;
 	bool m_bCurrentDeviceState;
+
+	//movement controls
+	glm::vec2 m_vMoveCam;
 
 	vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 	int m_iValidPoseCount;

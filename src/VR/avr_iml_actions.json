@@ -42,6 +42,11 @@
          "type" : "vibration"
       },
       {
+	"name" : "/actions/machineLearning/in/MovementControls",
+         "requirement" : "suggested",
+         "type" : "vector2"
+      },
+      {
          "name" : "/actions/machineLearning/in/RandomiseParameters",
          "requirement" : "suggested",
          "type" : "boolean"
@@ -91,6 +96,7 @@
          "/actions/avr/in/triggerhaptic" : "Trigger Haptic Pulse",
          "/actions/avr/out/haptic_left" : "Left Haptic Feedback",
          "/actions/avr/out/haptic_right" : "Right Haptic Feedback",
+         "/actions/machineLearning/in/AnalogInput" : "Movement Controls",
          "/actions/machineLearning/in/LoadModel" : "Load Model",
          "/actions/machineLearning/in/RandomiseParameters" : "Randomise Audio and Visual Paramters",
          "/actions/machineLearning/in/RecordTrainingExample" : "Record A Training Example",

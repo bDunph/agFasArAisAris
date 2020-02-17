@@ -196,7 +196,8 @@ private:
 	FiveCell::MachineLearning machineLearning;
 
 	//movement controls
-	
+	glm::vec2 m_vVRPos;
+
 	//pointer to pointer of 2D dynamic array for storing mandel values from openGL dataTexture
 	//typedef std::unique_ptr<float[]> m_fpDataArrayRow;
 	//std::unique_ptr<m_fpDataArrayRow[]> m_fpDataArrayCol;

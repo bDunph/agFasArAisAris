@@ -166,7 +166,6 @@ float DE(vec3 p)
 		recVal += FACTOR;
 		rad += recVal;
 		sphereDist = sphereSDF(p, rad);
-		kifDist = kifSDF(p);
 	}	
 	float res = min(kifDist, planeDist);    
 	return min(res, sphereDist);

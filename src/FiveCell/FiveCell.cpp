@@ -377,6 +377,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 // Update Stuff Here
 //*******************************************************************************************
 void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
+
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
 	

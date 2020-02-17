@@ -77,7 +77,7 @@ bool VR_Manager::BInit(){
 	std::string manifestPath = "/Users/bryandunphy/Projects/5CellAVR/src/VR/avr_iml_actions.json";
 	vr::VRInput()->SetActionManifestPath(manifestPath.c_str()); 
 #elif _WIN32
-	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "../../src/VR/avr_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
+	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "avr_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
 #endif
 	
 	//generic actions
@@ -102,6 +102,7 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/RunModel", &m_actionRunModel);
 	vr::VRInput()->GetActionHandle("/actions/machinelearning/in/Savemodel", &m_actionSaveModel);
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/LoadModel", &m_actionLoadModel);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/MovementControls", &m_actionMoveCam);
 
 	vr::VRInput()->GetActionSetHandle("/actions/machineLearning", &m_actionSetMachineLearning);
 
@@ -225,6 +226,13 @@ bool VR_Manager::HandleInput()
 		}
 	} else {
 		m_bViveLoadModel = false;
+	}
+	
+	vr::InputAnalogActionData_t ulMoveCam;
+	if ( vr::VRInput()->GetAnalogActionData( m_actionMoveCam, &ulMoveCam, sizeof( ulMoveCam ), vr::k_ulInvalidInputValueHandle ) == vr::VRInputError_None && ulMoveCam.bActive )
+	{
+		m_vMoveCam[0] = ulMoveCam.x;
+		m_vMoveCam[1] = ulMoveCam.y;
 	}
 
 	//generic controls
