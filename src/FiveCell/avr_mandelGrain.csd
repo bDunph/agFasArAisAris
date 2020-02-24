@@ -22,6 +22,24 @@ giBuzz  ftgen 1,0,4096,11,40,1,0.9
 giSine	ftgen 2,0,4096,10,1
 giWave	ftgen	4,0,16384,10,1
 
+
+giFMWave  	ftgen  	0, 0, 2^10, 10, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64
+giCosine	ftgen	0, 0, 8193, 9, 1, 1, 90		; cosine
+giDisttab	ftgen	0, 0, 32768, 7, 0, 32768, 1	; for kdistribution
+giFile		ftgen	0, 0, 0, 1, "24cellRow.wav", 0, 0, 0	; soundfile for source waveform
+giFile2		ftgen	0, 0, 0, 1, "8cellRow.wav", 0, 0, 0	; soundfile for fm waveform
+giFile3		ftgen	0, 0, 0, 1, "5cellRow.wav", 0, 0, 0	; source waveform
+giWin		ftgen	0, 0, 4096, 20, 6, 1		; grain envelope
+giPan		ftgen	0, 0, 32768, -21, 1		; for panning (random values between 0 and 1)
+giAttack	ftgen	0, 0, 513, 5, 0.0001, 512, 1	; exponential curve 
+giDecay		ftgen	0, 0, 129, 5, 1, 128, 0.0001	; exponential curve
+giGainMask	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.8, 0.9
+giWavFreqStart	ftgen	0, 0, 5, 2, 0, 3, 1, 0.4, 0.9, 1
+giWavFreqEnd	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.4, 1
+giFmIndex	ftgen	0, 0, 5, 2, 0, 3, 0.8, 0.4, 0.6, 1.2 
+giFmEnv		ftgen	0, 0, 129, 7, 0, 32, 1, 12, 0.7, 64, 0.7, 20, 0
+giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 1 
+
 ;window function - used as an amplitude envelope for each grain
 ;(bartlett window)
 giWFn   ftgen 2,0,16384,20,3,1
@@ -197,88 +215,159 @@ gaOut2 = aexc + ares
 
 endin
 
-;;**************************************************************************************
-;instr 3 ; Real-time Spectral Instrument - Mandelbulb Formula Sonification 
-;;**************************************************************************************
-;
-;;iMandelMaxPoints	chnget	"mandelMaxPoints"
-;
-;; get sine control value from application
-;;kSineControlVal		chnget	"sineControlVal"
-;
-;;S_EscapeValChannelNames[] init iMandelMaxPoints
-;
-;ifftsize = 1024 
-;ioverlap = ifftsize / 4
-;iwinsize = ifftsize * 2
-;iwinshape = 0
-;
-;; route output from instrument 2 above to pvsanal
-;fsig	pvsanal	gaOut1,	ifftsize,	ioverlap,	iwinsize,	iwinshape
-;
-;; get info from pvsanal and print
-;ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
-;print	ioverlap,	inbins,	iwindowsize,	iformat		
-;
-;; create tables to write frequency data
-;iFreqTable	ftgen	0,	0,	inbins,	2,	0
-;iAmpTable	ftgen	0,	0,	inbins,	2,	0
-;
-;; write frequency data to function table
-;kFlag	pvsftw	fsig,	iAmpTable,	iFreqTable	
-;
-; if kFlag == 0 goto contin 
-;
-;;************** Frequency Processing *****************
-;
-;; modify frequency data from fsig with mandelbulb escape values from application
-;kCount = 0
-;
-;loop:
-;
-;	;S_ChannelName sprintfk	"mandelEscapeVal%d",	kCount
-;
-;	;kMandelVal	chnget	S_ChannelName
-;
-;	; read frequency data from iFreqTable
-;	;kFreq	tablekt	kCount,	iFreqTable
-;	
-;	; read amplitude data from iAmpTable
-;	kAmp	tablekt	kCount,	iAmpTable
-;
-;	; send val out to application
-;	S_ChannelName	sprintfk	"fftAmpBin%d",	kCount
-;	chnset	kAmp,	S_ChannelName
-;	
-;	; multiply kMandelVal with frequency value 
-;	;kProcFreqVal = kFreq * kMandelVal
-;
-;	; write processed freq data back to table
-;	;tablewkt	kProcFreqVal,	kCount,	iFreqTable	
-;
-;	loop_lt	kCount,	1,	inbins,	loop
-;
-;;pvsftr	fsig,	iAmpTable,	iFreqTable
-;
-;contin:
-;
-;; resynthesize the audio signal
-;;aFinalSig	pvsynth	fsig
-;
-;;gaOut2	= aFinalSig
-;
-;;*********** Amplitude processing ******************
-;;ifn = giMandelTable 
-;;kdepth = 0.8 * kSineControlVal
-;;kdepth = 1 
-;
-;; use mandelbulb escape values to modify amplitude values of the signal acting as a spectral filter
-;;fmask	pvsmaska	fsig,	ifn,	kdepth		
-;
-;;gaOut2	pvsynth	fmask
-;	;outs	aOut0,	aOut0
-;
-;endin
+;**************************************************************************************
+instr 6 ; partikkel note scheduler
+;**************************************************************************************
+
+kGaussVal 	gauss 	6.0
+kGaussVal2	gauss	100
+
+seed 0
+kRand random 0.5, 10.0
+
+seed 1
+kRand2 random 1, 4 
+
+kTrigger metro kRand2 
+kMinTim	= 0 
+kMaxNum = 2
+kInsNum = 7
+kWhen = 0
+gkDur = kRand 
+
+kspeed = 1 + kGaussVal
+kgrainrate = 1000 + kGaussVal
+kgrainsize = 50 + kGaussVal2
+kcentCalc = 400 + kGaussVal
+kposrand = 1000 + kGaussVal
+kcentrand = 600 + kGaussVal 
+kpanCalc = 1
+kdist = 0.1 
+
+schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainrate, kgrainsize, kcentCalc, kposrand, kcentrand, kpanCalc, kdist
+
+aOut oscil 0,	100
+
+outs aOut, aOut
+
+endin
+
+; **********************************************************************************************
+; partikkel example, processing of soundfile
+; uses the files "24cellRow.wav" "8cellRow.wav" & "5cellRow.wav" 
+; original partikkel example by Joachim Heintz and Oeyvind Brandtsegg 2008
+; **********************************************************************************************
+instr 7
+; **********************************************************************************************
+
+/*score parameters*/
+ispeed			= p4		; 1 = original speed 
+igrainrate		= p5		; grain rate
+igrainsize		= p6		; grain size in ms
+icent			= p7		; transposition in cent
+iposrand		= p8		; time position randomness (offset) of the pointer in ms
+icentrand		= p9		; transposition randomness in cents
+ipan			= p10		; panning narrow (0) to wide (1)
+idist			= p11		; grain distribution (0=periodic, 1=scattered)
+
+/*get length of source wave file, needed for both transposition and time pointer*/
+ifilen			tableng	giFile
+ifildur			= ifilen / sr
+
+/*sync input (disabled)*/
+async			= 0		
+
+/*grain envelope*/
+kenv2amt		= 1		; use only secondary envelope
+ienv2tab 		= giWin		; grain (secondary) envelope
+ienv_attack		= giAttack 		; default attack envelope 
+ienv_decay		= giDecay 		; default decay envelope 
+ksustain_amount		= 0.8		; sustain for fraction of grain length
+ka_d_ratio		= 0.75 		; no meaning in this case (use only secondary envelope, ienv2tab)
+
+/*amplitude*/
+kamp			= ampdbfs(0)	; grain amplitude
+igainmasks		= giGainMask		; gain masking
+
+/*transposition*/
+kcentrand		rand icentrand	; random transposition
+iorig			= 1 / ifildur	; original pitch
+kwavfreq		= iorig * cent(icent + kcentrand)
+
+/*other pitch related (disabled)*/
+ksweepshape		= 0.8		; no frequency sweep
+iwavfreqstarttab 	= giWavFreqStart		; frequency sweep start
+iwavfreqendtab		= giWavFreqEnd		; frequency sweep end
+
+aEnv	linseg	0, p3 * 0.2, 1, p3 * 0.1, 0.8, p3 * 0.5, 0.8, p3 * 0.2, 0
+kCps	linseg	200, p3 * 0.8, 500,  p3 * 0.2, 100
+aSig	oscili aEnv, kCps, giFMWave	
+
+awavfm			= aSig 
+ifmamptab		= giFmIndex		; FM scaling 
+kfmenv			= giFmEnv		; FM envelope 
+
+/*trainlet related (disabled)*/
+icosine			= giCosine	; cosine ftable
+kTrainCps		= igrainrate	; set trainlet cps equal to grain rate for single-cycle trainlet in each grain
+knumpartials		= 1		; number of partials in trainlet
+kchroma			= 1		; balance of partials in trainlet
+
+/*panning, using channel masks*/
+imid			= .5; center
+ileftmost		= imid - ipan/2
+irightmost		= imid + ipan/2
+giPanthis		ftgen	0, 0, 32768, -24, giPan, ileftmost, irightmost	; rescales giPan according to ipan
+			tableiw		0, 0, giPanthis				; change index 0 ...
+			tableiw		32766, 1, giPanthis			; ... and 1 for ichannelmasks
+ichannelmasks		= giPanthis		; ftable for panning
+
+/*random gain masking*/
+krandommask		= 0.2	
+
+/*source waveforms*/
+kwaveform1		= giFile	; source waveforms
+kwaveform2		= giFile	
+kwaveform3		= giFile
+kwaveform4		= giFile
+iwaveamptab		= -1; mix of source waveforms and trainlets
+
+/*time pointer*/
+afilposphas		phasor ispeed / ifildur
+/*generate random deviation of the time pointer*/
+iposrandsec		= iposrand / 1000	; ms -> sec
+iposrand		= iposrandsec / ifildur	; phase values (0-1)
+krndpos			linrand	 iposrand	; random offset in phase values
+kGaussVal		gauss	20.0
+/*add random deviation to the time pointer*/
+asamplepos1		= afilposphas + krndpos; resulting phase values (0-1)
+asamplepos2		= asamplepos1 + krndpos + kGaussVal
+asamplepos3		= asamplepos2 + krndpos + kGaussVal	
+asamplepos4		= asamplepos1 + krndpos + kGaussVal	
+
+/*original key for each source waveform*/
+kwavekey1		= 1
+kwavekey2		= 0.5 
+kwavekey3		= 1.2 
+kwavekey4		= 1.66 
+
+/* maximum number of grains per k-period*/
+imax_grains		= 3000		
+
+aOut		partikkel igrainrate, idist, giDisttab, async, kenv2amt, ienv2tab, \
+		ienv_attack, ienv_decay, ksustain_amount, ka_d_ratio, igrainsize, kamp, igainmasks, \
+		kwavfreq, ksweepshape, iwavfreqstarttab, iwavfreqendtab, awavfm, \
+		ifmamptab, kfmenv, icosine, kTrainCps, knumpartials, \
+		kchroma, ichannelmasks, krandommask, kwaveform1, kwaveform2, kwaveform3, kwaveform4, \
+		iwaveamptab, asamplepos1, asamplepos2, asamplepos3, asamplepos4, \
+		kwavekey1, kwavekey2, kwavekey3, kwavekey4, imax_grains
+
+aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
+
+gaOut7 = aOut * aOutEnv
+		;outs			aL * aOutEnv, aR * aOutEnv
+
+endin
 
 ;**************************************************************************************
 instr 8 ; granular instrument using grain3
@@ -314,24 +403,11 @@ kSineControlVal	chnget	"sineControlVal"
   ;print info. to the terminal
           ;printks "Random Phase:%5.2F%TPitch Random:%5.2F%n",1,kPmd,kFmd
 	;printks "Grain Density:%f%n", 1, kDens
-  gaOut8    grain3  kCps, kPhs, kFmd, kPmd, kGDur, kDens, iMaxOvr, kFn, giWFn, kFrPow, kPrPow
-;          outs     aSig*0.06,aSig*0.06
+  aOut8    grain3  kCps, kPhs, kFmd, kPmd, kGDur, kDens, iMaxOvr, kFn, giWFn, kFrPow, kPrPow
 
-;kRms	rms	gaOut8
-;	chnset	kRms,	"rmsOut"
+aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
-;ifftsize = 2048
-;ioverlap = ifftsize / 4
-;iwinsize = ifftsize * 2
-;iwinshape = 0
-;
-;fsig	pvsanal	gaOut8,	ifftsize,	ioverlap,	iwinsize,	iwinshape
-;
-;kcent	pvscent	fsig
-;	chnset	kcent,	"specCentOut"
-
-;printks "Specral Centroid CSound Out:%f%n", 1, kcent
-
+gaOut8 = aOut8 * 0.5 * aOutEnv
 endin
 
 ;**************************************************************************************
@@ -343,8 +419,9 @@ ioverlap = ifftsize / 4
 iwinsize = ifftsize * 2
 iwinshape = 0
 
+aSig	sum	gaOut8, gaOut7
 ; route output from instrument 2 above to pvsanal
-fsig	pvsanal	gaOut8,	ifftsize,	ioverlap,	iwinsize,	iwinshape
+fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
@@ -405,7 +482,7 @@ kElevationVal2	chnget	"elevation2"
 kDistanceVal2	chnget	"distance2"
 kDist2	portk	kDistanceVal2,	kPortTime
 
-asig2 = gaOut8
+asig2 sum  gaOut8, gaOut7
 asig2 *= 0.2
 
 aLeftSig2, aRightSig2  hrtfmove2	asig2, kAzimuthVal2, kElevationVal2, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
@@ -437,6 +514,8 @@ f1	0	1025	8	0			2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 i2	2	10000
 
 ;i3	2	10000	
+
+i6	2	10000
 
 i8	2	10000
 
