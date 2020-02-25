@@ -4,6 +4,8 @@
 //#define NUM_RAYS 5 
 //#define MAX_MANDEL_STEPS 512 
 #define NUM_FFT_BINS 512
+#define NUM_HRTF_VALS 3
+#define NUM_SOUND_SOURCES 3
 
 #include <string>
 #include <vector>
@@ -76,7 +78,10 @@ private:
 
 	//Csound
 	CsoundSession *session;
-	MYFLT* hrtfVals[6];
+	//MYFLT* hrtfVals[NUM_HRTF_VALS];
+	MYFLT* azimuthVals[NUM_SOUND_SOURCES];
+	MYFLT* elevationVals[NUM_SOUND_SOURCES];
+	MYFLT* distanceVals[NUM_SOUND_SOURCES];
 	MYFLT* m_pRmsOut;
 	MYFLT* m_cspSpecCentOut;
 	MYFLT* m_pFftAmpBinOut[NUM_FFT_BINS];
@@ -214,5 +219,16 @@ private:
 
 	float m_fPrevSpecCentVal;	
 	float m_fInterpolatedSpecCentVal;
+	
+	struct SoundSourceData
+	{
+		glm::vec4 position;
+		glm::vec4 posCamSpace;
+		float distCamSpace;
+		float azimuth;
+		float elevation;
+	};
+
+	std::vector<SoundSourceData> m_vSoundSources;
 };
 #endif

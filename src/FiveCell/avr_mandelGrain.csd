@@ -5,6 +5,9 @@
 -odac          ;-iadc          ;;;RT audio I/O
 ; For Non-realtime ouput leave only the line below:
 ; -o moogvcf.wav -W ;;; for file output any platform
+
+--nodisplays
+
 </CsOptions>
 <CsInstruments>
 
@@ -45,67 +48,13 @@ giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 1
 giWFn   ftgen 2,0,16384,20,3,1
 
 ;**************************************************************************************
-instr 1 ; Real-time Spectral Instrument - Environmental Noise 
-;**************************************************************************************
-
-; get control value from application
-kSineControlVal	chnget	"sineControlVal"
-
-ares	fractalnoise	ampdbfs(-24),	1 ; pink noise generator
-
-ifftsize = 2048
-ioverlap = ifftsize / 4
-iwinsize = ifftsize * 2
-iwinshape = 0
-
-fsig	pvsanal	ares,	ifftsize,	ioverlap,	iwinsize,	iwinshape
-
-; get info from pvsanal and print
-ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
-print	ioverlap,	inbins,	iwindowsize,	iformat		
-
-;inoscs = 250
-;kfmod = 0.5 * kSineControlVal
-;ibinoffset = 2
-;ibinincr = 4
-
-;gaOut	pvsadsyn	fsig,	inoscs,	kfmod,	ibinoffset,	ibinincr
-
-ifn = 1
-kdepth = 0.99 + (0.01 * kSineControlVal)
-
-fmask	pvsmaska	fsig,	ifn,	kdepth		
-
-aOut0	pvsynth	fmask
-	outs	aOut0 * 0.8,	aOut0 * 0.8
-
-; use instr 1 to trigger other instruments
-;kRand	random	0,	1
-;kTrigger = kRand
-;kMinTim = 0
-;kMaxNum = 3
-;kInsNum2 = 2
-;kWhen = 0
-;kDur = 2
-;
-;	schedkwhen	kTrigger,	kMinTim,	kMaxNum,	kInsNum2,	kWhen,	kDur
-;
-;kRand2	random 0,	1
-;kTrigger2 = kRand2
-;kInsNum8 = 8
-;
-;	schedkwhen	kTrigger2,	kMinTim,	kMaxNum,	kInsNum8,	kWhen,	kDur	
-
-endin
-
-;**************************************************************************************
 instr 2 ; Modal Instrument
 ;**************************************************************************************
 
 ; get control value from application
 ;kSineControlVal	chnget	"sineControlVal"
 
-iamp    init ampdbfs(-18)
+iamp    init ampdbfs(-24)
 
 ;kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 ;kWgbowAmpVal chnget "randAmp"
@@ -192,9 +141,9 @@ aexc	wgbow	kamp,	kfreq,	kpres,	krat,	kvibf,	kvamp
 aexc limit	aexc,	0,	3*iamp 
 
 ; ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-ares1	mode	aexc,	100 + kGaussRange,	220 + kGaussRange * 0.2
+ares1	mode	aexc,	100 + kGaussRange,	220 + kGaussRange * 0.8
 
-ares2	mode	aexc,	142 + kGaussRange,	280 + kGaussRange * 0.2
+ares2	mode	aexc,	142 + kGaussRange,	280 + kGaussRange * 0.4
 
 ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange * 0.2
 
@@ -207,8 +156,8 @@ ares5	mode	aexc,	467.9 + kGaussRange,	12 + kGaussRange * 0.2
 ares	sum	ares1,	ares2,	ares3,	ares4,	ares5
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
-gaOut2 = aexc + ares
-	;outs	gaOut1,	gaOut1
+gaOut2 = aexc * ares
+	;outs	gaOut2,	gaOut2
 
 ;kRms	rms	gaOut1
 ;	chnset	kRms,	"rmsOut"
@@ -253,7 +202,6 @@ outs aOut, aOut
 endin
 
 ; **********************************************************************************************
-; partikkel example, processing of soundfile
 ; uses the files "24cellRow.wav" "8cellRow.wav" & "5cellRow.wav" 
 ; original partikkel example by Joachim Heintz and Oeyvind Brandtsegg 2008
 ; **********************************************************************************************
@@ -365,7 +313,7 @@ aOut		partikkel igrainrate, idist, giDisttab, async, kenv2amt, ienv2tab, \
 aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
 gaOut7 = aOut * aOutEnv
-		;outs			aL * aOutEnv, aR * aOutEnv
+		;outs			gaOut7, gaOut7 
 
 endin
 
@@ -408,6 +356,8 @@ kSineControlVal	chnget	"sineControlVal"
 aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
 gaOut8 = aOut8 * 0.5 * aOutEnv
+
+	;outs	gaOut8, gaOut8
 endin
 
 ;**************************************************************************************
@@ -464,33 +414,59 @@ instr 12 ; Hrtf Instrument
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-kAzimuthVal chnget "azimuth" 
-kElevationVal chnget "elevation" 
-kDistanceVal chnget "distance" 
-kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the distance changing too quickly
+iNumAudioSources init 3
 
-;asig	sum	gaOut2, gaOut8
-asig = gaOut2
-asig *= 0.2
+kAzimuths[] 	init 	iNumAudioSources
+kElevations[] 	init	iNumAudioSources
+kDistances[]	init	iNumAudioSources
 
-aLeftSig1, aRightSig1  hrtfmove2	asig, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSig1 = aLeftSig1 / (kDist + 0.00001)
-aRightSig1 = aRightSig1 / (kDist + 0.00001)
+kCount = 0
 
-kAzimuthVal2	chnget	"azimuth2"	
-kElevationVal2	chnget	"elevation2"
-kDistanceVal2	chnget	"distance2"
-kDist2	portk	kDistanceVal2,	kPortTime
+channelLoop:
 
-asig2 sum  gaOut8, gaOut7
-asig2 *= 0.2
+	S_azimuth sprintfk "azimuth%d", kCount
+	kAzimuths[kCount] 	chnget S_azimuth
 
-aLeftSig2, aRightSig2  hrtfmove2	asig2, kAzimuthVal2, kElevationVal2, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSig2 = aLeftSig2 / (kDist2 + 0.00001)
-aRightSig2 = aRightSig2 / (kDist2 + 0.00001)
+	S_elevation sprintfk "elevation%d", kCount 
+	kElevations[kCount] 	chnget S_elevation 
 
-aL sum	aLeftSig1,	aLeftSig2 
-aR sum	aRightSig1,	aRightSig2
+	S_distance sprintfk "distance%d", kCount
+	kDistances[kCount]	chnget S_distance 
+
+	loop_lt	kCount, 1, iNumAudioSources, channelLoop
+	
+aInstSigs[]	init	iNumAudioSources
+aInstSigs[0] = gaOut2
+aInstSigs[1] = gaOut7
+aInstSigs[2] = gaOut8
+
+aLeftSigs[]	init	iNumAudioSources
+aRightSigs[]	init	iNumAudioSources
+kDistVals[]	init	iNumAudioSources
+
+kDistVals[0] portk kDistances[0], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
+	
+aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSigs[0] = aLeftSigs[0] / (kDistVals[0] + 0.00001)
+aRightSigs[0] = aRightSigs[0] / (kDistVals[0] + 0.00001)
+
+kDistVals[1]	portk	kDistances[1],	kPortTime
+
+aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
+aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
+
+kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
+	
+aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
+aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
+
+aL init 0
+aR init 0
+
+aL sum aLeftSigs[0], aLeftSigs[1], aLeftSigs[2]
+aR sum aRightSigs[0], aRightSigs[1], aRightSigs[2]
 
 outs	aL,	aR
 endin
@@ -501,19 +477,15 @@ endin
 ;********************************************************************
 ; f tables
 ;********************************************************************
-;p1	p2	p3	p4	p5			p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24	p25
+;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24	p25
 
-f1	0	1025	8	0			2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
+f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 
 ;********************************************************************
 ; score events
 ;********************************************************************
 
-;i1	2	10000
-
 i2	2	10000
-
-;i3	2	10000	
 
 i6	2	10000
 
