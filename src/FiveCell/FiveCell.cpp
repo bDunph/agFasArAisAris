@@ -48,57 +48,59 @@ bool FiveCell::setup(std::string csd)
 	session->SetOption("-b -32"); 
 	session->SetOption("-B 2048");
 #endif
-
 	session->StartThread();
 	session->PlayScore();
 
-	std::string val1 = "azimuth";
-	const char* azimuth = val1.c_str();	
-	if(session->GetChannelPtr(hrtfVals[0], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
 	{
-		std::cout << "GetChannelPtr could not get the azimuth input" << std::endl;
-		return false;
-	}
+		std::string val1 = "azimuth" + std::to_string(i);
+		const char* azimuth = val1.c_str();	
+		if(session->GetChannelPtr(azimuthVals[i], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+		{
+			std::cout << "GetChannelPtr could not get the azimuth" << i << " input" << std::endl;
+			return false;
+		}
 
-	std::string val2 = "elevation";
-	const char* elevation = val2.c_str();
-	if(session->GetChannelPtr(hrtfVals[1], elevation, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the elevation input" << std::endl;
-		return false;
-	}	
+		std::string val2 = "elevation" + std::to_string(i);
+		const char* elevation = val2.c_str();
+		if(session->GetChannelPtr(elevationVals[i], elevation, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+		{
+			std::cout << "GetChannelPtr could not get the elevation" << i << " input" << std::endl;
+			return false;
+		}	
 
-	std::string val3 = "distance";
-	const char* distance = val3.c_str();
-	if(session->GetChannelPtr(hrtfVals[2], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the distance input" << std::endl;
-		return false;
-	}
+		std::string val3 = "distance" + std::to_string(i);
+		const char* distance = val3.c_str();
+		if(session->GetChannelPtr(distanceVals[i], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+		{
+			std::cout << "GetChannelPtr could not get the distance" << i << " input" << std::endl;
+			return false;
+		}
+	}		
+	
+	//std::string val4 = "azimuth2";
+	//const char* azimuth2 = val4.c_str();	
+	//if(session->GetChannelPtr(hrtfVals[3], azimuth2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the azimuth2 input" << std::endl;
+	//	return false;
+	//}
 
-	std::string val4 = "azimuth2";
-	const char* azimuth2 = val4.c_str();	
-	if(session->GetChannelPtr(hrtfVals[3], azimuth2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the azimuth2 input" << std::endl;
-		return false;
-	}
+	//std::string val5 = "elevation2";
+	//const char* elevation2 = val5.c_str();
+	//if(session->GetChannelPtr(hrtfVals[4], elevation2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the elevation2 input" << std::endl;
+	//	return false;
+	//}	
 
-	std::string val5 = "elevation2";
-	const char* elevation2 = val5.c_str();
-	if(session->GetChannelPtr(hrtfVals[4], elevation2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the elevation2 input" << std::endl;
-		return false;
-	}	
-
-	std::string val6 = "distance2";
-	const char* distance2 = val6.c_str();
-	if(session->GetChannelPtr(hrtfVals[5], distance2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the distance2 input" << std::endl;
-		return false;
-	}
+	//std::string val6 = "distance2";
+	//const char* distance2 = val6.c_str();
+	//if(session->GetChannelPtr(hrtfVals[5], distance2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the distance2 input" << std::endl;
+	//	return false;
+	//}
 
 	const char* grainFreq = "grainFreq";
 	if(session->GetChannelPtr(m_cspGrainFreq, grainFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
@@ -399,6 +401,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	double lowFreqVals = 0.0f;
 	double highFreqVals = 0.0f;
+
 	//fft frequency bin values from Csound
 	for(int i = 0; i < NUM_FFT_BINS; i++)
 	{
@@ -419,65 +422,60 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	//std::cout << "Average amplitudes in low bins: " << m_dLowFreqAvg << std::endl;
 	//std::cout << "Average amplitudes in high bins: " << m_dHighFreqAvg << std::endl;
 
-	// sound source positions
-	glm::vec4 source1Pos = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
-	glm::vec4 source2Pos = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
-	//glm::mat4 modelMatrix = glm::mat4(1.0f);		
-
-	glm::vec4 pos1CameraSpace = viewMat * modelMatrix * source1Pos;;		
-	glm::vec4 pos2CameraSpace = viewMat * modelMatrix * source2Pos;;		
-
-	//position of menger cube in world space
-	glm::vec4 pos1WorldSpace = modelMatrix * source1Pos;
-	glm::vec4 pos2WorldSpace = modelMatrix * source2Pos;
-
-	//calculate azimuth and elevation values for hrtf
 	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
 
-	glm::vec4 soundPos1CameraSpace = pos1CameraSpace;
-	glm::vec4 soundPos2CameraSpace = pos2CameraSpace;
+	glm::vec4 pos1 = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
+	float newPosX = (pos1.x * cos(glfwGetTime())) - (pos1.y * sin(glfwGetTime()));
+	float newPosY = (pos1.x * sin(glfwGetTime())) + (pos1.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos = glm::vec4(newPosX, newPosY, 0.0f, 1.0f);
+	SoundSourceData soundSource1;
+	soundSource1.position = rotPos;
+	m_vSoundSources.push_back(soundSource1);
 
-	glm::vec4 soundPos1WorldSpace = pos1WorldSpace;
-	glm::vec4 soundPos2WorldSpace = pos2WorldSpace;
-
-	float rCamSpace = sqrt(pow(soundPos1CameraSpace.x, 2) + pow(soundPos1CameraSpace.y, 2) + pow(soundPos1CameraSpace.z, 2));
-	float r2CamSpace = sqrt(pow(soundPos2CameraSpace.x, 2) + pow(soundPos2CameraSpace.y, 2) + pow(soundPos2CameraSpace.z, 2));
-
-	float rWorldSpace = sqrt(pow(soundPos1WorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPos1WorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPos1WorldSpace.z - viewerPosWorldSpace.z, 2));
-	float r2WorldSpace = sqrt(pow(soundPos2WorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPos2WorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPos2WorldSpace.z - viewerPosWorldSpace.z, 2));
-
-	//azimuth in camera space
-	float valX = soundPos1CameraSpace.x - viewerPosCameraSpace.x;
-	float valZ = soundPos1CameraSpace.z - viewerPosCameraSpace.z;
-
-	float azimuth = atan2(valX, valZ);
-	azimuth *= (180.0f/PI); 	
-
-	float valX2 = soundPos2CameraSpace.x - viewerPosCameraSpace.x;
-	float valZ2 = soundPos2CameraSpace.z - viewerPosCameraSpace.z;
-
-	float azimuth2 = atan2(valX2, valZ2);
-	azimuth2 *= (180.0f/PI); 	
-
-	//elevation in camera space
-	float oppSide = soundPos1CameraSpace.y - viewerPosCameraSpace.y;
-	float sinVal = oppSide / rCamSpace;
-	float elevation = asin(sinVal);
-	elevation *= (180.0f/PI);		
+	glm::vec4 pos2 = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
+	float newPosX2 = (pos2.x * cos(glfwGetTime())) - (pos2.y * sin(glfwGetTime()));
+	float newPosY2 = (pos2.x * sin(glfwGetTime())) + (pos2.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos2 = glm::vec4(newPosX2, newPosY2, 0.0f, 1.0f);
+	SoundSourceData soundSource2;
+	soundSource2.position = rotPos2;
+ 	m_vSoundSources.push_back(soundSource2);
 	
-	float oppSide2 = soundPos2CameraSpace.y - viewerPosCameraSpace.y;
-	float sinVal2 = oppSide2 / r2CamSpace;
-	float elevation2 = asin(sinVal2);
-	elevation2 *= (180.0f/PI);		
+	glm::vec4 pos3 = glm::vec4(0.0f, 0.0f, -2.0f, 1.0f);
+	float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
+	float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
+	SoundSourceData soundSource3;
+	soundSource3.position = rotPos3;
+ 	m_vSoundSources.push_back(soundSource3);
 
-	//send values to Csound pointers
-	*hrtfVals[0] = (MYFLT)azimuth;
-	*hrtfVals[1] = (MYFLT)elevation;
-	*hrtfVals[2] = (MYFLT)rCamSpace;
-	*hrtfVals[3] = (MYFLT)azimuth2;
-	*hrtfVals[4] = (MYFLT)elevation2;
-	*hrtfVals[5] = (MYFLT)r2CamSpace;
+	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
+	{
+		// camera space positions
+		m_vSoundSources[i].posCamSpace = viewMat * modelMatrix * m_vSoundSources[i].position;
+
+		// distance value
+		m_vSoundSources[i].distCamSpace = sqrt(pow(m_vSoundSources[i].posCamSpace.x, 2) + pow(m_vSoundSources[i].posCamSpace.y, 2) + pow(m_vSoundSources[i].posCamSpace.z, 2));
+
+		//azimuth in camera space
+		float valX = m_vSoundSources[i].posCamSpace.x - viewerPosCameraSpace.x;
+		float valZ = m_vSoundSources[i].posCamSpace.z - viewerPosCameraSpace.z;
+
+		m_vSoundSources[i].azimuth = atan2(valX, valZ);
+		m_vSoundSources[i].azimuth *= (180.0f/PI); 	
+
+		//elevation in camera space
+		float oppSide = m_vSoundSources[i].posCamSpace.y - viewerPosCameraSpace.y;
+		float sinVal = oppSide / m_vSoundSources[i].distCamSpace;
+		m_vSoundSources[i].elevation = asin(sinVal);
+		m_vSoundSources[i].elevation *= (180.0f/PI);		
+
+		//send values to Csound pointers
+		*azimuthVals[i] = (MYFLT)m_vSoundSources[i].azimuth;
+		*elevationVals[i] = (MYFLT)m_vSoundSources[i].elevation;
+		*distanceVals[i] = (MYFLT)m_vSoundSources[i].distCamSpace;
+	}
+	
+	m_vSoundSources.clear();
 
 	//sine function
 	sineControlVal = sin(glfwGetTime() * 0.15f);
