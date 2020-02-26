@@ -146,7 +146,7 @@ float kifSDF(vec3 p)
         n++;
     }
     
-    return length(p) * pow(Scale, -float(n));
+    return abs(length(p) * pow(Scale, -float(n)));
 
 }
 

@@ -423,28 +423,28 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	float angle1 = 1.0f + glfwGetTime() * 0.5f;
-	glm::vec3 axis1 = glm::vec3(0.0f, 1.0f, 0.0f);
 	glm::vec4 pos1 = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
-	glm::mat4 rot1 = glm::rotate(modelMatrix, angle1, axis1);
+	float newPosX = (pos1.x * cos(glfwGetTime())) - (pos1.y * sin(glfwGetTime()));
+	float newPosY = (pos1.x * sin(glfwGetTime())) + (pos1.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos = glm::vec4(newPosX, newPosY, 0.0f, 1.0f);
 	SoundSourceData soundSource1;
-	soundSource1.position = rot1 * pos1;
+	soundSource1.position = rotPos;
 	m_vSoundSources.push_back(soundSource1);
 
-	float angle2 = 1.0f + glfwGetTime() * 0.5f;
-	glm::vec3 axis2 = glm::vec3(1.0f, 0.0f, 0.0f);
 	glm::vec4 pos2 = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
-	glm::mat4 rot2 = glm::rotate(modelMatrix, angle2, axis2);
+	float newPosX2 = (pos2.x * cos(glfwGetTime())) - (pos2.y * sin(glfwGetTime()));
+	float newPosY2 = (pos2.x * sin(glfwGetTime())) + (pos2.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos2 = glm::vec4(newPosX2, newPosY2, 0.0f, 1.0f);
 	SoundSourceData soundSource2;
-	soundSource2.position = rot2 * pos2;
+	soundSource2.position = rotPos2;
  	m_vSoundSources.push_back(soundSource2);
 	
-	float angle3 = 1.0f + glfwGetTime() * 0.5f;
-	glm::vec3 axis3 = glm::vec3(0.0f, 0.0f, 1.0f);
 	glm::vec4 pos3 = glm::vec4(0.0f, 0.0f, -2.0f, 1.0f);
-	glm::mat4 rot3 = glm::rotate(modelMatrix, angle3, axis3);
+	float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
+	float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
 	SoundSourceData soundSource3;
-	soundSource3.position = rot3 * pos3;
+	soundSource3.position = rotPos3;
  	m_vSoundSources.push_back(soundSource3);
 
 	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
@@ -474,6 +474,8 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		*distanceVals[i] = (MYFLT)m_vSoundSources[i].distCamSpace;
 	}
 	
+	m_vSoundSources.clear();
+
 	//sine function
 	sineControlVal = sin(glfwGetTime() * 0.15f);
 
