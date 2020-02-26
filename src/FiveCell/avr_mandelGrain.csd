@@ -355,7 +355,7 @@ kSineControlVal	chnget	"sineControlVal"
 
 aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
-gaOut8 = aOut8 * 0.5 * aOutEnv
+gaOut8 = aOut8 * 0.2 * aOutEnv
 
 	;outs	gaOut8, gaOut8
 endin

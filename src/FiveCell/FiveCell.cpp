@@ -380,6 +380,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec){
 
 	m_vec3Translation = translateVec;
+	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
 
 	modelMatrix = glm::mat4(1.0f);
 	//rms value from Csound
@@ -824,8 +825,8 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 {
 	glm::mat4 transModelMat = glm::translate(modelMatrix, m_vec3Translation);
 	//matrices for raymarch shaders
-	modelViewEyeMat = eyeMat * viewMat * transModelMat;
-	inverseMVEMat = glm::inverse(modelViewEyeMat);
+	//modelViewEyeMat = eyeMat * viewMat * transModelMat;
+	//inverseMVEMat = glm::inverse(modelViewEyeMat);
 	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * transModelMat;
 	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
 

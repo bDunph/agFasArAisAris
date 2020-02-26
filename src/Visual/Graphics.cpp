@@ -768,7 +768,6 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 	machineLearning.bLoadModel = vrm->m_bViveLoadModel;
 
 	m_vVRPos = vrm->m_vMoveCam;
-
 }
 // **********************************************************************************************************
 
@@ -874,8 +873,6 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	glm::vec3 cameraPosition;
 
-	translationVal = glm::vec3(0.0f);
-
 	if(!m_bDevMode)
 	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
@@ -887,25 +884,29 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		//glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 		//glm::vec3 upXyz = glm::vec3(up.x, up.y, up.z);
 
-		//float camSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
+		float camSpeed = 0.15f * m_fDeltaTime; // adjust accordingly
 
-    		//if (m_vVRPos.x > 0.0f)
-		//{
-        	//	translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-		//}
-    		//if (m_vVRPos.x < 0.0f)
-		//{
-        	//	translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-		//}
-    		//if (m_vVRPos.y > 0.0f)
-		//{
-        	//	translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
-		//}
-    		//if (m_vVRPos.y < 0.0f)
-		//{
-        	//	translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
-		//}
-		//
+    		if (m_vVRPos.x > 0.0f)
+		{
+        		//translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
+        		m_vec3TranslationVal += camSpeed * glm::vec3(1.0f, 0.0f, 0.0f);
+		}
+    		if (m_vVRPos.x < 0.0f)
+		{
+        		//translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
+        		m_vec3TranslationVal += camSpeed * glm::vec3(-1.0f, 0.0f, 0.0f);
+		}
+    		if (m_vVRPos.y > 0.0f)
+		{
+        		//translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
+        		m_vec3TranslationVal += camSpeed * glm::vec3(0.0f, 0.0f, 1.0f);
+		}
+    		if (m_vVRPos.y < 0.0f)
+		{
+        		//translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
+        		m_vec3TranslationVal += camSpeed * glm::vec3(0.0f, 0.0f, -1.0f);
+		}
+		
 		//std::cout << translationVal.x << "	" << translationVal.y << "	" << translationVal.z << std::endl;
 
 		////keep camera movement on the XZ plane
@@ -935,7 +936,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	//m_structPboInfo.pboPtr = m_pDataSize;
 
 	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, translationVal);
+	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, m_vec3TranslationVal);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;
@@ -1028,6 +1029,8 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
 		vr::Texture_t rightEyeTexture = {(void*)(uintptr_t)rightEyeDesc.m_nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+
+		m_fLastFrame = currentFrame;
 	} else if(m_bDevMode && vrm == nullptr){
 		
 		DevProcessInput(m_pGLContext);
