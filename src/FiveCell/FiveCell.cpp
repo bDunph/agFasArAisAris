@@ -264,6 +264,7 @@ bool FiveCell::setup(std::string csd)
 	m_bRunMsg = true;
 	m_bCurrentRunMsgState = false;
 	sizeVal = 0.0f;
+	m_bModelTrained = false;
 
 //********************************************************************************************
 
@@ -607,7 +608,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	// train model
 	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true)
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() > 0)
 	{
 
 #ifdef __APPLE__
@@ -615,16 +616,21 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 #elif _WIN32
 		staticRegression.train(trainingSet);
 #endif
-
+		m_bModelTrained = true;
 		std::cout << "Model Trained" << std::endl;
 	}	
+	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() == 0)
+	{
+		std::cout << "Can't train model. No training data." << std::endl;
+	}
+
 	m_bPrevTrainState = machineLearning.bTrainModel;
 
 #ifdef __APPLE__
 
 	// run/stop model
 	bool currentHaltState = m_bPrevHaltState;
-	if(machineLearning.bRunModel && !machineLearning.bHaltModel)
+	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
 	{
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
@@ -687,7 +693,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	}
 	m_bPrevHaltState = machineLearning.bHaltModel;
 #elif _WIN32
-	if(machineLearning.bRunModel)
+	if(machineLearning.bRunModel && m_bModelTrained)
 	{
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
@@ -803,6 +809,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	{
 	
 		staticRegression.readJSON(mySavedModel);	
+		m_bModelTrained = true;
 
 		std::cout << "Loading Data and Training Model" << std::endl;
 	}

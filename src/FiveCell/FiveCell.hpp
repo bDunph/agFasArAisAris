@@ -214,5 +214,8 @@ private:
 
 	float m_fPrevSpecCentVal;	
 	float m_fInterpolatedSpecCentVal;
+
+	bool m_bModelTrained;
+
 };
 #endif

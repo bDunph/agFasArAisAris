@@ -880,35 +880,36 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
-		glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
-		glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-		glm::vec3 directionXyz = glm::vec3(direction.x, direction.y, direction.z);
-		glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-		glm::vec3 upXyz = glm::vec3(up.x, up.y, up.z);
+		//*** VR MOVEMENT CONTROLS
+		//glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
+		//glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+		//glm::vec3 directionXyz = glm::vec3(direction.x, direction.y, direction.z);
+		//glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+		//glm::vec3 upXyz = glm::vec3(up.x, up.y, up.z);
 
-		float camSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
+		//float camSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
 
-    		if (m_vVRPos.x > 0.0f)
-		{
-        		translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-		}
-    		if (m_vVRPos.x < 0.0f)
-		{
-        		translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-		}
-    		if (m_vVRPos.y > 0.0f)
-		{
-        		translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
-		}
-    		if (m_vVRPos.y < 0.0f)
-		{
-        		translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
-		}
-		
-		std::cout << translationVal.x << "	" << translationVal.y << "	" << translationVal.z << std::endl;
+    		//if (m_vVRPos.x > 0.0f)
+		//{
+        	//	translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
+		//}
+    		//if (m_vVRPos.x < 0.0f)
+		//{
+        	//	translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
+		//}
+    		//if (m_vVRPos.y > 0.0f)
+		//{
+        	//	translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
+		//}
+    		//if (m_vVRPos.y < 0.0f)
+		//{
+        	//	translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
+		//}
+		//
+		//std::cout << translationVal.x << "	" << translationVal.y << "	" << translationVal.z << std::endl;
 
-		//keep camera movement on the XZ plane
-		if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
+		////keep camera movement on the XZ plane
+		//if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
 
 	} 
 	else 
