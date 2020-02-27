@@ -13,8 +13,10 @@
 
 #ifdef __APPLE__ 
 #include "GLFW/glfw3.h"
+#define TRAINING_SET_SIZE trainingData.trainingSet.size()
 #elif _WIN32 
 #include "glfw3.h"
+#define TRAINING_SET_SIZE trainingSet.size()
 #endif
 
 #include "SystemInfo.hpp"
@@ -607,7 +609,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	// train model
 	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() > 0)
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && TRAINING_SET_SIZE > 0)
 	{
 
 #ifdef __APPLE__
@@ -618,7 +620,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		m_bModelTrained = true;
 		std::cout << "Model Trained" << std::endl;
 	}	
-	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() == 0)
+	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && TRAINING_SET_SIZE == 0)
 	{
 		std::cout << "Can't train model. No training data." << std::endl;
 	}

@@ -87,7 +87,6 @@ mat3 rotationMatrix(vec3 axis, float angle)
 //----------------------------------------------------------------------------------------
 float sphereSDF(vec3 p, float radius)
 {
-
 	return abs(length(p) - radius);
 }
 
@@ -167,8 +166,8 @@ float DE(vec3 p)
 		rad += recVal;
 		sphereDist = sphereSDF(p, rad);
 	}	
-	float res = min(kifDist, planeDist);    
-	return min(res, sphereDist);
+
+	return min(kifDist, min(sphereDist, planeDist));
 }
 
 
@@ -176,38 +175,37 @@ float DE(vec3 p)
 float march(vec3 o, vec3 r)
 {
  	float t = 0.0;
-    int ind = 0;
-    for(int i = 0; i < MAX_ITERATIONS; ++i)
-    {
-     	vec3 p = o + r * t;
-        //float d = DE(p * 1.0 + lowFreqVal);
+    	int ind = 0;
+    	for(int i = 0; i < MAX_ITERATIONS; ++i)
+    	{
+    	 	vec3 p = o + r * t;
+    	    	//float d = DE(p * 1.0 + lowFreqVal);
 
-	// twisting deformation
-	//float k = 0.01 * lowFreqVal + mod(timeVal, 5.0);
-	//float c = cos(k * p.y);
-	//float s = sin(k * p.y);
-	//mat2 m = mat2(c, -s, s, c);
-	//p = vec3(m * p.xz, p.y);
+    	    	// twisting deformation
+    	    	//float k = 0.01 * lowFreqVal + mod(timeVal, 5.0);
+    	    	//float c = cos(k * p.y);
+    	    	//float s = sin(k * p.y);
+    	    	//mat2 m = mat2(c, -s, s, c);
+    	    	//p = vec3(m * p.xz, p.y);
 
-	// sine displacement
-	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
-	float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
-	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
-	//disp *= mod(timeVal, 5.0) * lowFreqVal;
-	//disp *= sineControlVal * lowFreqVal;
-	
-	
-	float d = DE(p);
+    	    	// sine displacement
+    	    	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
+    	    	float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
+    	    	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
+    	    	//disp *= mod(timeVal, 5.0) * lowFreqVal;
+    	    	//disp *= sineControlVal * lowFreqVal;
+    	    	
+    	    	float d = DE(p);
 
-	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
-	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
-        if(d < EPSILON) break;
-        t += (d + (disp * 0.2)) * 0.5;
-        ind++;
-    }
-    
-    index = ind;
-    return t;
+    	    	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
+    	    	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
+    	    	if(d < EPSILON) break;
+    	    	t += (d + (disp * 0.2)) * 0.5;
+    	    	ind++;
+    	}
+    	
+    	index = ind;
+    	return t;
 }
 
 // finite difference normal from 
@@ -258,20 +256,30 @@ void main()
 
 	vec3 pos = rayOrigin + dist * rayDir;// + (noiseCalc * 0.01);
 
-		
 	// colouring and shading
 	vec3 norm = norm(pos, rayDir);
 	    
 	// material colour
 	//float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
 
-	float sq = float(Iterations) * float(Iterations);
-	float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
-	vec3 matCol1 = vec3(pow(0.785, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
-	vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
-	vec3 totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
-	//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
-	    
+	vec3 totMatCol = vec3(0.0);
+
+	if(index >= (MAX_ITERATIONS - 1))
+	{
+		totMatCol = vec3(0.16, 0.2, 0.28);
+	}
+	else
+	{
+	
+		float sq = float(Iterations) * float(Iterations);
+		float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
+		vec3 matCol1 = vec3(pow(0.785, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
+		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
+		//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
+
+	}
+	
 	// lighting
 	float ao = ao(pos, norm, 0.5, 5.0);
 	float sun = clamp(dot(norm, SUN_DIR), 0.0, 1.0);
@@ -284,10 +292,10 @@ void main()
 	    
 	vec3 colour = totMatCol * lightRig;
 	    
-	float fog = 1.0 / (1.0 + dist * dist * 0.5);
+	//float fog = 1.0 / (1.0 + dist * dist * 0.5);
 	    
 	//colour = pow(colour, vec3(fog));
-	colour *= fog;
+	//colour *= fog;
 	    
 	// gamma corr
 	colour = pow(colour, vec3(1.0/2.2));
