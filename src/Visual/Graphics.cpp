@@ -34,8 +34,8 @@ glm::vec3 m_vec3DevCamFront;
 // ----------------------------------------------------------------------
 Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) : 
 	m_pGLContext(nullptr),
-	m_nCompanionWindowWidth(320),
-	m_nCompanionWindowHeight(320),
+	m_nCompanionWindowWidth(640),
+	m_nCompanionWindowHeight(480),
 	m_iTrackedControllerCount(0),
 	m_iTrackedControllerCount_Last(-1),
 	m_iValidPoseCount_Last(-1),
@@ -478,7 +478,7 @@ bool Graphics::BSetupStereoRenderTargets(std::unique_ptr<VR_Manager>& vrm)
 		if(!fboR) return false;
 	}
 
-	m_vec3TranslationVal = glm::vec3(0.0f);
+	m_vec4TranslationVal = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	//delete[] dummyTex;
 
@@ -878,7 +878,16 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
 		//*** VR MOVEMENT CONTROLS
-		//glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
+
+		glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
+		glm::vec3 upVec = glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 rightVec = glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec4 rightVec4 = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec3 forwardVec = glm::cross(rightVec, upVec);
+		glm::vec4 forwardVec4 = glm::vec4(forwardVec.x, forwardVec.y, forwardVec.z, 0.0);
+		glm::vec4 forwardDirVec4 = invMat * forwardVec4;
+		glm::vec4 rightDirVec4 = invMat * rightVec4;
+
 		//glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
 		//glm::vec3 directionXyz = glm::vec3(direction.x, direction.y, direction.z);
 		//glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
@@ -888,26 +897,27 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
     		if (m_vVRPos.x > 0.0f)
 		{
-        		//translationVal += camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-        		m_vec3TranslationVal += camSpeed * glm::vec3(1.0f, 0.0f, 0.0f);
+        		m_vec4TranslationVal + 1.5f * rightDirVec4;
+        		//m_vec4TranslationVal += camSpeed * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 		}
     		if (m_vVRPos.x < 0.0f)
 		{
-        		//translationVal -= camSpeed * glm::vec3(directionXyz.x, directionXyz.y, directionXyz.z);
-        		m_vec3TranslationVal += camSpeed * glm::vec3(-1.0f, 0.0f, 0.0f);
+        		m_vec4TranslationVal - 1.5f * rightDirVec4;
+        		//m_vec4TranslationVal += camSpeed * glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
 		}
     		if (m_vVRPos.y > 0.0f)
 		{
-        		//translationVal -= glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;
-        		m_vec3TranslationVal += camSpeed * glm::vec3(0.0f, 0.0f, 1.0f);
+        		m_vec4TranslationVal + 1.5f * forwardDirVec4; 
+        		//m_vec4TranslationVal += camSpeed * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); 
 		}
     		if (m_vVRPos.y < 0.0f)
 		{
-        		//translationVal += glm::normalize(glm::cross(directionXyz, upXyz)) * camSpeed;	
-        		m_vec3TranslationVal += camSpeed * glm::vec3(0.0f, 0.0f, -1.0f);
+        		m_vec4TranslationVal - 1.5f * forwardDirVec4;
+        		//m_vec4TranslationVal += camSpeed * glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
 		}
 		
-		//std::cout << translationVal.x << "	" << translationVal.y << "	" << translationVal.z << std::endl;
+		//std::cout << rightDirVec4.x << "	" << rightDirVec4.y << "	" << rightDirVec4.z << "	" << rightDirVec4.w << std::endl;
+		std::cout << m_vec4TranslationVal.x << "	" << m_vec4TranslationVal.y << "	" << m_vec4TranslationVal.z << "	" << m_vec4TranslationVal.w << std::endl;
 
 		////keep camera movement on the XZ plane
 		//if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
@@ -935,8 +945,10 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	//m_structPboInfo.pboPtr = new unsigned char[m_structPboInfo.pboSize];
 	//m_structPboInfo.pboPtr = m_pDataSize;
 
+	//glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x / m_vec4TranslationVal.w, m_vec4TranslationVal.y / m_vec4TranslationVal.w, m_vec4TranslationVal.z / m_vec4TranslationVal.w);
+	glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
 	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, m_vec3TranslationVal);
+	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, vec3TranslationVal);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;
