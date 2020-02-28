@@ -381,11 +381,12 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //*******************************************************************************************
 void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec){
 
+	modelMatrix = glm::mat4(1.0f);
+
 	m_vec3Translation = translateVec;
 	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
 	m_fTranslationMag = glm::length(m_vec3Translation);
 
-	modelMatrix = glm::mat4(1.0f);
 	//rms value from Csound
 	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
 	
@@ -826,26 +827,23 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 //*********************************************************************************************
 void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg)
 {
-	glm::mat4 transModelMat;
-
-	if(m_fTranslationMag < 30.0f)
-	{
-		transModelMat = glm::translate(modelMatrix, m_vec3Translation);
-	}
-	else
-	{
-
-	}
+	std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
+	//std::cout << m_fTranslationMag << std::endl;
+	//if(m_fTranslationMag <= 30.0f)
+	//{
+		//std::cout << "below 30" << std::endl;
+		modelMatrix = glm::translate(modelMatrix, m_vec3Translation);
+	//}
+	//else
+	//{
+	      //std::cout << "above 30" << std::endl;
+	//      float scaleVal = -m_fTranslationMag;
+	//      modelMatrix = glm::scale(modelMatrix, glm::vec3(scaleVal));	
+	//}
 	//matrices for raymarch shaders
-	//modelViewEyeMat = eyeMat * viewMat * transModelMat;
-	//inverseMVEMat = glm::inverse(modelViewEyeMat);
-	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * transModelMat;
+	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * modelMatrix;
 	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
 
-	//glm::mat4 viewEyeMat = eyeMat * viewMat;
-	
-	//camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
-	
 	//draw glass mandelbulb -----------------------------------------------------------------
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;

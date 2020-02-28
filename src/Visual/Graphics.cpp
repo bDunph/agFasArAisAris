@@ -892,24 +892,29 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		rightDirVec4 = glm::normalize(rightDirVec4);
 
 		float camSpeed = 0.8f * m_fDeltaTime; // adjust accordingly
+		float translationMag = glm::length(m_vec4TranslationVal);
 
-    		if (m_vVRPos.x > 0.0f)
+		if (m_vVRPos.x > 0.0f)
 		{
         		m_vec4TranslationVal -= camSpeed * rightDirVec4;
+			if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * rightDirVec4; 
 		}
     		if (m_vVRPos.x < 0.0f)
 		{
         		m_vec4TranslationVal += camSpeed * rightDirVec4;
+			if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * rightDirVec4;
 		}
     		if (m_vVRPos.y > 0.0f)
 		{
         		m_vec4TranslationVal += camSpeed * forwardDirVec4; 
+			if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * forwardDirVec4;
 		}
     		if (m_vVRPos.y < 0.0f)
 		{
         		m_vec4TranslationVal -= camSpeed * forwardDirVec4;
+			if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * forwardDirVec4;
 		}
-		
+			
 		////keep camera movement on the XZ plane
 		//if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
 	} 
