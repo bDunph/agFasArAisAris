@@ -256,21 +256,18 @@ void main()
 
 	vec3 pos = rayOrigin + dist * rayDir;// + (noiseCalc * 0.01);
 
-	// colouring and shading
-	vec3 norm = norm(pos, rayDir);
-	    
+		    
 	// material colour
 	//float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
 
+	vec3 colour = vec3(0.0);
 	vec3 totMatCol = vec3(0.0);
 
-	if(index >= (MAX_ITERATIONS - 1))
+	if(index < MAX_ITERATIONS)
 	{
-		totMatCol = vec3(0.16, 0.2, 0.28);
-	}
-	else
-	{
-	
+		// colouring and shading
+		vec3 norm = norm(pos, rayDir);
+
 		float sq = float(Iterations) * float(Iterations);
 		float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
 		vec3 matCol1 = vec3(pow(0.785, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
@@ -278,19 +275,24 @@ void main()
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 		//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 
+		// lighting
+		float ao = ao(pos, norm, 0.5, 5.0);
+		float sun = clamp(dot(norm, SUN_DIR), 0.0, 1.0);
+		float sky = clamp(0.5 + 0.5 * norm.y, 0.0, 1.0);
+		float ind = clamp(dot(norm, normalize(SUN_DIR * vec3(-1.0, 0.0, -1.0))), 0.0, 1.0);
+		    
+		vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
+		lightRig += sky * vec3(0.16, 0.2, 0.28) * ao;
+		lightRig += ind * vec3(0.4, 0.28, 0.2) * ao;
+		    
+		colour = totMatCol * lightRig;
+	}
+	else
+	{
+		colour = vec3(0.16, 0.2, 0.28);
 	}
 	
-	// lighting
-	float ao = ao(pos, norm, 0.5, 5.0);
-	float sun = clamp(dot(norm, SUN_DIR), 0.0, 1.0);
-	float sky = clamp(0.5 + 0.5 * norm.y, 0.0, 1.0);
-	float ind = clamp(dot(norm, normalize(SUN_DIR * vec3(-1.0, 0.0, -1.0))), 0.0, 1.0);
-	    
-	vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
-	lightRig += sky * vec3(0.16, 0.2, 0.28) * ao;
-	lightRig += ind * vec3(0.4, 0.28, 0.2) * ao;
-	    
-	vec3 colour = totMatCol * lightRig;
+	
 	    
 	//float fog = 1.0 / (1.0 + dist * dist * 0.5);
 	    

@@ -383,6 +383,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	m_vec3Translation = translateVec;
 	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
+	m_fTranslationMag = glm::length(m_vec3Translation);
 
 	modelMatrix = glm::mat4(1.0f);
 	//rms value from Csound
@@ -825,7 +826,16 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 //*********************************************************************************************
 void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg)
 {
-	glm::mat4 transModelMat = glm::translate(modelMatrix, m_vec3Translation);
+	glm::mat4 transModelMat;
+
+	if(m_fTranslationMag < 30.0f)
+	{
+		transModelMat = glm::translate(modelMatrix, m_vec3Translation);
+	}
+	else
+	{
+
+	}
 	//matrices for raymarch shaders
 	//modelViewEyeMat = eyeMat * viewMat * transModelMat;
 	//inverseMVEMat = glm::inverse(modelViewEyeMat);

@@ -873,10 +873,11 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	glm::vec3 cameraPosition;
 
-	if(!m_bDevMode)
+	if(!m_bDevMode && !m_bPBOFirstFrame) //m_bPBOFirstFrame here because rightDirVec4 was nan on 1st frame
 	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
 		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
+
 		//*** VR MOVEMENT CONTROLS
 
 		glm::mat4 invMat = glm::inverse(m_mat4CurrentViewMatrix);
@@ -886,42 +887,31 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		glm::vec3 forwardVec = glm::cross(rightVec, upVec);
 		glm::vec4 forwardVec4 = glm::vec4(forwardVec.x, forwardVec.y, forwardVec.z, 0.0);
 		glm::vec4 forwardDirVec4 = invMat * forwardVec4;
+		forwardDirVec4 = glm::normalize(forwardDirVec4);
 		glm::vec4 rightDirVec4 = invMat * rightVec4;
+		rightDirVec4 = glm::normalize(rightDirVec4);
 
-		//glm::vec4 direction = invMat * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
-		//glm::vec3 directionXyz = glm::vec3(direction.x, direction.y, direction.z);
-		//glm::vec4 up = invMat * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-		//glm::vec3 upXyz = glm::vec3(up.x, up.y, up.z);
-
-		float camSpeed = 0.15f * m_fDeltaTime; // adjust accordingly
+		float camSpeed = 0.8f * m_fDeltaTime; // adjust accordingly
 
     		if (m_vVRPos.x > 0.0f)
 		{
-        		m_vec4TranslationVal + 1.5f * rightDirVec4;
-        		//m_vec4TranslationVal += camSpeed * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+        		m_vec4TranslationVal -= camSpeed * rightDirVec4;
 		}
     		if (m_vVRPos.x < 0.0f)
 		{
-        		m_vec4TranslationVal - 1.5f * rightDirVec4;
-        		//m_vec4TranslationVal += camSpeed * glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+        		m_vec4TranslationVal += camSpeed * rightDirVec4;
 		}
     		if (m_vVRPos.y > 0.0f)
 		{
-        		m_vec4TranslationVal + 1.5f * forwardDirVec4; 
-        		//m_vec4TranslationVal += camSpeed * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); 
+        		m_vec4TranslationVal += camSpeed * forwardDirVec4; 
 		}
     		if (m_vVRPos.y < 0.0f)
 		{
-        		m_vec4TranslationVal - 1.5f * forwardDirVec4;
-        		//m_vec4TranslationVal += camSpeed * glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+        		m_vec4TranslationVal -= camSpeed * forwardDirVec4;
 		}
 		
-		//std::cout << rightDirVec4.x << "	" << rightDirVec4.y << "	" << rightDirVec4.z << "	" << rightDirVec4.w << std::endl;
-		std::cout << m_vec4TranslationVal.x << "	" << m_vec4TranslationVal.y << "	" << m_vec4TranslationVal.z << "	" << m_vec4TranslationVal.w << std::endl;
-
 		////keep camera movement on the XZ plane
 		//if(cameraPosition.y < 1.0f || cameraPosition.y > 1.0f) cameraPosition.y = 1.0f;
-
 	} 
 	else 
 	{

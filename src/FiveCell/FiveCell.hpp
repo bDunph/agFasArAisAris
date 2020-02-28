@@ -71,6 +71,7 @@ private:
 	glm::mat4 groundModelMatrix;
 	glm::mat4 skyboxModelMatrix;
 	glm::vec3 m_vec3Translation;
+	float m_fTranslationMag;
 
 	//lights
 	glm::vec3 lightPos;
