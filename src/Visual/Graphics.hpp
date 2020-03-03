@@ -228,7 +228,7 @@ private:
 
 	FiveCell::PBOInfo m_structPboInfo;	
 
-	glm::vec3 m_vec3TranslationVal;
+	glm::vec4 m_vec4TranslationVal;
 };
 
 

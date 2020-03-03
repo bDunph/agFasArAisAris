@@ -20,10 +20,10 @@ nchnls = 2
 ; Set 0dbfs to 1
 0dbfs = 1
 
-giWave  ftgen  3,0,2^10,10,1,1/2,1/4,1/8,1/16,1/32,1/64
-giBuzz  ftgen 1,0,4096,11,40,1,0.9
-giSine	ftgen 2,0,4096,10,1
-giWave	ftgen	4,0,16384,10,1
+giWave  	ftgen  	0,0,2^10,10,1,1/2,1/4,1/8,1/16,1/32,1/64
+giBuzz  	ftgen 	0,0,4096,11,40,1,0.9
+giSine		ftgen 	0,0,4096,10,1
+giSineWave	ftgen	0,0,16384,10,1
 
 
 giFMWave  	ftgen  	0, 0, 2^10, 10, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64
@@ -45,7 +45,7 @@ giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 1
 
 ;window function - used as an amplitude envelope for each grain
 ;(bartlett window)
-giWFn   ftgen 2,0,16384,20,3,1
+giWFn   	ftgen 	0,0,16384,20,3,1
 
 ;**************************************************************************************
 instr 2 ; Modal Instrument
@@ -67,9 +67,9 @@ kRangeMin += 65
 kRangeMax	gauss	kGaussRange
 kRangeMax += 80	
 kcpsMin		gauss	kGaussRange * 0.1
-kcpsMin += 2
+kcpsMin += 4
 kcpsMax		gauss	kGaussRange * 0.1
-kcpsMax += 3
+kcpsMax += 6
 
 kFreqScale	rspline	kRangeMin,	kRangeMax,	kcpsMin,	kcpsMax
 
@@ -81,14 +81,14 @@ kRangeMax2 += -12
 kWgbowAmpVal	rspline	kRangeMin2,	kRangeMax2,	kcpsMin,	kcpsMax
 
 kRangeMin3	gauss	kGaussRange * 0.1
-kRangeMin3 += 3	
+kRangeMin3 += 2	
 kRangeMax3	gauss	kGaussRange * 0.1
 kRangeMax3 += 4	
 
 kWgbowPressureVal	rspline	kRangeMin3,	kRangeMax3,	kcpsMin,	kcpsMax
 
 kRangeMin4	gauss	kGaussRange * 0.004
-kRangeMin4 += 0.11	
+kRangeMin4 += 0.127236	
 kRangeMax4	gauss	kGaussRange * 0.004
 kRangeMax4 += 0.15	
 
@@ -102,9 +102,9 @@ kRangeMax5 += 10
 kWgbowVibF	rspline	kRangeMin5,	kRangeMax5,	kcpsMin,	kcpsMax
 
 kRangeMin6	gauss	kGaussRange * 0.1
-kRangeMin6 += -24	
+kRangeMin6 += -18	
 kRangeMax6	gauss	kGaussRange * 0.1
-kRangeMax6 += -18	
+kRangeMax6 += -12	
 
 kWgbowVibAmp	rspline	kRangeMin6,	kRangeMax6,	kcpsMin,	kcpsMax
 
@@ -141,23 +141,23 @@ aexc	wgbow	kamp,	kfreq,	kpres,	krat,	kvibf,	kvamp
 aexc limit	aexc,	0,	3*iamp 
 
 ; ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-ares1	mode	aexc,	100 + kGaussRange,	220 + kGaussRange * 0.8
+ares1	mode	aexc,	100 + kGaussRange,	220 + kGaussRange; * 0.8
 
-ares2	mode	aexc,	142 + kGaussRange,	280 + kGaussRange * 0.4
+ares2	mode	aexc,	142 + kGaussRange,	280 + kGaussRange; * 0.4
 
-ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange * 0.2
+ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange; * 0.2
 
-ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange * 0.2
+ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange; * 0.2
 
-ares5	mode	aexc,	467.9 + kGaussRange,	12 + kGaussRange * 0.2	
+;ares5	mode	aexc,	467.9 + kGaussRange,	240 + kGaussRange * 0.2	
 
-;ares6	mode	aexc,	3364.2, 600	
+;ares6	mode	aexc,	935.8 + kGaussRange, 	240 + kGaussRange * 0.2	
 
-ares	sum	ares1,	ares2,	ares3,	ares4,	ares5
+ares	sum	ares1,	ares2,	ares3,	ares4;,	ares5, ares6
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
 gaOut2 = aexc * ares
-	;outs	gaOut2,	gaOut2
+	outs	gaOut2,	gaOut2
 
 ;kRms	rms	gaOut1
 ;	chnset	kRms,	"rmsOut"
@@ -347,7 +347,7 @@ kSineControlVal	chnget	"sineControlVal"
   ;kGDur   =       0.08
   ;kDens   =       200
   iMaxOvr =       1000
-  kFn     =       4
+  kFn     =       giWave
   ;print info. to the terminal
           ;printks "Random Phase:%5.2F%TPitch Random:%5.2F%n",1,kPmd,kFmd
 	;printks "Grain Density:%f%n", 1, kDens
@@ -479,21 +479,23 @@ endin
 ;********************************************************************
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24	p25
 
+f0	86400 ;keep csound running for a day
+
 f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 
 ;********************************************************************
 ; score events
 ;********************************************************************
 
-i2	2	10000
+;i2	2	-1
 
-i6	2	10000
+i6	2	-1
 
-i8	2	10000
+i8	2	-1
 
-i9	2	10000
+i9	2	-1
 
-i12	2	10000
+i12	2	-1
 e
 </CsScore>
 </CsoundSynthesizer>
