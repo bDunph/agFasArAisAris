@@ -827,7 +827,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 //*********************************************************************************************
 void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg)
 {
-	std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
+	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
 	//std::cout << m_fTranslationMag << std::endl;
 	//if(m_fTranslationMag <= 30.0f)
 	//{

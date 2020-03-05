@@ -8,6 +8,7 @@
 #include <cmath>
 #include <stdlib.h>
 #include <cstdlib>
+#include <algorithm>
 
 #include "lodepng.h"
 #include "Graphics.hpp"
@@ -209,7 +210,10 @@ bool Graphics::BInitGL(bool fullscreen)
 		m_nRenderWidth = m_nCompanionWindowWidth;
 		m_nRenderHeight = m_nCompanionWindowHeight; 
 	}
-	
+
+	m_fMaxDist = 30.0f;
+	m_vec3InitCamPos = glm::vec3(0.0f);
+
 	return true;
 }
 
@@ -774,6 +778,22 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 void Graphics::DevProcessInput(GLFWwindow *window){
 	
 	float cameraSpeed = 5.0f * m_fDeltaTime; // adjust accordingly
+	
+	//convert camera position to spherical coordinates
+	float radius = glm::length(m_vec3DevCamPos);
+	float theta = atan2(m_vec3DevCamPos.z, m_vec3DevCamPos.x);
+	float phi = acos(m_vec3DevCamPos.y / radius);
+
+	std::cout << radius << std::endl;
+
+	//clamp radius between 0 and m_fMaxDist
+	radius = std::clamp(radius, 0.0f, m_fMaxDist);
+
+	//convert back to cartesian coordinates 
+	m_vec3DevCamPos.x = cos(theta) * cos(phi) * radius;
+	m_vec3DevCamPos.z = sin(theta) * cos(phi) * radius;
+	m_vec3DevCamPos.y = sin(phi) * radius;
+
     	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         	m_vec3DevCamPos += cameraSpeed * m_vec3DevCamFront;
     	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -784,8 +804,8 @@ void Graphics::DevProcessInput(GLFWwindow *window){
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
 	
 	//keep camera movement on the XZ plane
-	if(m_vec3DevCamPos.y < 1.0f || m_vec3DevCamPos.y > 1.0f) m_vec3DevCamPos.y = 1.0f;
-
+	//if(m_vec3DevCamPos.y < 1.0f || m_vec3DevCamPos.y > 1.0f) m_vec3DevCamPos.y = 1.0f;
+	
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
 		machineLearning.bRecord = true;
