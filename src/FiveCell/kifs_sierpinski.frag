@@ -221,13 +221,40 @@ vec3 norm(vec3 pos, vec3 dir)
 
 // ambient occlusion implementation from 
 // http://www.pouet.net/topic.php?which=7931&page=1&x=3&y=14
-
-float ao(vec3 p, vec3 n, float d, float i) {
+float ao(vec3 p, vec3 n, float d, float i) 
+{
 	float o;
 	for (o=1.;i>0.;i--) {
 		o-=(i*d-abs(DE(p+n*i*d)))/pow(2.,i);
 	}
 	return o;
+}
+
+//----------------------------------------------------------------------------------------
+// Fog based on https://www.iquilezles.org/www/articles/fog/fog.htm
+//----------------------------------------------------------------------------------------
+vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
+{
+
+	//float fogAmount = 1.0 - exp(-dist * 0.2);
+	vec3 normLightDir = normalize(-lightDir);
+	float expDistTerm = exp(dot(rayDir, normLightDir));
+	float lightAmount = max(expDistTerm * 0.6, 0.0);
+	vec3 fogColour = mix(vec3(0.5, 0.6, 0.7), vec3(1.0, 0.9, 0.7), pow(lightAmount, 10.0));
+	//fogColour *= fftVec;
+
+	vec3 bExt = vec3(0.05, 0.03, 0.09);
+	vec3 bIns = vec3(0.12, 0.05, 0.05);
+
+	vec3 extCol = vec3(exp(-dist * bExt.x), exp(-dist * bExt.y), exp(-dist * bExt.z));
+	vec3 insCol = vec3(exp(-dist * bIns.x), exp(-dist * bIns.y), exp(-dist * bIns.z));
+
+	//float extCol = exp(-dist * 0.02);
+	//float insCol = exp(-dist * 0.04);
+
+	//return col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	return vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	//return mix(col, fogColour, fogAmount);
 }
 
 void main()
@@ -299,6 +326,8 @@ void main()
 	//colour = pow(colour, vec3(fog));
 	//colour *= fog;
 	    
+	colour = fog(colour, dist, rayDir, SUN_DIR);
+
 	// gamma corr
 	colour = pow(colour, vec3(1.0/2.2));
 	
