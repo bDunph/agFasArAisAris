@@ -240,7 +240,7 @@ vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 	vec3 normLightDir = normalize(-lightDir);
 	float expDistTerm = exp(dot(rayDir, normLightDir));
 	float lightAmount = max(expDistTerm * 0.6, 0.0);
-	vec3 fogColour = mix(vec3(0.5, 0.6, 0.7), vec3(1.0, 0.9, 0.7), pow(lightAmount, 10.0));
+	vec3 fogColour = mix(vec3(0.5, 0.6, 0.7), vec3(1.0, 0.9, 0.7), pow(lightAmount, 2.0));
 	//fogColour *= fftVec;
 
 	vec3 bExt = vec3(0.05, 0.03, 0.09);
