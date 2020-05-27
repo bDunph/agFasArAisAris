@@ -231,7 +231,7 @@ private:
 	glm::vec4 m_vec4TranslationVal;
 	float m_fMaxDist;
 	glm::vec3 m_vec3InitCamPos;
+
+	glm::vec3 m_vec3DevGlobalPos;
 };
-
-
 #endif

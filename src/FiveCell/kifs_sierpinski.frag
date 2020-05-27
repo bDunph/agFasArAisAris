@@ -316,7 +316,8 @@ void main()
 	}
 	else
 	{
-		colour = vec3(0.16, 0.2, 0.28);
+		//colour = vec3(0.16, 0.2, 0.28);
+		colour = vec3(0.0, 0.0, 0.0);
 	}
 	
 	
@@ -326,7 +327,7 @@ void main()
 	//colour = pow(colour, vec3(fog));
 	//colour *= fog;
 	    
-	colour = fog(colour, dist, rayDir, SUN_DIR);
+	//colour = fog(colour, dist, rayDir, SUN_DIR);
 
 	// gamma corr
 	colour = pow(colour, vec3(1.0/2.2));

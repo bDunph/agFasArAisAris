@@ -206,6 +206,9 @@ bool Graphics::BInitGL(bool fullscreen)
 		m_vec3DevCamUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		m_vec3DevCamFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
+		//global position for use with scaling
+		m_vec3DevGlobalPos = m_vec3DevCamPos;
+
 		//values for framebuffer setup to make up for no headset
 		m_nRenderWidth = m_nCompanionWindowWidth;
 		m_nRenderHeight = m_nCompanionWindowHeight; 
@@ -795,22 +798,113 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	//m_vec3DevCamPos.y = sin(phi) * radius;
 
     	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
         	m_vec3DevCamPos += cameraSpeed * m_vec3DevCamFront;
+		m_vec3DevGlobalPos = m_vec3DevCamPos;
+	}
     	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
         	m_vec3DevCamPos -= cameraSpeed * m_vec3DevCamFront;
+		m_vec3DevGlobalPos = m_vec3DevCamPos;
+	}
     	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
         	m_vec3DevCamPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+		m_vec3DevGlobalPos = m_vec3DevCamPos;
+	}
     	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+		m_vec3DevGlobalPos = m_vec3DevCamPos;
+	}
 	
 	//keep camera movement on the XZ plane
 	if(m_vec3DevCamPos.y < 1.0f || m_vec3DevCamPos.y > 1.0f) m_vec3DevCamPos.y = 1.0f;
 
 	//keep camera within a certain distance from origin
-	if(m_vec3DevCamPos.x > m_fMaxDist) m_vec3DevCamPos.x = m_fMaxDist;
-	if(m_vec3DevCamPos.x < -m_fMaxDist) m_vec3DevCamPos.x = -m_fMaxDist;
-	if(m_vec3DevCamPos.z > m_fMaxDist) m_vec3DevCamPos.z = m_fMaxDist;
-	if(m_vec3DevCamPos.z < -m_fMaxDist) m_vec3DevCamPos.z = -m_fMaxDist;
+	//if(m_vec3DevCamPos.x > m_fMaxDist) 
+	//{
+	//	m_vec3DevCamPos.x = m_fMaxDist;
+	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+	//	}
+	//}
+	//if(m_vec3DevCamPos.x < -m_fMaxDist) 
+	//{
+	//	m_vec3DevCamPos.x = -m_fMaxDist;
+
+	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+	//	}
+    	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	{
+        //		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+	//	}
+	//}
+	//if(m_vec3DevCamPos.z > m_fMaxDist) 
+	//{
+	//	m_vec3DevCamPos.z = m_fMaxDist;
+
+	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+	//	}	
+	//}
+	//if(m_vec3DevCamPos.z < -m_fMaxDist) 
+	//{
+	//	m_vec3DevCamPos.z = -m_fMaxDist;
+
+	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+	//	}
+	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	{
+	//		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+	//	}
+	//}
 	
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
@@ -898,6 +992,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 {
 
 	glm::vec3 cameraPosition;
+	float translationMag;
 
 	if(!m_bDevMode && !m_bPBOFirstFrame) //m_bPBOFirstFrame here because rightDirVec4 was nan on 1st frame
 	{
@@ -918,7 +1013,8 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		rightDirVec4 = glm::normalize(rightDirVec4);
 
 		float camSpeed = 0.8f * m_fDeltaTime; // adjust accordingly
-		float translationMag = glm::length(m_vec4TranslationVal);
+		translationMag = glm::length(m_vec4TranslationVal);
+
 
 		if (m_vVRPos.x > 0.0f)
 		{
@@ -970,6 +1066,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
 	//update variables for fiveCell
 	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, vec3TranslationVal);
+
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;
@@ -1425,8 +1522,18 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		glUseProgram(0);
 	}
 
+	float scaleFactor;
+	if(m_bDevMode)
+	{
+		float globalDist = glm::length(m_vec3DevGlobalPos);	
+		scaleFactor = globalDist - m_fMaxDist + 1.0f;
+	}
+	else
+	{
+		scaleFactor = 1.0f;
+	}
 	//draw fiveCell scene
-	fiveCell.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);
+	fiveCell.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, scaleFactor);
 
 }
 
