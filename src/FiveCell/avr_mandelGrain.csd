@@ -156,11 +156,11 @@ ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange; * 0.2
 ares	sum	ares1,	ares2,	ares3,	ares4;,	ares5, ares6
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
-gaOut2 = aexc * ares
-	outs	gaOut2,	gaOut2
+gaOut2 = aexc + ares * 0.8
+	;outs	gaOut2,	gaOut2
 
-;kRms	rms	gaOut1
-;	chnset	kRms,	"rmsOut"
+kRms	rms	gaOut2
+	chnset	kRms,	"rmsOut"
 
 endin
 
@@ -195,9 +195,9 @@ kdist = 0.1
 
 schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainrate, kgrainsize, kcentCalc, kposrand, kcentrand, kpanCalc, kdist
 
-aOut oscil 0,	100
+;aOut oscil 0,	100
 
-outs aOut, aOut
+;outs aOut, aOut
 
 endin
 
@@ -207,6 +207,8 @@ endin
 ; **********************************************************************************************
 instr 7
 ; **********************************************************************************************
+
+kRotMapVal chnget "rotMapVal"
 
 /*score parameters*/
 ispeed			= p4		; 1 = original speed 
@@ -369,7 +371,9 @@ ioverlap = ifftsize / 4
 iwinsize = ifftsize * 2
 iwinshape = 0
 
-aSig	sum	gaOut8, gaOut7
+;aSig	sum	gaOut8, gaOut7
+aSig  = gaOut7
+
 ; route output from instrument 2 above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
@@ -414,7 +418,7 @@ instr 12 ; Hrtf Instrument
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init 3
+iNumAudioSources init 2
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
@@ -438,7 +442,7 @@ channelLoop:
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] = gaOut2
 aInstSigs[1] = gaOut7
-aInstSigs[2] = gaOut8
+;aInstSigs[2] = gaOut8
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -456,17 +460,17 @@ aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1
 aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
 aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
 
-kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
+;kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
 	
-aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
-aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
+;aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+;aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
+;aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
 
 aL init 0
 aR init 0
 
-aL sum aLeftSigs[0], aLeftSigs[1], aLeftSigs[2]
-aR sum aRightSigs[0], aRightSigs[1], aRightSigs[2]
+aL sum aLeftSigs[0], aLeftSigs[1];, aLeftSigs[2]
+aR sum aRightSigs[0], aRightSigs[1];, aRightSigs[2]
 
 outs	aL,	aR
 endin
@@ -487,11 +491,11 @@ f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-;i2	2	-1
+i2	2	-1
 
 i6	2	-1
 
-i8	2	-1
+;i8	2	-1
 
 i9	2	-1
 

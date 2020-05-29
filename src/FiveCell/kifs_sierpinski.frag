@@ -20,6 +20,7 @@ uniform float lowFreqVal;
 uniform float fftAmpBins[NUM_FFT_BINS];
 uniform float timeVal;
 uniform float sineControlVal;
+uniform float rmsModVal;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -156,15 +157,20 @@ float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
 
-	float kifDist = kifSDF(p);
+	float factor = sin(specCentVal * lowFreqVal) * 0.25;// mod(timeVal, 360.0); 
+  	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
+
+	float sphereDisp = sin(rmsModVal);
+
+	float kifDist = kifSDF(p + disp);
 	float planeDist = planeSDF(p, PLANE_NORMAL);
-	float sphereDist = sphereSDF(p, rad);
+	float sphereDist = sphereSDF(p + sphereDisp, rad);
 
 	if(length(p) > rad) 
 	{
 		recVal += FACTOR;
 		rad += recVal;
-		sphereDist = sphereSDF(p, rad);
+		sphereDist = sphereSDF(p + sphereDisp, rad);
 	}	
 
 	return min(kifDist, min(sphereDist, planeDist));
@@ -190,8 +196,8 @@ float march(vec3 o, vec3 r)
 
     	    	// sine displacement
     	    	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
-    	    	float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
-    	    	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
+    	    	//float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
+    	    	//float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
     	    	//disp *= mod(timeVal, 5.0) * lowFreqVal;
     	    	//disp *= sineControlVal * lowFreqVal;
     	    	
@@ -200,7 +206,7 @@ float march(vec3 o, vec3 r)
     	    	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
     	    	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
     	    	if(d < EPSILON) break;
-    	    	t += (d + (disp * 0.2)) * 0.5;
+    	    	t += d * 0.5;
     	    	ind++;
     	}
     	
@@ -236,14 +242,14 @@ float ao(vec3 p, vec3 n, float d, float i)
 vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 {
 
-	//float fogAmount = 1.0 - exp(-dist * 0.2);
+	float fogAmount = 1.0 - exp(-dist * 0.2);
 	vec3 normLightDir = normalize(-lightDir);
 	float expDistTerm = exp(dot(rayDir, normLightDir));
-	float lightAmount = max(expDistTerm * 0.6, 0.0);
-	vec3 fogColour = mix(vec3(0.5, 0.6, 0.7), vec3(1.0, 0.9, 0.7), pow(lightAmount, 2.0));
+	float lightAmount = max(expDistTerm * 0.06, 0.0);
+	vec3 fogColour = mix(vec3(0.1, 0.12, 0.14), vec3(0.2, 0.18, 0.14), pow(lightAmount, 16.0));
 	//fogColour *= fftVec;
 
-	vec3 bExt = vec3(0.05, 0.03, 0.09);
+	vec3 bExt = vec3(0.05, 0.03, 0.06);
 	vec3 bIns = vec3(0.12, 0.05, 0.05);
 
 	vec3 extCol = vec3(exp(-dist * bExt.x), exp(-dist * bExt.y), exp(-dist * bExt.z));
@@ -252,9 +258,9 @@ vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 	//float extCol = exp(-dist * 0.02);
 	//float insCol = exp(-dist * 0.04);
 
-	//return col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
-	return vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
-	//return mix(col, fogColour, fogAmount);
+	col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	//return vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	return mix(col, fogColour, fogAmount);
 }
 
 void main()
@@ -309,15 +315,14 @@ void main()
 		float ind = clamp(dot(norm, normalize(SUN_DIR * vec3(-1.0, 0.0, -1.0))), 0.0, 1.0);
 		    
 		vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
-		lightRig += sky * vec3(0.16, 0.2, 0.28) * ao;
+		lightRig += sky * vec3(0.32, 0.4, 0.56) * ao;
 		lightRig += ind * vec3(0.4, 0.28, 0.2) * ao;
 		    
 		colour = totMatCol * lightRig;
 	}
 	else
 	{
-		//colour = vec3(0.16, 0.2, 0.28);
-		colour = vec3(0.0, 0.0, 0.0);
+		colour = vec3(0.16, 0.2, 0.28);
 	}
 	
 	
@@ -327,7 +332,7 @@ void main()
 	//colour = pow(colour, vec3(fog));
 	//colour *= fog;
 	    
-	//colour = fog(colour, dist, rayDir, SUN_DIR);
+	colour = fog(colour, dist, rayDir, -SUN_DIR);
 
 	// gamma corr
 	colour = pow(colour, vec3(1.0/2.2));

@@ -822,89 +822,89 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	if(m_vec3DevCamPos.y < 1.0f || m_vec3DevCamPos.y > 1.0f) m_vec3DevCamPos.y = 1.0f;
 
 	//keep camera within a certain distance from origin
-	//if(m_vec3DevCamPos.x > m_fMaxDist) 
-	//{
-	//	m_vec3DevCamPos.x = m_fMaxDist;
-	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-	//	}
-	//}
-	//if(m_vec3DevCamPos.x < -m_fMaxDist) 
-	//{
-	//	m_vec3DevCamPos.x = -m_fMaxDist;
+	if(m_vec3DevCamPos.x > m_fMaxDist) 
+	{
+		m_vec3DevCamPos.x = m_fMaxDist;
+		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+		//}
+	}
+	if(m_vec3DevCamPos.x < -m_fMaxDist) 
+	{
+		m_vec3DevCamPos.x = -m_fMaxDist;
 
-	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-	//	}
-    	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	{
-        //		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-	//	}
-	//}
-	//if(m_vec3DevCamPos.z > m_fMaxDist) 
-	//{
-	//	m_vec3DevCamPos.z = m_fMaxDist;
+		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+		//}
+    		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		//{
+        	//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+		//}
+	}
+	if(m_vec3DevCamPos.z > m_fMaxDist) 
+	{
+		m_vec3DevCamPos.z = m_fMaxDist;
 
-	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-	//	}	
-	//}
-	//if(m_vec3DevCamPos.z < -m_fMaxDist) 
-	//{
-	//	m_vec3DevCamPos.z = -m_fMaxDist;
+		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+		//}	
+	}
+	if(m_vec3DevCamPos.z < -m_fMaxDist) 
+	{
+		m_vec3DevCamPos.z = -m_fMaxDist;
 
-	//	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-	//	}
-	//	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	{
-	//		m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-	//	}
-	//}
+		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
+		//}
+		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		//{
+		//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
+		//}
+	}
 	
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
@@ -1523,15 +1523,15 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	}
 
 	float scaleFactor;
-	if(m_bDevMode)
-	{
-		float globalDist = glm::length(m_vec3DevGlobalPos);	
-		scaleFactor = globalDist - m_fMaxDist + 1.0f;
-	}
-	else
-	{
+	//if(m_bDevMode)
+	//{
+	//	float globalDist = glm::length(m_vec3DevGlobalPos);	
+	//	scaleFactor = globalDist - m_fMaxDist + 1.0f;
+	//}
+	//else
+	//{
 		scaleFactor = 1.0f;
-	}
+	//}
 	//draw fiveCell scene
 	fiveCell.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, scaleFactor);
 

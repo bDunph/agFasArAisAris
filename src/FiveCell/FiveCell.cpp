@@ -181,6 +181,13 @@ bool FiveCell::setup(std::string csd)
 		return false;
 	}
 
+	const char* rotMapVal = "rotMapVal";
+	if(session->GetChannelPtr(m_cspRotMapVal, rotMapVal, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the rotMapVal value" << std::endl;
+		return false;
+	}
+
 	//for(int i = 0; i < MAX_MANDEL_STEPS; i++){
 
 	//	std::string mandelEscapeValString = "mandelEscapeVal" + std::to_string(i);
@@ -445,13 +452,13 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	soundSource2.position = rotPos2;
  	m_vSoundSources.push_back(soundSource2);
 	
-	glm::vec4 pos3 = glm::vec4(0.0f, 0.0f, -2.0f, 1.0f);
-	float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
-	float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
-	glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
-	SoundSourceData soundSource3;
-	soundSource3.position = rotPos3;
- 	m_vSoundSources.push_back(soundSource3);
+	//glm::vec4 pos3 = glm::vec4(0.0f, 0.0f, -2.0f, 1.0f);
+	//float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
+	//float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
+	//glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
+	//SoundSourceData soundSource3;
+	//soundSource3.position = rotPos3;
+ 	//m_vSoundSources.push_back(soundSource3);
 
 	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
 	{
@@ -487,6 +494,12 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
+	m_fTimeControlVal = glfwGetTime() * 0.1;
+	float rotationVal = 45.0 + (m_fTimeControlVal * 0.1);
+	float moduloVal = fmod(rotationVal, 360.0);
+	float mappedVal = moduloVal / 360.0;
+	std::cout << moduloVal << std::endl;	
+	*m_cspRotMapVal = (MYFLT)mappedVal;
 //*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
@@ -501,68 +514,76 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 		//random audio params
 		
-		// grain3 parameters
-
-		// grain frequency (kcps) 
-		std::uniform_real_distribution<float> distGrainFreq(50.0f, 1000.0f);
+		// partikkel parameters
+		
+		// file read speed
+		std::uniform_real_distribution<float> distFileSpeed(50.0f, 1000.0f);
 		std::default_random_engine genGrainFreq(rd());
 		float valGrainFreq = distGrainFreq(genGrainFreq);
 		*m_cspGrainFreq = (MYFLT)valGrainFreq;
-			
-		// grain phase (kphs) 
-		std::uniform_real_distribution<float> distGrainPhase(0.0f, 1.0f);
-		std::default_random_engine genGrainPhase(rd());
-		float valGrainPhase = distGrainPhase(genGrainPhase);
-		*m_cspGrainPhase = (MYFLT)valGrainPhase;
 
-		// random variation in grain frequency (kfmd) 
-		std::uniform_real_distribution<float> distRandFreq(1.0f, 500.0f);
-		std::default_random_engine genRandFreq(rd());
-		float valRandFreq = distRandFreq(genRandFreq);
-		*m_cspRandFreq = (MYFLT)valRandFreq;	
+		// grain3 parameters
 
-		// random variation in phase (kpmd) 
-		std::uniform_real_distribution<float> distRandPhase(0.0f, 1.0f);
-		std::default_random_engine genRandPhase(rd());
-		float valRandPhase = distRandPhase(genRandPhase);
-		*m_cspRandPhase = (MYFLT)valRandPhase;
+		// grain frequency (kcps) 
+		//std::uniform_real_distribution<float> distGrainFreq(50.0f, 1000.0f);
+		//std::default_random_engine genGrainFreq(rd());
+		//float valGrainFreq = distGrainFreq(genGrainFreq);
+		//*m_cspGrainFreq = (MYFLT)valGrainFreq;
+		//	
+		//// grain phase (kphs) 
+		//std::uniform_real_distribution<float> distGrainPhase(0.0f, 1.0f);
+		//std::default_random_engine genGrainPhase(rd());
+		//float valGrainPhase = distGrainPhase(genGrainPhase);
+		//*m_cspGrainPhase = (MYFLT)valGrainPhase;
 
-		// grain duration (kgdur)
-		std::uniform_real_distribution<float> distGrainDur(0.01f, 0.2f);
-		std::default_random_engine genGrainDur(rd());
-		float valGrainDur = distGrainDur(genGrainDur);
-		if(m_bFirstLoop) 
-		{	
-			*m_cspGrainDur = (MYFLT)0.08f;
-		} 
-		else
-		{
-			*m_cspGrainDur = (MYFLT)valGrainDur;
-		}
+		//// random variation in grain frequency (kfmd) 
+		//std::uniform_real_distribution<float> distRandFreq(1.0f, 500.0f);
+		//std::default_random_engine genRandFreq(rd());
+		//float valRandFreq = distRandFreq(genRandFreq);
+		//*m_cspRandFreq = (MYFLT)valRandFreq;	
 
-		// grain density (kdens)
-		std::uniform_real_distribution<float> distGrainDensity(50.0f, 500.0f);
-		std::default_random_engine genGrainDensity(rd());
-		float valGrainDensity = floor(distGrainDensity(genGrainDensity));
-		*m_cspGrainDensity = (MYFLT)valGrainDensity;
+		//// random variation in phase (kpmd) 
+		//std::uniform_real_distribution<float> distRandPhase(0.0f, 1.0f);
+		//std::default_random_engine genRandPhase(rd());
+		//float valRandPhase = distRandPhase(genRandPhase);
+		//*m_cspRandPhase = (MYFLT)valRandPhase;
 
-		// distribution of random grain frequency variation (kfrpow)
-		std::uniform_real_distribution<float> distGrainFreqVariationDistrib(-1.0f, 1.0f);
-		std::default_random_engine genGrainFreqVariationDistrib(rd());
-		float valGrainFreqVariationDistrib = distGrainFreqVariationDistrib(genGrainFreqVariationDistrib);
-		*m_cspGrainFreqVariationDistrib = (MYFLT)valGrainFreqVariationDistrib;
+		//// grain duration (kgdur)
+		//std::uniform_real_distribution<float> distGrainDur(0.01f, 0.2f);
+		//std::default_random_engine genGrainDur(rd());
+		//float valGrainDur = distGrainDur(genGrainDur);
+		//if(m_bFirstLoop) 
+		//{	
+		//	*m_cspGrainDur = (MYFLT)0.08f;
+		//} 
+		//else
+		//{
+		//	*m_cspGrainDur = (MYFLT)valGrainDur;
+		//}
 
-		// distribution of random grain phase variation (kprpow)
-		std::uniform_real_distribution<float> distGrainPhaseVariationDistrib(-1.0f, 1.0f);
-		std::default_random_engine genGrainPhaseVariationDistrib(rd());
-		float valGrainPhaseVariationDistrib = distGrainPhaseVariationDistrib(genGrainPhaseVariationDistrib);
-		*m_cspGrainPhaseVariationDistrib = (MYFLT)valGrainPhaseVariationDistrib;
+		//// grain density (kdens)
+		//std::uniform_real_distribution<float> distGrainDensity(50.0f, 500.0f);
+		//std::default_random_engine genGrainDensity(rd());
+		//float valGrainDensity = floor(distGrainDensity(genGrainDensity));
+		//*m_cspGrainDensity = (MYFLT)valGrainDensity;
 
-		// grain waveform (kfn)
-		std::uniform_real_distribution<float> distGrainWaveform(1.0f, 4.0f);
-		std::default_random_engine genGrainWaveform(rd());
-		float valGrainWaveform = floor(distGrainWaveform(genGrainWaveform));
-		*m_cspGrainWaveform = (MYFLT)valGrainWaveform;
+		//// distribution of random grain frequency variation (kfrpow)
+		//std::uniform_real_distribution<float> distGrainFreqVariationDistrib(-1.0f, 1.0f);
+		//std::default_random_engine genGrainFreqVariationDistrib(rd());
+		//float valGrainFreqVariationDistrib = distGrainFreqVariationDistrib(genGrainFreqVariationDistrib);
+		//*m_cspGrainFreqVariationDistrib = (MYFLT)valGrainFreqVariationDistrib;
+
+		//// distribution of random grain phase variation (kprpow)
+		//std::uniform_real_distribution<float> distGrainPhaseVariationDistrib(-1.0f, 1.0f);
+		//std::default_random_engine genGrainPhaseVariationDistrib(rd());
+		//float valGrainPhaseVariationDistrib = distGrainPhaseVariationDistrib(genGrainPhaseVariationDistrib);
+		//*m_cspGrainPhaseVariationDistrib = (MYFLT)valGrainPhaseVariationDistrib;
+
+		//// grain waveform (kfn)
+		//std::uniform_real_distribution<float> distGrainWaveform(1.0f, 4.0f);
+		//std::default_random_engine genGrainWaveform(rd());
+		//float valGrainWaveform = floor(distGrainWaveform(genGrainWaveform));
+		//*m_cspGrainWaveform = (MYFLT)valGrainWaveform;
 
 		// wgbow params
 		
@@ -832,6 +853,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	//if(m_fTranslationMag <= 30.0f)
 	//{
 		//std::cout << "below 30" << std::endl;
+		//scaleVal *= 0.02f;
 		//glm::vec3 scaleVec = glm::vec3(-scaleVal, -scaleVal, -scaleVal);
 		//modelMatrix = glm::scale(modelMatrix, scaleVec); 
 		modelMatrix = glm::translate(modelMatrix, m_vec3Translation);
@@ -885,7 +907,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	glUniform1f(m_gliSineControlValLoc, sineControlVal);
 	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
 	//glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
-	glUniform1f(m_gliTimeValLoc, glfwGetTime() * 0.1);
+	glUniform1f(m_gliTimeValLoc, m_fTimeControlVal);
 	//glUniform1f(m_gliValBinScaleLoc, valBinScale);
 	//glUniform1f(m_gliThetaAngleLoc, valThetaScale);
 	//glUniform1f(m_gliPhiAngleLoc, valPhiScale);

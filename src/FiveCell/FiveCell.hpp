@@ -5,7 +5,7 @@
 //#define MAX_MANDEL_STEPS 512 
 #define NUM_FFT_BINS 512
 #define NUM_HRTF_VALS 3
-#define NUM_SOUND_SOURCES 3
+#define NUM_SOUND_SOURCES 2
 
 #include <string>
 #include <vector>
@@ -87,20 +87,24 @@ private:
 	MYFLT* m_cspSpecCentOut;
 	MYFLT* m_pFftAmpBinOut[NUM_FFT_BINS];
 	MYFLT* m_cspSineControlVal;
+	MYFLT* m_cspRotMapVal;
 	//MYFLT* m_cspMandelEscapeVals[MAX_MANDEL_STEPS];
 	//MYFLT* m_cspMandelEscapeIndex;
 	//MYFLT* m_cspMaxSteps;
 
+	// params for partikkel
+	MYFLT* m_cspFileSpeed;	
+
 	// params for grain3
-	MYFLT* m_cspGrainFreq;
-	MYFLT* m_cspGrainPhase;
-	MYFLT* m_cspRandFreq;
-	MYFLT* m_cspRandPhase;
-	MYFLT* m_cspGrainDur;
-	MYFLT* m_cspGrainDensity;
-	MYFLT* m_cspGrainFreqVariationDistrib;
-	MYFLT* m_cspGrainPhaseVariationDistrib;
-	MYFLT* m_cspGrainWaveform;
+	//MYFLT* m_cspGrainFreq;
+	//MYFLT* m_cspGrainPhase;
+	//MYFLT* m_cspRandFreq;
+	//MYFLT* m_cspRandPhase;
+	//MYFLT* m_cspGrainDur;
+	//MYFLT* m_cspGrainDensity;
+	//MYFLT* m_cspGrainFreqVariationDistrib;
+	//MYFLT* m_cspGrainPhaseVariationDistrib;
+	//MYFLT* m_cspGrainWaveform;
 
 	// params for wgbow
 	MYFLT* m_cspGaussRange;
@@ -233,5 +237,7 @@ private:
 	};
 
 	std::vector<SoundSourceData> m_vSoundSources;
+
+	float m_fTimeControlVal;
 };
 #endif
