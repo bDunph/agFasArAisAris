@@ -1,4 +1,4 @@
-<CsoundSynthesizer>
+n<CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
@@ -20,14 +20,17 @@ nchnls = 2
 ; Set 0dbfs to 1
 0dbfs = 1
 
+giSine		ftgen	0, 0, 65537, 10, 1
+giCosine	ftgen	0, 0, 8193, 9, 1, 1, 90
+
 giWave  	ftgen  	0,0,2^10,10,1,1/2,1/4,1/8,1/16,1/32,1/64
 giBuzz  	ftgen 	0,0,4096,11,40,1,0.9
-giSine		ftgen 	0,0,4096,10,1
+;giSine		ftgen 	0,0,4096,10,1
 giSineWave	ftgen	0,0,16384,10,1
 
 
 giFMWave  	ftgen  	0, 0, 2^10, 10, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64
-giCosine	ftgen	0, 0, 8193, 9, 1, 1, 90		; cosine
+;giCosine	ftgen	0, 0, 8193, 9, 1, 1, 90		; cosine
 giDisttab	ftgen	0, 0, 32768, 7, 0, 32768, 1	; for kdistribution
 giFile		ftgen	0, 0, 0, 1, "24cellRow.wav", 0, 0, 0	; soundfile for source waveform
 giFile2		ftgen	0, 0, 0, 1, "8cellRow.wav", 0, 0, 0	; soundfile for fm waveform
@@ -35,7 +38,7 @@ giFile3		ftgen	0, 0, 0, 1, "5cellRow.wav", 0, 0, 0	; source waveform
 giWin		ftgen	0, 0, 4096, 20, 6, 1		; grain envelope
 giPan		ftgen	0, 0, 32768, -21, 1		; for panning (random values between 0 and 1)
 giAttack	ftgen	0, 0, 513, 5, 0.0001, 512, 1	; exponential curve 
-giDecay		ftgen	0, 0, 129, 5, 1, 128, 0.0001	; exponential curve
+giDecay		ftgen	0, 0, 513, 5, 1, 512, 0.0001	; exponential curve
 giGainMask	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.8, 0.9
 giWavFreqStart	ftgen	0, 0, 5, 2, 0, 3, 1, 0.4, 0.9, 1
 giWavFreqEnd	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.4, 1
@@ -168,32 +171,42 @@ endin
 instr 6 ; partikkel note scheduler
 ;**************************************************************************************
 
+kFileSpeed	chnget	"fileSpeed"
+kGrainRate	chnget	"grainRate"
+kGrainDurFactor chnget	"grainSize"
+
 kGaussVal 	gauss 	6.0
 kGaussVal2	gauss	100
 
 seed 0
-kRand random 0.5, 10.0
+kRand random 0.2, 0.8
 
 seed 1
 kRand2 random 1, 4 
 
 kTrigger metro kRand2 
 kMinTim	= 0 
-kMaxNum = 2
+kMaxNum = 1
 kInsNum = 7
-kWhen = 0
+kWhen = 2
 gkDur = kRand 
 
-kspeed = 1 + kGaussVal
-kgrainrate = 1000 + kGaussVal
-kgrainsize = 50 + kGaussVal2
+;kspeed = 1 + kGaussVal
+kspeed = kFileSpeed + kGaussVal
+ 
+;kgrainfreq = 1000 + kGaussVal
+kgrainfreq = kGrainRate + kGaussVal
+
+;kgraindurfactor = 900 + kGaussVal2
+kgraindurfactor = kGrainDurFactor + kGaussVal2
+
 kcentCalc = 400 + kGaussVal
 kposrand = 1000 + kGaussVal
 kcentrand = 600 + kGaussVal 
 kpanCalc = 1
 kdist = 0.1 
 
-schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainrate, kgrainsize, kcentCalc, kposrand, kcentrand, kpanCalc, kdist
+schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainfreq, kgraindurfactor, kcentCalc, kposrand, kcentrand, kpanCalc, kdist 
 
 ;aOut oscil 0,	100
 
@@ -208,17 +221,17 @@ endin
 instr 7
 ; **********************************************************************************************
 
-kRotMapVal chnget "rotMapVal"
-
 /*score parameters*/
 ispeed			= p4		; 1 = original speed 
-igrainrate		= p5		; grain rate
-igrainsize		= p6		; grain size in ms
-icent			= p7		; transposition in cent
+igrainfreq		= p5		; grain rate
+igraindurfactor 	= p6		; grain size in ms
+icent 	 		= p7		; transposition in cent
 iposrand		= p8		; time position randomness (offset) of the pointer in ms
 icentrand		= p9		; transposition randomness in cents
 ipan			= p10		; panning narrow (0) to wide (1)
 idist			= p11		; grain distribution (0=periodic, 1=scattered)
+
+kduration = (0.5/igrainfreq)*igraindurfactor
 
 /*get length of source wave file, needed for both transposition and time pointer*/
 ifilen			tableng	giFile
@@ -259,7 +272,7 @@ kfmenv			= giFmEnv		; FM envelope
 
 /*trainlet related (disabled)*/
 icosine			= giCosine	; cosine ftable
-kTrainCps		= igrainrate	; set trainlet cps equal to grain rate for single-cycle trainlet in each grain
+kTrainCps		= igrainfreq; set trainlet cps equal to grain rate for single-cycle trainlet in each grain
 knumpartials		= 1		; number of partials in trainlet
 kchroma			= 1		; balance of partials in trainlet
 
@@ -276,19 +289,21 @@ ichannelmasks		= giPanthis		; ftable for panning
 krandommask		= 0.2	
 
 /*source waveforms*/
-kwaveform1		= giFile	; source waveforms
-kwaveform2		= giFile	
+kwaveform1		= giFile; source waveforms
+kwaveform2		= giFile
 kwaveform3		= giFile
 kwaveform4		= giFile
 iwaveamptab		= -1; mix of source waveforms and trainlets
 
 /*time pointer*/
 afilposphas		phasor ispeed / ifildur
+
 /*generate random deviation of the time pointer*/
 iposrandsec		= iposrand / 1000	; ms -> sec
 iposrand		= iposrandsec / ifildur	; phase values (0-1)
 krndpos			linrand	 iposrand	; random offset in phase values
 kGaussVal		gauss	20.0
+
 /*add random deviation to the time pointer*/
 asamplepos1		= afilposphas + krndpos; resulting phase values (0-1)
 asamplepos2		= asamplepos1 + krndpos + kGaussVal
@@ -298,14 +313,14 @@ asamplepos4		= asamplepos1 + krndpos + kGaussVal
 /*original key for each source waveform*/
 kwavekey1		= 1
 kwavekey2		= 0.5 
-kwavekey3		= 1.2 
-kwavekey4		= 1.66 
+kwavekey3		= 1.32 
+kwavekey4		= 0.66 
 
 /* maximum number of grains per k-period*/
 imax_grains		= 3000		
 
-aOut		partikkel igrainrate, idist, giDisttab, async, kenv2amt, ienv2tab, \
-		ienv_attack, ienv_decay, ksustain_amount, ka_d_ratio, igrainsize, kamp, igainmasks, \
+aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
+		ienv_attack, ienv_decay, ksustain_amount, ka_d_ratio, kduration, kamp, igainmasks, \
 		kwavfreq, ksweepshape, iwavfreqstarttab, iwavfreqendtab, awavfm, \
 		ifmamptab, kfmenv, icosine, kTrainCps, knumpartials, \
 		kchroma, ichannelmasks, krandommask, kwaveform1, kwaveform2, kwaveform3, kwaveform4, \
@@ -315,7 +330,7 @@ aOut		partikkel igrainrate, idist, giDisttab, async, kenv2amt, ienv2tab, \
 aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
 gaOut7 = aOut * aOutEnv
-		;outs			gaOut7, gaOut7 
+		outs			gaOut7, gaOut7 
 
 endin
 
@@ -372,7 +387,7 @@ iwinsize = ifftsize * 2
 iwinshape = 0
 
 ;aSig	sum	gaOut8, gaOut7
-aSig  = gaOut7
+aSig  = 0;gaOut7
 
 ; route output from instrument 2 above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
@@ -441,7 +456,7 @@ channelLoop:
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] = gaOut2
-aInstSigs[1] = gaOut7
+aInstSigs[1] = 0;gaOut7
 ;aInstSigs[2] = gaOut8
 
 aLeftSigs[]	init	iNumAudioSources
@@ -491,15 +506,16 @@ f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-i2	2	-1
+;i2	2	-1
 
 i6	2	-1
+;i7	2	-1
 
 ;i8	2	-1
 
-i9	2	-1
+;i9	2	-1
 
-i12	2	-1
+;i12	2	-1
 e
 </CsScore>
 </CsoundSynthesizer>

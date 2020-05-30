@@ -104,66 +104,88 @@ bool FiveCell::setup(std::string csd)
 	//	return false;
 	//}
 
-	const char* grainFreq = "grainFreq";
-	if(session->GetChannelPtr(m_cspGrainFreq, grainFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainFreq value" << std::endl;
-		return false;
-	} 
+	//const char* grainFreq = "grainFreq";
+	//if(session->GetChannelPtr(m_cspGrainFreq, grainFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainFreq value" << std::endl;
+	//	return false;
+	//} 
 
-	const char* grainPhase = "grainPhse";
-	if(session->GetChannelPtr(m_cspGrainPhase, grainPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//const char* grainPhase = "grainPhse";
+	//if(session->GetChannelPtr(m_cspGrainPhase, grainPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the randAmp value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* randFreq = "randFreq";
+	//if(session->GetChannelPtr(m_cspRandFreq, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* randPhase = "randPhase";
+	//if(session->GetChannelPtr(m_cspRandPhase, randPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the randPhase value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* grainDur = "grainDur";
+	//if(session->GetChannelPtr(m_cspGrainDur, grainDur, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainDur value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* grainDensity = "grainDensity";
+	//if(session->GetChannelPtr(m_cspGrainDensity, grainDensity, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainDensity value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* grainFreqVariationDistrib = "grainFreqVariationDistrib";
+	//if(session->GetChannelPtr(m_cspGrainFreqVariationDistrib, grainFreqVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainFreqVariationDistrib value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* grainPhaseVariationDistrib = "grainPhaseVariationDistrib";
+	//if(session->GetChannelPtr(m_cspGrainPhaseVariationDistrib, grainPhaseVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainPhaseVariationDistrib value" << std::endl;
+	//	return false;
+	//}
+
+	//const char* grainWaveform = "grainWaveform";
+	//if(session->GetChannelPtr(m_cspGrainWaveform, grainWaveform, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//{
+	//	std::cout << "GetChannelPtr could not get the grainWaveform value" << std::endl;
+	//	return false;
+	//}
+
+	// partikkel data
+	const char* fileSpeed = "fileSpeed";
+	if(session->GetChannelPtr(m_cspFileSpeed, fileSpeed, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
-		std::cout << "GetChannelPtr could not get the randAmp value" << std::endl;
+		std::cout << "GetChannelPtr could not get the fileSpeed value" << std::endl;
 		return false;
 	}
 
-	const char* randFreq = "randFreq";
-	if(session->GetChannelPtr(m_cspRandFreq, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	const char* grainRate = "grainRate";
+	if(session->GetChannelPtr(m_cspGrainRate, grainRate, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
-		std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
+		std::cout << "GetChannelPtr could not get the grainRate value" << std::endl;
 		return false;
 	}
 
-	const char* randPhase = "randPhase";
-	if(session->GetChannelPtr(m_cspRandPhase, randPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	const char* grainSize = "grainSize";
+	if(session->GetChannelPtr(m_cspGrainSize, grainSize, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
-		std::cout << "GetChannelPtr could not get the randPhase value" << std::endl;
-		return false;
-	}
-
-	const char* grainDur = "grainDur";
-	if(session->GetChannelPtr(m_cspGrainDur, grainDur, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainDur value" << std::endl;
-		return false;
-	}
-
-	const char* grainDensity = "grainDensity";
-	if(session->GetChannelPtr(m_cspGrainDensity, grainDensity, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainDensity value" << std::endl;
-		return false;
-	}
-
-	const char* grainFreqVariationDistrib = "grainFreqVariationDistrib";
-	if(session->GetChannelPtr(m_cspGrainFreqVariationDistrib, grainFreqVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainFreqVariationDistrib value" << std::endl;
-		return false;
-	}
-
-	const char* grainPhaseVariationDistrib = "grainPhaseVariationDistrib";
-	if(session->GetChannelPtr(m_cspGrainPhaseVariationDistrib, grainPhaseVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainPhaseVariationDistrib value" << std::endl;
-		return false;
-	}
-
-	const char* grainWaveform = "grainWaveform";
-	if(session->GetChannelPtr(m_cspGrainWaveform, grainWaveform, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainWaveform value" << std::endl;
+		std::cout << "GetChannelPtr could not get the grainSize value" << std::endl;
 		return false;
 	}
 
@@ -178,13 +200,6 @@ bool FiveCell::setup(std::string csd)
 	if(session->GetChannelPtr(m_cspGaussRange, gaussRange, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
 		std::cout << "GetChannelPtr could not get the gaussRange value" << std::endl;
-		return false;
-	}
-
-	const char* rotMapVal = "rotMapVal";
-	if(session->GetChannelPtr(m_cspRotMapVal, rotMapVal, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the rotMapVal value" << std::endl;
 		return false;
 	}
 
@@ -495,11 +510,6 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
 	m_fTimeControlVal = glfwGetTime() * 0.1;
-	float rotationVal = 45.0 + (m_fTimeControlVal * 0.1);
-	float moduloVal = fmod(rotationVal, 360.0);
-	float mappedVal = moduloVal / 360.0;
-	std::cout << moduloVal << std::endl;	
-	*m_cspRotMapVal = (MYFLT)mappedVal;
 //*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
@@ -517,10 +527,22 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		// partikkel parameters
 		
 		// file read speed
-		std::uniform_real_distribution<float> distFileSpeed(50.0f, 1000.0f);
-		std::default_random_engine genGrainFreq(rd());
-		float valGrainFreq = distGrainFreq(genGrainFreq);
-		*m_cspGrainFreq = (MYFLT)valGrainFreq;
+		std::uniform_real_distribution<float> distFileSpeed(0.0f, 7.0f);
+		std::default_random_engine genFileSpeed(rd());
+		float valFileSpeed = distFileSpeed(genFileSpeed);
+		*m_cspFileSpeed = (MYFLT)valFileSpeed;
+
+		// grain rate
+		std::uniform_real_distribution<float> distGrainRate(750.0f, 1250.0f);
+		std::default_random_engine genGrainRate(rd());
+		float valGrainRate = distGrainRate(genGrainRate);
+		*m_cspGrainRate = (MYFLT)valGrainRate;
+
+		// grain size
+		std::uniform_real_distribution<float> distGrainSize(50.0f, 100.0f);
+		std::default_random_engine genGrainSize(rd());
+		float valGrainSize = distGrainSize(genGrainSize);
+		*m_cspGrainSize = (MYFLT)valGrainSize;
 
 		// grain3 parameters
 
@@ -605,15 +627,15 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 			inputData.push_back((double)pboInfo.pboPtr[i]); //13
 		}
 
-		outputData.push_back((double)*m_cspGrainFreq); //0
-		outputData.push_back((double)*m_cspGrainPhase); //1
-		outputData.push_back((double)*m_cspRandFreq); //2
-		outputData.push_back((double)*m_cspRandPhase); //3
-		outputData.push_back((double)*m_cspGrainDur); //4
-		outputData.push_back((double)*m_cspGrainDensity); //5
-		outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
-		outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
-		outputData.push_back((double)*m_cspGrainWaveform); //8
+		//outputData.push_back((double)*m_cspGrainFreq); //0
+		//outputData.push_back((double)*m_cspGrainPhase); //1
+		//outputData.push_back((double)*m_cspRandFreq); //2
+		//outputData.push_back((double)*m_cspRandPhase); //3
+		//outputData.push_back((double)*m_cspGrainDur); //4
+		//outputData.push_back((double)*m_cspGrainDensity); //5
+		//outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
+		//outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
+		//outputData.push_back((double)*m_cspGrainWaveform); //8
 		outputData.push_back((double)*m_cspGaussRange); //9
 
 #ifdef __APPLE__
@@ -666,45 +688,45 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		
 		modelOut = staticRegression.run(modelIn);
 
-		if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
-		if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
-		*m_cspGrainFreq = (MYFLT)modelOut[0];
+		//if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
+		//if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
+		//*m_cspGrainFreq = (MYFLT)modelOut[0];
 
-		if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
-		if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
-		*m_cspGrainPhase = (MYFLT)modelOut[1];
+		//if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
+		//if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
+		//*m_cspGrainPhase = (MYFLT)modelOut[1];
 
-		if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
-		if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
-		*m_cspRandFreq = (MYFLT)modelOut[2];
+		//if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
+		//if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
+		//*m_cspRandFreq = (MYFLT)modelOut[2];
 
-		if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
-		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		*m_cspRandPhase = (MYFLT)modelOut[3];
+		//if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
+		//if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
+		//*m_cspRandPhase = (MYFLT)modelOut[3];
 
-		if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
-		if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
-		*m_cspGrainDur = (MYFLT)modelOut[4];
+		//if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
+		//if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
+		//*m_cspGrainDur = (MYFLT)modelOut[4];
 
-		if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
-		if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
-		*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
+		//if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
+		//if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
+		//*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
 	
-		if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
-		if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
-		*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
+		//if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
+		//if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
+		//*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
 
-		if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
-		if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
-		*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
+		//if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
+		//if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
+		//*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
 
-		if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
-		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
-		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
+		//if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
+		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
+		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
 
-		if(modelOut[9] > 10.0f) modelOut[9] = 10.0f;
-		if(modelOut[9] < 1.0f) modelOut[9] = 1.0f;
-		*m_cspGaussRange = (MYFLT)modelOut[9];
+		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+		*m_cspGaussRange = (MYFLT)modelOut[0];
 
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
@@ -729,45 +751,45 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 		modelOut = staticRegression.run(modelIn);
 		
-		if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
-		if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
-		*m_cspGrainFreq = (MYFLT)modelOut[0];
+		//if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
+		//if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
+		//*m_cspGrainFreq = (MYFLT)modelOut[0];
 
-		if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
-		if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
-		*m_cspGrainPhase = (MYFLT)modelOut[1];
+		//if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
+		//if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
+		//*m_cspGrainPhase = (MYFLT)modelOut[1];
 
-		if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
-		if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
-		*m_cspRandFreq = (MYFLT)modelOut[2];
+		//if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
+		//if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
+		//*m_cspRandFreq = (MYFLT)modelOut[2];
 
-		if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
-		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		*m_cspRandPhase = (MYFLT)modelOut[3];
+		//if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
+		//if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
+		//*m_cspRandPhase = (MYFLT)modelOut[3];
 
-		if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
-		if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
-		*m_cspGrainDur = (MYFLT)modelOut[4];
+		//if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
+		//if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
+		//*m_cspGrainDur = (MYFLT)modelOut[4];
 
-		if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
-		if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
-		*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
+		//if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
+		//if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
+		//*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
 	
-		if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
-		if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
-		*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
+		//if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
+		//if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
+		//*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
 
-		if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
-		if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
-		*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
+		//if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
+		//if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
+		//*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
 
-		if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
-		if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
-		*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
+		//if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
+		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
+		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
 
-		if(modelOut[9] > 10.0f) modelOut[9] = 10.0f;
-		if(modelOut[9] < 1.0f) modelOut[9] = 1.0f;
-		*m_cspGaussRange = (MYFLT)modelOut[9];
+		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+		*m_cspGaussRange = (MYFLT)modelOut[0];
 
 		bool prevRunMsgState = m_bCurrentRunMsgState;
 		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)

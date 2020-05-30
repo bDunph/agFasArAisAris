@@ -87,13 +87,14 @@ private:
 	MYFLT* m_cspSpecCentOut;
 	MYFLT* m_pFftAmpBinOut[NUM_FFT_BINS];
 	MYFLT* m_cspSineControlVal;
-	MYFLT* m_cspRotMapVal;
 	//MYFLT* m_cspMandelEscapeVals[MAX_MANDEL_STEPS];
 	//MYFLT* m_cspMandelEscapeIndex;
 	//MYFLT* m_cspMaxSteps;
 
 	// params for partikkel
 	MYFLT* m_cspFileSpeed;	
+	MYFLT* m_cspGrainRate;
+	MYFLT* m_cspGrainSize;
 
 	// params for grain3
 	//MYFLT* m_cspGrainFreq;
