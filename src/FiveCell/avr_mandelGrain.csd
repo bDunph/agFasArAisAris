@@ -154,15 +154,15 @@ ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange; * 0.2
 
 ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange; * 0.2
 
-ares5	mode	aexc,	467.9,	140 + kGaussRange * (kModeFreq1 * 0.001)	
+ares5	mode	aexc,	467.9,	140 + kGaussRange * (kModeFreq1 * 0.1)	
 
-ares6	mode	aexc,	935.8, 	140 + kGaussRange * (kModeFreq2 * 0.001)	
+ares6	mode	aexc,	935.8, 	140 + kGaussRange * (kModeFreq2 * 0.1)	
 
 ares	sum	ares1,	ares2,	ares3,	ares4,	ares5, ares6
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
 aout2 = (aexc * 0.001) + (ares * 0.166)
-gaOut2 = aout2 * 0.1
+gaOut2 = aout2 * 0.05
 	;outs	gaOut2,	gaOut2
 
 kRms	rms	gaOut2

@@ -162,7 +162,7 @@ float DE(vec3 p)
 	float factor = sin(specCentVal) * 0.25;// mod(timeVal, 360.0); 
   	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
 
-	float sphereDisp = sin(rmsModVal);
+	float sphereDisp = sin(rmsModVal * 5.0);
 	float fftDisp = 0.0;
 	
 	float fragLoc = gl_FragCoord.x + gl_FragCoord.y;
