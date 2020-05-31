@@ -17,10 +17,12 @@
 uniform mat4 MVEPMat;
 uniform float specCentVal;
 uniform float lowFreqVal;
+uniform float highFreqVal;
 uniform float fftAmpBins[NUM_FFT_BINS];
 uniform float timeVal;
 uniform float sineControlVal;
 uniform float rmsModVal;
+uniform float totFFTAmp;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -116,8 +118,8 @@ float planeSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), 45.0 + (timeVal * 0.1));
-    
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), timeVal);
+
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
     orbit = vec4(1000.0);
@@ -157,12 +159,18 @@ float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
 
-	float factor = sin(specCentVal * lowFreqVal) * 0.25;// mod(timeVal, 360.0); 
+	float factor = sin(specCentVal) * 0.25;// mod(timeVal, 360.0); 
   	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
 
 	float sphereDisp = sin(rmsModVal);
+	float fftDisp = 0.0;
+	
+	float fragLoc = gl_FragCoord.x + gl_FragCoord.y;
+	float ind = fragLoc * NUM_FFT_BINS;
+	int i = int(ind);
+	fftDisp += fftAmpBins[i];
 
-	float kifDist = kifSDF(p + disp);
+	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p, PLANE_NORMAL);
 	float sphereDist = sphereSDF(p + sphereDisp, rad);
 
@@ -242,11 +250,11 @@ float ao(vec3 p, vec3 n, float d, float i)
 vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 {
 
-	float fogAmount = 1.0 - exp(-dist * 0.2);
+	float fogAmount = 1.0 - exp(-dist * 0.1);
 	vec3 normLightDir = normalize(-lightDir);
 	float expDistTerm = exp(dot(rayDir, normLightDir));
 	float lightAmount = max(expDistTerm * 0.06, 0.0);
-	vec3 fogColour = mix(vec3(0.1, 0.12, 0.14), vec3(0.2, 0.18, 0.14), pow(lightAmount, 16.0));
+	vec3 fogColour = mix(vec3(0.1, 0.12, 0.14), vec3(0.2, 0.18, 0.14), pow(lightAmount, 8.0));
 	//fogColour *= fftVec;
 
 	vec3 bExt = vec3(0.05, 0.03, 0.06);
@@ -303,8 +311,8 @@ void main()
 
 		float sq = float(Iterations) * float(Iterations);
 		float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
-		vec3 matCol1 = vec3(pow(0.785, log(smootherVal)), pow(0.38, log(smootherVal)), pow(0.08, log(smootherVal)));
-		vec3 matCol2 = vec3(pow(0.15, 1.0 / log(smootherVal)), pow(0.45, 1.0 / log(smootherVal)), pow(0.14, 1.0 / log(smootherVal)));
+		vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.417, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 		//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 

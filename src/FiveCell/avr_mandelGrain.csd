@@ -64,6 +64,8 @@ iamp    init ampdbfs(-24)
 ;kWgbowPressureVal chnget "randPressure"
 ;kWgbowPosVal chnget "randPos"
 kGaussRange	chnget	"gaussRange"
+kModeFreq1	chnget 	"modeFreq1"
+kModeFreq2	chnget	"modeFreq2"
 
 kRangeMin	gauss	kGaussRange	
 kRangeMin += 65
@@ -76,23 +78,23 @@ kcpsMax += 6
 
 kFreqScale	rspline	kRangeMin,	kRangeMax,	kcpsMin,	kcpsMax
 
-kRangeMin2	gauss	kGaussRange * 0.1
-kRangeMin2 += -18
-kRangeMax2	gauss	kGaussRange * 0.1
-kRangeMax2 += -12
+kRangeMin2	gauss	kGaussRange * 0.01
+kRangeMin2 += -21
+kRangeMax2	gauss	kGaussRange * 0.01
+kRangeMax2 += -15
 
 kWgbowAmpVal	rspline	kRangeMin2,	kRangeMax2,	kcpsMin,	kcpsMax
 
-kRangeMin3	gauss	kGaussRange * 0.1
+kRangeMin3	gauss	kGaussRange * 0.05
 kRangeMin3 += 2	
-kRangeMax3	gauss	kGaussRange * 0.1
+kRangeMax3	gauss	kGaussRange * 0.05
 kRangeMax3 += 4	
 
 kWgbowPressureVal	rspline	kRangeMin3,	kRangeMax3,	kcpsMin,	kcpsMax
 
-kRangeMin4	gauss	kGaussRange * 0.004
+kRangeMin4	gauss	kGaussRange * 0.0004
 kRangeMin4 += 0.127236	
-kRangeMax4	gauss	kGaussRange * 0.004
+kRangeMax4	gauss	kGaussRange * 0.0004
 kRangeMax4 += 0.15	
 
 kWgbowPosVal	rspline	kRangeMin4,	kRangeMax4,	kcpsMin,	kcpsMax
@@ -104,10 +106,10 @@ kRangeMax5 += 10
 
 kWgbowVibF	rspline	kRangeMin5,	kRangeMax5,	kcpsMin,	kcpsMax
 
-kRangeMin6	gauss	kGaussRange * 0.1
-kRangeMin6 += -18	
-kRangeMax6	gauss	kGaussRange * 0.1
-kRangeMax6 += -12	
+kRangeMin6	gauss	kGaussRange * 0.01
+kRangeMin6 += -21	
+kRangeMax6	gauss	kGaussRange * 0.01
+kRangeMax6 += -15	
 
 kWgbowVibAmp	rspline	kRangeMin6,	kRangeMax6,	kcpsMin,	kcpsMax
 
@@ -152,14 +154,15 @@ ares3	mode	aexc,	211 + kGaussRange,	200 + kGaussRange; * 0.2
 
 ares4	mode	aexc,	247 + kGaussRange,	220 + kGaussRange; * 0.2
 
-;ares5	mode	aexc,	467.9 + kGaussRange,	240 + kGaussRange * 0.2	
+ares5	mode	aexc,	467.9,	140 + kGaussRange * (kModeFreq1 * 0.001)	
 
-;ares6	mode	aexc,	935.8 + kGaussRange, 	240 + kGaussRange * 0.2	
+ares6	mode	aexc,	935.8, 	140 + kGaussRange * (kModeFreq2 * 0.001)	
 
-ares	sum	ares1,	ares2,	ares3,	ares4;,	ares5, ares6
+ares	sum	ares1,	ares2,	ares3,	ares4,	ares5, ares6
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
-gaOut2 = aexc + ares * 0.8
+aout2 = (aexc * 0.001) + (ares * 0.166)
+gaOut2 = aout2 * 0.1
 	;outs	gaOut2,	gaOut2
 
 kRms	rms	gaOut2
@@ -172,19 +175,22 @@ instr 6 ; partikkel note scheduler
 ;**************************************************************************************
 
 kFileSpeed	chnget	"fileSpeed"
-kGrainRate	chnget	"grainRate"
+gkGrainRate	chnget	"grainRate"
 kGrainDurFactor chnget	"grainSize"
 
 kGaussVal 	gauss 	6.0
 kGaussVal2	gauss	100
 
 seed 0
-kRand random 0.2, 0.8
+kRand random 0.2, 10.8
 
 seed 1
-kRand2 random 1, 4 
+kRand2 random 1, 20  
 
 kTrigger metro kRand2 
+
+	chnset kTrigger, "metroOut"
+
 kMinTim	= 0 
 kMaxNum = 1
 kInsNum = 7
@@ -193,18 +199,20 @@ gkDur = kRand
 
 ;kspeed = 1 + kGaussVal
 kspeed = kFileSpeed + kGaussVal
+;kspeed = kGaussVal
  
 ;kgrainfreq = 1000 + kGaussVal
-kgrainfreq = kGrainRate + kGaussVal
+kgrainfreq = p4 + kGaussVal
+;kgrainfreq = kGaussVal
 
 ;kgraindurfactor = 900 + kGaussVal2
 kgraindurfactor = kGrainDurFactor + kGaussVal2
 
-kcentCalc = 400 + kGaussVal
-kposrand = 1000 + kGaussVal
-kcentrand = 600 + kGaussVal 
+kcentCalc = kgrainfreq + kGaussVal
+kposrand = 100 + kGaussVal
+kcentrand = kcentCalc + kGaussVal 
 kpanCalc = 1
-kdist = 0.1 
+kdist = 0.7 
 
 schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainfreq, kgraindurfactor, kcentCalc, kposrand, kcentrand, kpanCalc, kdist 
 
@@ -327,10 +335,10 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 		iwaveamptab, asamplepos1, asamplepos2, asamplepos3, asamplepos4, \
 		kwavekey1, kwavekey2, kwavekey3, kwavekey4, imax_grains
 
-aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
+aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
 gaOut7 = aOut * aOutEnv
-		outs			gaOut7, gaOut7 
+		;outs			gaOut7, gaOut7 
 
 endin
 
@@ -387,13 +395,17 @@ iwinsize = ifftsize * 2
 iwinshape = 0
 
 ;aSig	sum	gaOut8, gaOut7
-aSig  = 0;gaOut7
+aSig  = gaOut7
 
 ; route output from instrument 2 above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
+
+kfreq,	kampl	pvspitch	fsig,	0.01
+	chnset	kfreq,	"freqOut"
+	chnset	kampl,	"ampOut"
 
 ; get info from pvsanal and print
 ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
@@ -433,7 +445,7 @@ instr 12 ; Hrtf Instrument
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init 2
+iNumAudioSources init 3
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
@@ -456,8 +468,8 @@ channelLoop:
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] = gaOut2
-aInstSigs[1] = 0;gaOut7
-;aInstSigs[2] = gaOut8
+aInstSigs[1] = gaOut7
+aInstSigs[2] = gaOut7
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -475,17 +487,17 @@ aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1
 aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
 aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
 
-;kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
+kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
 	
-;aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-;aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
-;aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
+aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
+aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
 
 aL init 0
 aR init 0
 
-aL sum aLeftSigs[0], aLeftSigs[1];, aLeftSigs[2]
-aR sum aRightSigs[0], aRightSigs[1];, aRightSigs[2]
+aL sum aLeftSigs[0], aLeftSigs[1], aLeftSigs[2]
+aR sum aRightSigs[0], aRightSigs[1], aRightSigs[2]
 
 outs	aL,	aR
 endin
@@ -506,16 +518,19 @@ f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-;i2	2	-1
+i2	2	-1
 
-i6	2	-1
+i6.01	1	-1	0
+i6.02	2	-1	50.0	
+
 ;i7	2	-1
 
 ;i8	2	-1
 
-;i9	2	-1
+i9.01	1	-1
+i9.02	2	-1
 
-;i12	2	-1
+i12	2	-1
 e
 </CsScore>
 </CsoundSynthesizer>

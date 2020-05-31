@@ -5,7 +5,7 @@
 //#define MAX_MANDEL_STEPS 512 
 #define NUM_FFT_BINS 512
 #define NUM_HRTF_VALS 3
-#define NUM_SOUND_SOURCES 2
+#define NUM_SOUND_SOURCES 3
 
 #include <string>
 #include <vector>
@@ -87,6 +87,9 @@ private:
 	MYFLT* m_cspSpecCentOut;
 	MYFLT* m_pFftAmpBinOut[NUM_FFT_BINS];
 	MYFLT* m_cspSineControlVal;
+	MYFLT* m_cspMetroOut;
+	MYFLT* m_cspFreqOut;
+	MYFLT* m_cspAmpOut;
 	//MYFLT* m_cspMandelEscapeVals[MAX_MANDEL_STEPS];
 	//MYFLT* m_cspMandelEscapeIndex;
 	//MYFLT* m_cspMaxSteps;
@@ -109,6 +112,8 @@ private:
 
 	// params for wgbow
 	MYFLT* m_cspGaussRange;
+	MYFLT* m_cspModeFreq1;
+	MYFLT* m_cspModeFreq2;
 
 	//raymarching quad
 	unsigned int m_uiNumSceneVerts;
@@ -152,6 +157,7 @@ private:
 	GLint m_gliValBinScaleLoc;
 	GLint m_gliThetaAngleLoc;
 	GLint m_gliPhiAngleLoc;
+	GLint m_gliTotFFTAmpLoc;
 
 	float sizeVal;
 	float modulateVal;
@@ -222,6 +228,7 @@ private:
 
 	double m_dLowFreqAvg;
 	double m_dHighFreqAvg;
+	double m_dTotFFTAmp;
 
 	float m_fPrevSpecCentVal;	
 	float m_fInterpolatedSpecCentVal;
@@ -240,5 +247,7 @@ private:
 	std::vector<SoundSourceData> m_vSoundSources;
 
 	float m_fTimeControlVal;
+	
+	float m_fLastFrame;
 };
 #endif

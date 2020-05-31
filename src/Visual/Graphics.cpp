@@ -780,7 +780,7 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 
 void Graphics::DevProcessInput(GLFWwindow *window){
 	
-	float cameraSpeed = 5.0f * m_fDeltaTime; // adjust accordingly
+	float cameraSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
 	
 	//convert camera position to spherical coordinates
 	//float radius = glm::length(m_vec3DevCamPos);

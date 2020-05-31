@@ -38,6 +38,7 @@ bool FiveCell::setup(std::string csd)
 	// bool to indicate first loop through update and draw functions to 
 	// set initial paramaters
 	m_bFirstLoop = true;
+	m_fLastFrame = 0.0f;
 
 	// initialise val for mapping
 	m_fPrevSpecCentVal = 0.0f;
@@ -203,6 +204,20 @@ bool FiveCell::setup(std::string csd)
 		return false;
 	}
 
+	const char* modeFreq1 = "modeFreq1";
+	if(session->GetChannelPtr(m_cspModeFreq1, modeFreq1, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the modeFreq1 value" << std::endl;
+		return false;
+	}
+
+	const char* modeFreq2 = "modeFreq2";
+	if(session->GetChannelPtr(m_cspModeFreq2, modeFreq2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "GetChannelPtr could not get the modeFreq2 value" << std::endl;
+		return false;
+	}
+
 	//for(int i = 0; i < MAX_MANDEL_STEPS; i++){
 
 	//	std::string mandelEscapeValString = "mandelEscapeVal" + std::to_string(i);
@@ -244,6 +259,27 @@ bool FiveCell::setup(std::string csd)
 	if(session->GetChannelPtr(m_cspSpecCentOut, specCentOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
 	{
 		std::cout << "Csound output value specCentOut not available" << std::endl;
+		return false;
+	}
+
+	const char* metroOut = "metroOut";
+	if(session->GetChannelPtr(m_cspMetroOut, metroOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "Csound output value metroOut not available" << std::endl;
+		return false;
+	}
+
+	const char* freqOut = "freqOut";
+	if(session->GetChannelPtr(m_cspFreqOut, freqOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "Csound output value freqOut not available" << std::endl;
+		return false;
+	}
+
+	const char* ampOut = "ampOut";
+	if(session->GetChannelPtr(m_cspAmpOut, ampOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	{
+		std::cout << "Csound output value ampOut not available" << std::endl;
 		return false;
 	}
 //**********************************************************
@@ -389,6 +425,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gliNumFftBinsLoc = glGetUniformLocation(shaderProg, "numFftBins");
 	m_gliThetaAngleLoc = glGetUniformLocation(shaderProg, "thetaScale");
 	m_gliPhiAngleLoc = glGetUniformLocation(shaderProg, "phiScale");
+	m_gliTotFFTAmpLoc = glGetUniformLocation(shaderProg, "totFFTAmp");
 
 	m_uiglSkyboxTexLoc = glGetUniformLocation(shaderProg, "skyboxTex");
 	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "ground.texture");
@@ -416,42 +453,51 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	
 	m_fPrevRms = *m_pRmsOut;
 
+	m_fInterpolatedSpecCentVal = *m_cspSpecCentOut;
 	// spectral centroid value from csound
 	//std::cout << "Spectral Centroid Value : " << *m_cspSpecCentOut << std::endl; 
-	if(*m_cspSpecCentOut > 0)
-	{
-		float currentSpecCentVal = *m_cspSpecCentOut;
-		float lerpFraction = 0.8f;
-		m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
-		m_fPrevSpecCentVal = currentSpecCentVal;
-	}	
+	//if(*m_cspSpecCentOut > 0)
+	//{
+	//	float currentSpecCentVal = *m_cspSpecCentOut;
+	//	float lerpFraction = 0.8f;
+	//	m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
+	//	std::cout << m_fInterpolatedSpecCentVal << std::endl;
+	//	m_fPrevSpecCentVal = currentSpecCentVal;
+	//}	
 
 	double lowFreqVals = 0.0f;
 	double highFreqVals = 0.0f;
+	double totAmp;
 
 	//fft frequency bin values from Csound
 	for(int i = 0; i < NUM_FFT_BINS; i++)
 	{
+		totAmp += *m_pFftAmpBinOut[i];
 		//std::cout << *m_pFftAmpBinOut[i] << std::endl;	
-		if(i < 342 && i > 0)
-		{
-			lowFreqVals += *m_pFftAmpBinOut[i];
-		}
-		else if(i < NUM_FFT_BINS && i >= 342)
-		{
-			highFreqVals += *m_pFftAmpBinOut[i];
-		}
+
+		//if(i < 342 && i > 0)
+		//{
+		//	lowFreqVals += *m_pFftAmpBinOut[i];
+		//}
+		//else if(i < NUM_FFT_BINS && i >= 342)
+		//{
+		//	highFreqVals += *m_pFftAmpBinOut[i];
+		//}
 	}	
 
-	m_dLowFreqAvg = lowFreqVals / 341;
-	m_dHighFreqAvg = highFreqVals / 171;	
+	//totAmp /= NUM_FFT_BINS;
+	m_dTotFFTAmp = totAmp;	
+	//std::cout << m_dTotFFTAmp << std::endl;
+	
+	//m_dLowFreqAvg = lowFreqVals / 341;
+	//m_dHighFreqAvg = highFreqVals / 171;	
 
 	//std::cout << "Average amplitudes in low bins: " << m_dLowFreqAvg << std::endl;
 	//std::cout << "Average amplitudes in high bins: " << m_dHighFreqAvg << std::endl;
 
 	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glm::vec4 pos1 = glm::vec4(-4.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 pos1 = glm::vec4(0.0f, 0.0f, 8.0f, 1.0f);
 	float newPosX = (pos1.x * cos(glfwGetTime())) - (pos1.y * sin(glfwGetTime()));
 	float newPosY = (pos1.x * sin(glfwGetTime())) + (pos1.y * cos(glfwGetTime())); 
 	glm::vec4 rotPos = glm::vec4(newPosX, newPosY, 0.0f, 1.0f);
@@ -459,21 +505,21 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 	soundSource1.position = rotPos;
 	m_vSoundSources.push_back(soundSource1);
 
-	glm::vec4 pos2 = glm::vec4(4.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 pos2 = glm::vec4(0.25f, 0.0f, 0.0f, 1.0f);
 	float newPosX2 = (pos2.x * cos(glfwGetTime())) - (pos2.y * sin(glfwGetTime()));
 	float newPosY2 = (pos2.x * sin(glfwGetTime())) + (pos2.y * cos(glfwGetTime())); 
 	glm::vec4 rotPos2 = glm::vec4(newPosX2, newPosY2, 0.0f, 1.0f);
 	SoundSourceData soundSource2;
-	soundSource2.position = rotPos2;
+	soundSource2.position = pos2;
  	m_vSoundSources.push_back(soundSource2);
 	
-	//glm::vec4 pos3 = glm::vec4(0.0f, 0.0f, -2.0f, 1.0f);
-	//float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
-	//float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
-	//glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
-	//SoundSourceData soundSource3;
-	//soundSource3.position = rotPos3;
- 	//m_vSoundSources.push_back(soundSource3);
+	glm::vec4 pos3 = glm::vec4(-0.25f, 0.0f, 0.0f, 1.0f);
+	float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
+	float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
+	glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
+	SoundSourceData soundSource3;
+	soundSource3.position = pos3;
+ 	m_vSoundSources.push_back(soundSource3);
 
 	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
 	{
@@ -509,7 +555,19 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
-	m_fTimeControlVal = glfwGetTime() * 0.1;
+	float currentFrame = glfwGetTime();
+	float deltaTime = currentFrame - m_fLastFrame;
+	
+	//std::cout << "AmpOut : " << *m_cspAmpOut << std::endl;
+	//std::cout << "FreqOut : " << *m_cspFreqOut << std::endl;
+
+	if(*m_cspAmpOut)
+	{
+		m_fTimeControlVal += deltaTime * 0.05;
+	}
+	
+	m_fLastFrame = currentFrame;
+	
 //*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
@@ -533,7 +591,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		*m_cspFileSpeed = (MYFLT)valFileSpeed;
 
 		// grain rate
-		std::uniform_real_distribution<float> distGrainRate(750.0f, 1250.0f);
+		std::uniform_real_distribution<float> distGrainRate(150.0f, 250.0f);
 		std::default_random_engine genGrainRate(rd());
 		float valGrainRate = distGrainRate(genGrainRate);
 		*m_cspGrainRate = (MYFLT)valGrainRate;
@@ -610,10 +668,20 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		// wgbow params
 		
 		// percentage deviation range
-		std::uniform_real_distribution<float> distGaussRange(1.0f, 10.0f);
+		std::uniform_real_distribution<float> distGaussRange(1.0f, 20.0f);
 		std::default_random_engine genGaussRange(rd());
 		float valGaussRange = floor(distGaussRange(genGaussRange));
 		*m_cspGaussRange = (MYFLT)valGaussRange;
+
+		std::uniform_real_distribution<float> distModeFreq1(467.9f, 483.2f);
+		std::default_random_engine genModeFreq1(rd());
+		float valModeFreq1= floor(distModeFreq1(genModeFreq1));
+		*m_cspModeFreq1= (MYFLT)valModeFreq1;
+
+		std::uniform_real_distribution<float> distModeFreq2(921.4f, 935.8f);
+		std::default_random_engine genModeFreq2(rd());
+		float valModeFreq2 = floor(distModeFreq2(genModeFreq2));
+		*m_cspModeFreq2 = (MYFLT)valModeFreq2;
 
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
@@ -636,7 +704,9 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		//outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
 		//outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
 		//outputData.push_back((double)*m_cspGrainWaveform); //8
-		outputData.push_back((double)*m_cspGaussRange); //9
+		outputData.push_back((double)*m_cspGaussRange); //0
+		outputData.push_back((double)*m_cspModeFreq1); //1
+		outputData.push_back((double)*m_cspModeFreq2); //2
 
 #ifdef __APPLE__
 		trainingData.recordSingleElement(inputData, outputData);	
@@ -724,9 +794,17 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
 
-		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] > 50.0f) modelOut[0] = 10.0f;
 		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
 		*m_cspGaussRange = (MYFLT)modelOut[0];
+
+		if(modelOut[1] > 483.2f) modelOut[1] = 483.2f;
+		if(modelOut[1] < 467.9f) modelOut[1] = 467.9f;
+		*m_cspModeFreq1= (MYFLT)modelOut[1];
+
+		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
+		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
+		*m_cspModeFreq2= (MYFLT)modelOut[2];
 
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
@@ -787,9 +865,17 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
 		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
 
-		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] > 50.0f) modelOut[0] = 10.0f;
 		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
 		*m_cspGaussRange = (MYFLT)modelOut[0];
+
+		if(modelOut[1] > 483.2f) modelOut[1] = 483.2f;
+		if(modelOut[1] < 467.9f) modelOut[1] = 467.9f;
+		*m_cspModeFreq1= (MYFLT)modelOut[1];
+
+		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
+		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
+		*m_cspModeFreq2= (MYFLT)modelOut[2];
 
 		bool prevRunMsgState = m_bCurrentRunMsgState;
 		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)
@@ -926,6 +1012,7 @@ void FiveCell::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, Raym
 	glUniform1f(m_gliSpecCentOutLoc, m_fInterpolatedSpecCentVal);
 	glUniform1f(m_gliHighFreqAvgLoc, m_dHighFreqAvg);
 	glUniform1f(m_gliLowFreqAvgLoc, m_dLowFreqAvg);
+	glUniform1f(m_gliTotFFTAmpLoc, (float)m_dTotFFTAmp);
 	glUniform1f(m_gliSineControlValLoc, sineControlVal);
 	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
 	//glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
