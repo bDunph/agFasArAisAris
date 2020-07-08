@@ -1,10 +1,8 @@
-n<CsoundSynthesizer>
+<CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--odac          ;-iadc          ;;;RT audio I/O
-; For Non-realtime ouput leave only the line below:
-; -o moogvcf.wav -W ;;; for file output any platform
+-odac          ;;;RT audio I/O
 
 --nodisplays
 
