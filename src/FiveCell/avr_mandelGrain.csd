@@ -169,7 +169,7 @@ kRms	rms	gaOut2
 endin
 
 ;**************************************************************************************
-instr 6 ; partikkel note scheduler
+instr 6 ; Particle Note Scheduler
 ;**************************************************************************************
 
 kFileSpeed	chnget	"fileSpeed"
@@ -224,7 +224,7 @@ endin
 ; uses the files "24cellRow.wav" "8cellRow.wav" & "5cellRow.wav" 
 ; original partikkel example by Joachim Heintz and Oeyvind Brandtsegg 2008
 ; **********************************************************************************************
-instr 7
+instr 7 ;Particle Instrument
 ; **********************************************************************************************
 
 /*score parameters*/
