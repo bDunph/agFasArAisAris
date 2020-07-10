@@ -173,7 +173,6 @@ instr 6 ; Particle Note Scheduler
 ;**************************************************************************************
 
 kFileSpeed	chnget	"fileSpeed"
-gkGrainRate	chnget	"grainRate"
 kGrainDurFactor chnget	"grainSize"
 
 kGaussVal 	gauss 	6.0
@@ -181,42 +180,26 @@ kGaussVal2	gauss	100
 
 seed 0
 kRand random 0.2, 10.8
-
-seed 1
 kRand2 random 1, 20  
 
-kTrigger metro kRand2 
+kTrigger metro  kRand2 
+	 chnset kTrigger, "metroOut"
 
-	chnset kTrigger, "metroOut"
+kMinTim		= 0 
+kMaxNum 	= 1
+kInsNum 	= 7
+kWhen 		= 2
+gkDur 		= kRand 
+kSpeed 		= kFileSpeed + kGaussVal
+kGrainFreq 	= p4 + kGaussVal
+kGrainDurFactor = kGrainDurFactor + kGaussVal2
+kCentCalc 	= kGrainFreq + kGaussVal
+kPosRand 	= 100 + kGaussVal
+kCentRand 	= kCentCalc + kGaussVal 
+kPanCalc 	= 1
+kDist 		= 0.7 
 
-kMinTim	= 0 
-kMaxNum = 1
-kInsNum = 7
-kWhen = 2
-gkDur = kRand 
-
-;kspeed = 1 + kGaussVal
-kspeed = kFileSpeed + kGaussVal
-;kspeed = kGaussVal
- 
-;kgrainfreq = 1000 + kGaussVal
-kgrainfreq = p4 + kGaussVal
-;kgrainfreq = kGaussVal
-
-;kgraindurfactor = 900 + kGaussVal2
-kgraindurfactor = kGrainDurFactor + kGaussVal2
-
-kcentCalc = kgrainfreq + kGaussVal
-kposrand = 100 + kGaussVal
-kcentrand = kcentCalc + kGaussVal 
-kpanCalc = 1
-kdist = 0.7 
-
-schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kspeed, kgrainfreq, kgraindurfactor, kcentCalc, kposrand, kcentrand, kpanCalc, kdist 
-
-;aOut oscil 0,	100
-
-;outs aOut, aOut
+schedkwhen kTrigger, kMinTim, kMaxNum, kInsNum, kWhen, gkDur, kSpeed, kGrainFreq, kGrainDurFactor, kCentCalc, kPosRand, kCentRand, kPanCalc, kDist 
 
 endin
 
