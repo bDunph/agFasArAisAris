@@ -33,16 +33,16 @@ giDisttab	ftgen	0, 0, 32768, 7, 0, 32768, 1	; for kdistribution
 giFile		ftgen	0, 0, 0, 1, "24cellRow.wav", 0, 0, 0	; soundfile for source waveform
 giFile2		ftgen	0, 0, 0, 1, "8cellRow.wav", 0, 0, 0	; soundfile for fm waveform
 giFile3		ftgen	0, 0, 0, 1, "5cellRow.wav", 0, 0, 0	; source waveform
-giWin		ftgen	0, 0, 4096, 20, 6, 1		; grain envelope
+giWin		ftgen	0, 0, 4096, 20, 6, 1		; gaussian window 
 giPan		ftgen	0, 0, 32768, -21, 1		; for panning (random values between 0 and 1)
 giAttack	ftgen	0, 0, 513, 5, 0.0001, 512, 1	; exponential curve 
 giDecay		ftgen	0, 0, 513, 5, 1, 512, 0.0001	; exponential curve
-giGainMask	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.8, 0.9
-giWavFreqStart	ftgen	0, 0, 5, 2, 0, 3, 1, 0.4, 0.9, 1
-giWavFreqEnd	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0.4, 1
-giFmIndex	ftgen	0, 0, 5, 2, 0, 3, 0.8, 0.4, 0.6, 1.2 
+;giGainMask	ftgen	0, 0, 5, 2, 0, 3, 1, 0.9, 0
+giWavFreqStart	ftgen	0, 0, 5, 2, 0, 2, 1, 0.4, 0
+giWavFreqEnd	ftgen	0, 0, 5, 2, 0, 2, 1, 0.9, 0
+giFmIndex	ftgen	0, 0, 5, 2, 0, 3, 0.8, 0.4, 0 
 giFmEnv		ftgen	0, 0, 129, 7, 0, 32, 1, 12, 0.7, 64, 0.7, 20, 0
-giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 1 
+giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 0 
 
 ;window function - used as an amplitude envelope for each grain
 ;(bartlett window)
@@ -230,7 +230,7 @@ ifildur			= ifilen / sr
 async			= 0		
 
 /*grain envelope*/
-kenv2amt		= 1		; use only secondary envelope
+kenv2amt		= 0.5		; use only secondary envelope
 ienv2tab 		= giWin		; grain (secondary) envelope
 ienv_attack		= giAttack 		; default attack envelope 
 ienv_decay		= giDecay 		; default decay envelope 
@@ -239,25 +239,25 @@ ka_d_ratio		= 0.75 		; no meaning in this case (use only secondary envelope, ien
 
 /*amplitude*/
 kamp			= ampdbfs(0)	; grain amplitude
-igainmasks		= giGainMask		; gain masking
+igainmasks		= -1		; gain masking
 
 /*transposition*/
 kcentrand		rand icentrand	; random transposition
 iorig			= 1 / ifildur	; original pitch
-kwavfreq		= iorig * cent(icent + kcentrand)
+kwavfreq		= iorig; * cent(icent + kcentrand)
 
 /*other pitch related (disabled)*/
-ksweepshape		= 0.8		; no frequency sweep
-iwavfreqstarttab 	= giWavFreqStart		; frequency sweep start
-iwavfreqendtab		= giWavFreqEnd		; frequency sweep end
+ksweepshape		= 0;0.8		; no frequency sweep
+iwavfreqstarttab 	= -1;giWavFreqStart		; frequency sweep start
+iwavfreqendtab		= -1;giWavFreqEnd		; frequency sweep end
 
-aEnv	linseg	0, p3 * 0.2, 1, p3 * 0.1, 0.8, p3 * 0.5, 0.8, p3 * 0.2, 0
-kCps	linseg	200, p3 * 0.8, 500,  p3 * 0.2, 100
-aSig	oscili aEnv, kCps, giFMWave	
+;aEnv	linseg	0, p3 * 0.2, 1, p3 * 0.1, 0.8, p3 * 0.5, 0.8, p3 * 0.2, 0
+;kCps	linseg	200, p3 * 0.8, 500,  p3 * 0.2, 100
+;aSig	oscili aEnv, kCps, giFMWave	
 
-awavfm			= aSig 
-ifmamptab		= giFmIndex		; FM scaling 
-kfmenv			= giFmEnv		; FM envelope 
+awavfm			= 0;aSig 
+ifmamptab		= -1;giFmIndex		; FM scaling 
+kfmenv			= -1;giFmEnv		; FM envelope 
 
 /*trainlet related (disabled)*/
 icosine			= giCosine	; cosine ftable
@@ -291,13 +291,13 @@ afilposphas		phasor ispeed / ifildur
 iposrandsec		= iposrand / 1000	; ms -> sec
 iposrand		= iposrandsec / ifildur	; phase values (0-1)
 krndpos			linrand	 iposrand	; random offset in phase values
-kGaussVal		gauss	20.0
+;kGaussVal		gauss	20.0
 
 /*add random deviation to the time pointer*/
 asamplepos1		= afilposphas + krndpos; resulting phase values (0-1)
-asamplepos2		= asamplepos1 + krndpos + kGaussVal
-asamplepos3		= asamplepos2 + krndpos + kGaussVal	
-asamplepos4		= asamplepos1 + krndpos + kGaussVal	
+asamplepos2		= asamplepos1 + krndpos; + kGaussVal
+asamplepos3		= asamplepos2 + krndpos; + kGaussVal	
+asamplepos4		= asamplepos1 + krndpos; + kGaussVal	
 
 /*original key for each source waveform*/
 kwavekey1		= 1
