@@ -2,10 +2,11 @@
 // raymarch basic setup adapted from dila's tutorial
 // https://www.youtube.com/watch?v=yxNnRSefK94
 
-#define Iterations 16 
+#define ITERATIONS 16 
 #define MAX_ITERATIONS 100
-#define Scale 2.0
-#define Offset 2.0
+#define FOLD_CUTOFF 50
+#define SCALE 2.0
+#define OFFSET 2.0
 #define NUM_NOISE_OCTAVES 2
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
@@ -100,15 +101,15 @@ float sphereSDF(vec3 p, float radius)
 float planeSDF(vec3 p, vec4 normal)
 {
 	int n = 0;
-	while(n < Iterations)
+	while(n < ITERATIONS)
     {
 	if(p.x + p.y < 0.0) p.xy = -p.yx; // fold 1
         if(p.x + p.z < 0.0) p.xz = -p.zx; // fold 2
         if(p.y + p.z < 0.0) p.zy = -p.yz; // fold 3
 
-        p = p * Scale - Offset * (Scale - 1.0);
+        p = p * SCALE - OFFSET * (SCALE - 1.0);
         
-        if(length(p) > float(MAX_ITERATIONS)) break;
+        if(length(p) > float(FOLD_CUTOFF)) break;
         
         n++;
     }
@@ -125,7 +126,7 @@ float kifSDF(vec3 p)
     orbit = vec4(1000.0);
     
     int n = 0;
-    while(n < Iterations)
+    while(n < ITERATIONS)
     {
     
         p = rot * p;
@@ -136,19 +137,19 @@ float kifSDF(vec3 p)
         
         p = rot * p;
         
-        p = p * Scale - Offset * (Scale - 1.0);
+        p = p * SCALE - OFFSET * (SCALE - 1.0);
         
         float orbPoint = dot(p, p);
 	//int ind = int(floor(mod(timeVal, NUM_FFT_BINS)));
         orbit = min(orbit, vec4(abs(p), orbPoint));
 	//orbit *= 1.0 + (lowFreqVal * (gl_FragCoord.x / gl_FragCoord.y));
         
-        if(length(p) > float(MAX_ITERATIONS)) break;
+        if(length(p) > float(FOLD_CUTOFF)) break;
         
         n++;
     }
     
-    return abs(length(p) * pow(Scale, -float(n)));
+    return abs(length(p) * pow(SCALE, -float(n)));
 
 }
 
@@ -159,27 +160,22 @@ float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
 
-	float factor = sin(specCentVal) * 0.25;// mod(timeVal, 360.0); 
-  	float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
+	float specFactor = sin(specCentVal) * 0.25;// mod(timeVal, 360.0); 
+  	float specDisp = sin(specFactor * p.x) * sin(specFactor * p.y) * sin(specFactor * p.z);
 
-	float sphereDisp = sin(rmsModVal * 5.0);
-	float fftDisp = 0.0;
+	float ampDisp = sin(rmsModVal * 5.0);
 	
-	float fragLoc = gl_FragCoord.x + gl_FragCoord.y;
-	float ind = fragLoc * NUM_FFT_BINS;
-	int i = int(ind);
-	fftDisp += fftAmpBins[i];
-
-	float kifDist = kifSDF(p);
-	float planeDist = planeSDF(p, PLANE_NORMAL);
-	float sphereDist = sphereSDF(p + sphereDisp, rad);
+	float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 
 	if(length(p) > rad) 
 	{
 		recVal += FACTOR;
 		rad += recVal;
-		sphereDist = sphereSDF(p + sphereDisp, rad);
+		sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 	}	
+
+	float kifDist = kifSDF(p);
+	float planeDist = planeSDF(p, PLANE_NORMAL);
 
 	return min(kifDist, min(sphereDist, planeDist));
 }
@@ -193,26 +189,9 @@ float march(vec3 o, vec3 r)
     	for(int i = 0; i < MAX_ITERATIONS; ++i)
     	{
     	 	vec3 p = o + r * t;
-    	    	//float d = DE(p * 1.0 + lowFreqVal);
-
-    	    	// twisting deformation
-    	    	//float k = 0.01 * lowFreqVal + mod(timeVal, 5.0);
-    	    	//float c = cos(k * p.y);
-    	    	//float s = sin(k * p.y);
-    	    	//mat2 m = mat2(c, -s, s, c);
-    	    	//p = vec3(m * p.xz, p.y);
-
-    	    	// sine displacement
-    	    	//float factor = fftAmpBins[int(floor(mod(timeVal, NUM_FFT_BINS)))] * 10.0;
-    	    	//float factor = sin(specCentVal * lowFreqVal);// mod(timeVal, 360.0); 
-    	    	//float disp = sin(factor * p.x) * sin(factor * p.y) * sin(factor * p.z);
-    	    	//disp *= mod(timeVal, 5.0) * lowFreqVal;
-    	    	//disp *= sineControlVal * lowFreqVal;
-    	    	
+    	    	    	    	
     	    	float d = DE(p);
 
-    	    	//vec3 scalingFactor = vec3(5.0, 0.0, 5.0);
-    	    	//float noisy = DE(mod(p, scalingFactor + fbm(p * lowFreqVal) - 0.5 * scalingFactor));
     	    	if(d < EPSILON) break;
     	    	t += d * 0.5;
     	    	ind++;
@@ -309,8 +288,8 @@ void main()
 		// colouring and shading
 		vec3 norm = norm(pos, rayDir);
 
-		float sq = float(Iterations) * float(Iterations);
-		float smootherVal = float(index) + log(log(sq)) / log(Scale) - log(log(dot(pos, pos))) / log(Scale);
+		float sq = float(ITERATIONS) * float(ITERATIONS);
+		float smootherVal = float(index) + log(log(sq)) / log(SCALE) - log(log(dot(pos, pos))) / log(SCALE);
 		vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
 		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.417, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
