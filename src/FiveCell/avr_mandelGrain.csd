@@ -173,7 +173,9 @@ instr 6 ; Particle Note Scheduler
 ;**************************************************************************************
 
 kFileSpeed	chnget	"fileSpeed"
+;kFileSpeed = 5.0
 kGrainDurFactor chnget	"grainSize"
+;kGrainDurFactor = 90.0
 
 kGaussVal 	gauss 	6.0
 kGaussVal2	gauss	100
@@ -318,8 +320,7 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 
 aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
-gaOut7 = aOut * aOutEnv
-		;outs			gaOut7, gaOut7 
+gaParticleOut = aOut * aOutEnv
 
 endin
 
@@ -375,8 +376,7 @@ ioverlap = ifftsize / 4
 iwinsize = ifftsize * 2
 iwinshape = 0
 
-;aSig	sum	gaOut8, gaOut7
-aSig  = gaOut7
+aSig  = gaParticleOut 
 
 ; route output from instrument 2 above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
@@ -384,9 +384,9 @@ fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
 
-kfreq,	kampl	pvspitch	fsig,	0.01
-	chnset	kfreq,	"freqOut"
-	chnset	kampl,	"ampOut"
+kFreq,	kAmp	pvspitch	fsig,	0.01
+	chnset	kFreq,	"freqOut"
+	chnset	kAmp,	"ampOut"
 
 ; get info from pvsanal and print
 ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
@@ -449,8 +449,8 @@ channelLoop:
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] = gaOut2
-aInstSigs[1] = gaOut7
-aInstSigs[2] = gaOut7
+aInstSigs[1] = gaParticleOut * 0.5
+aInstSigs[2] = gaParticleOut * 0.5 
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources

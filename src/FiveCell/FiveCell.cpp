@@ -440,6 +440,10 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //*******************************************************************************************
 void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec){
 
+
+	//std::cout << "PBO : " << pboInfo.pboPtr[8] << std::endl;
+	//std::cout << (int)pboInfo.pboPtr[0] << std::endl;//" --- " << (int)pboInfo.pboPtr[99] << " --- " << (int)pboInfo.pboPtr[198] << std::endl;
+
 	modelMatrix = glm::mat4(1.0f);
 
 	m_vec3Translation = translateVec;
@@ -590,81 +594,12 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		float valFileSpeed = distFileSpeed(genFileSpeed);
 		*m_cspFileSpeed = (MYFLT)valFileSpeed;
 
-		// grain rate
-		std::uniform_real_distribution<float> distGrainRate(150.0f, 250.0f);
-		std::default_random_engine genGrainRate(rd());
-		float valGrainRate = distGrainRate(genGrainRate);
-		*m_cspGrainRate = (MYFLT)valGrainRate;
-
 		// grain size
 		std::uniform_real_distribution<float> distGrainSize(50.0f, 100.0f);
 		std::default_random_engine genGrainSize(rd());
 		float valGrainSize = distGrainSize(genGrainSize);
 		*m_cspGrainSize = (MYFLT)valGrainSize;
-
-		// grain3 parameters
-
-		// grain frequency (kcps) 
-		//std::uniform_real_distribution<float> distGrainFreq(50.0f, 1000.0f);
-		//std::default_random_engine genGrainFreq(rd());
-		//float valGrainFreq = distGrainFreq(genGrainFreq);
-		//*m_cspGrainFreq = (MYFLT)valGrainFreq;
-		//	
-		//// grain phase (kphs) 
-		//std::uniform_real_distribution<float> distGrainPhase(0.0f, 1.0f);
-		//std::default_random_engine genGrainPhase(rd());
-		//float valGrainPhase = distGrainPhase(genGrainPhase);
-		//*m_cspGrainPhase = (MYFLT)valGrainPhase;
-
-		//// random variation in grain frequency (kfmd) 
-		//std::uniform_real_distribution<float> distRandFreq(1.0f, 500.0f);
-		//std::default_random_engine genRandFreq(rd());
-		//float valRandFreq = distRandFreq(genRandFreq);
-		//*m_cspRandFreq = (MYFLT)valRandFreq;	
-
-		//// random variation in phase (kpmd) 
-		//std::uniform_real_distribution<float> distRandPhase(0.0f, 1.0f);
-		//std::default_random_engine genRandPhase(rd());
-		//float valRandPhase = distRandPhase(genRandPhase);
-		//*m_cspRandPhase = (MYFLT)valRandPhase;
-
-		//// grain duration (kgdur)
-		//std::uniform_real_distribution<float> distGrainDur(0.01f, 0.2f);
-		//std::default_random_engine genGrainDur(rd());
-		//float valGrainDur = distGrainDur(genGrainDur);
-		//if(m_bFirstLoop) 
-		//{	
-		//	*m_cspGrainDur = (MYFLT)0.08f;
-		//} 
-		//else
-		//{
-		//	*m_cspGrainDur = (MYFLT)valGrainDur;
-		//}
-
-		//// grain density (kdens)
-		//std::uniform_real_distribution<float> distGrainDensity(50.0f, 500.0f);
-		//std::default_random_engine genGrainDensity(rd());
-		//float valGrainDensity = floor(distGrainDensity(genGrainDensity));
-		//*m_cspGrainDensity = (MYFLT)valGrainDensity;
-
-		//// distribution of random grain frequency variation (kfrpow)
-		//std::uniform_real_distribution<float> distGrainFreqVariationDistrib(-1.0f, 1.0f);
-		//std::default_random_engine genGrainFreqVariationDistrib(rd());
-		//float valGrainFreqVariationDistrib = distGrainFreqVariationDistrib(genGrainFreqVariationDistrib);
-		//*m_cspGrainFreqVariationDistrib = (MYFLT)valGrainFreqVariationDistrib;
-
-		//// distribution of random grain phase variation (kprpow)
-		//std::uniform_real_distribution<float> distGrainPhaseVariationDistrib(-1.0f, 1.0f);
-		//std::default_random_engine genGrainPhaseVariationDistrib(rd());
-		//float valGrainPhaseVariationDistrib = distGrainPhaseVariationDistrib(genGrainPhaseVariationDistrib);
-		//*m_cspGrainPhaseVariationDistrib = (MYFLT)valGrainPhaseVariationDistrib;
-
-		//// grain waveform (kfn)
-		//std::uniform_real_distribution<float> distGrainWaveform(1.0f, 4.0f);
-		//std::default_random_engine genGrainWaveform(rd());
-		//float valGrainWaveform = floor(distGrainWaveform(genGrainWaveform));
-		//*m_cspGrainWaveform = (MYFLT)valGrainWaveform;
-
+		
 		// wgbow params
 		
 		// percentage deviation range
@@ -693,20 +628,14 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
 			inputData.push_back((double)pboInfo.pboPtr[i]); //13
+			std::cout << "PBO VAlUE: " <<  (double)pboInfo.pboPtr[i] << std::endl;
 		}
 
-		//outputData.push_back((double)*m_cspGrainFreq); //0
-		//outputData.push_back((double)*m_cspGrainPhase); //1
-		//outputData.push_back((double)*m_cspRandFreq); //2
-		//outputData.push_back((double)*m_cspRandPhase); //3
-		//outputData.push_back((double)*m_cspGrainDur); //4
-		//outputData.push_back((double)*m_cspGrainDensity); //5
-		//outputData.push_back((double)*m_cspGrainFreqVariationDistrib); //6
-		//outputData.push_back((double)*m_cspGrainPhaseVariationDistrib); //7
-		//outputData.push_back((double)*m_cspGrainWaveform); //8
 		outputData.push_back((double)*m_cspGaussRange); //0
 		outputData.push_back((double)*m_cspModeFreq1); //1
 		outputData.push_back((double)*m_cspModeFreq2); //2
+		outputData.push_back((double)*m_cspFileSpeed); //3
+		outputData.push_back((double)*m_cspGrainSize); //4
 
 #ifdef __APPLE__
 		trainingData.recordSingleElement(inputData, outputData);	
@@ -800,11 +729,19 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 
 		if(modelOut[1] > 483.2f) modelOut[1] = 483.2f;
 		if(modelOut[1] < 467.9f) modelOut[1] = 467.9f;
-		*m_cspModeFreq1= (MYFLT)modelOut[1];
+		*m_cspModeFreq1 = (MYFLT)modelOut[1];
 
 		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
 		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
-		*m_cspModeFreq2= (MYFLT)modelOut[2];
+		*m_cspModeFreq2 = (MYFLT)modelOut[2];
+	
+		if(modelOut[3] > 7.0f) modelOut[3] = 7.0f;
+		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
+		*m_cspFileSpeed = (MYFLT)modelOut[3];
+
+		if(modelOut[4] > 100.0f) modelOut[4] = 100.0f;
+		if(modelOut[4] < 50.0f) modelOut[4] = 50.0f;
+		*m_cspGrainSize = (MYFLT)modelOut[4];
 
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
@@ -876,6 +813,14 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
 		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
 		*m_cspModeFreq2= (MYFLT)modelOut[2];
+
+		if(modelOut[3] > 7.0f) modelOut[3] = 7.0f;
+		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
+		*m_cspFileSpeed = (MYFLT)modelOut[3];
+
+		if(modelOut[4] > 100.0f) modelOut[4] = 100.0f;
+		if(modelOut[4] < 50.0f) modelOut[4] = 50.0f;
+		*m_cspGrainSize = (MYFLT)modelOut[4];
 
 		bool prevRunMsgState = m_bCurrentRunMsgState;
 		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)

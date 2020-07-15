@@ -976,7 +976,7 @@ void Graphics::TransferDataToCPU()
 	// copy memory block from pixel buffer object to memory block on cpu
 	memcpy(m_structPboInfo.pboPtr, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
 
-	//std::cout << "PBO : " << static_cast<unsigned>(m_pDataSize[8]) << std::endl;
+	//std::cout << "PBO : " << static_cast<unsigned>(m_structPboInfo.pboPtr[8]) << std::endl;
 
 	if(glUnmapBuffer(GL_PIXEL_PACK_BUFFER) != GL_TRUE)
 		std::cout << "ERROR: PBO failed to unmap: Graphics::TransferDataToCPU()" << std::endl;

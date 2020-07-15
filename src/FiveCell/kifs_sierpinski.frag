@@ -17,13 +17,8 @@
 
 uniform mat4 MVEPMat;
 uniform float specCentVal;
-uniform float lowFreqVal;
-uniform float highFreqVal;
-uniform float fftAmpBins[NUM_FFT_BINS];
 uniform float timeVal;
-uniform float sineControlVal;
 uniform float rmsModVal;
-uniform float totFFTAmp;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -123,7 +118,7 @@ float kifSDF(vec3 p)
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
-    orbit = vec4(1000.0);
+    orbit = vec4(10.0, 10.0, 10.0, 1.0);
     
     int n = 0;
     while(n < ITERATIONS)
@@ -139,18 +134,13 @@ float kifSDF(vec3 p)
         
         p = p * SCALE - OFFSET * (SCALE - 1.0);
         
-        float orbPoint = dot(p, p);
-	//int ind = int(floor(mod(timeVal, NUM_FFT_BINS)));
-        orbit = min(orbit, vec4(abs(p), orbPoint));
-	//orbit *= 1.0 + (lowFreqVal * (gl_FragCoord.x / gl_FragCoord.y));
+        orbit = min(orbit, vec4(abs(p), 1.0));
         
         if(length(p) > float(FOLD_CUTOFF)) break;
         
         n++;
     }
-    
-    return abs(length(p) * pow(SCALE, -float(n)));
-
+    return length(p) * pow(SCALE, -float(n));
 }
 
 
@@ -160,7 +150,7 @@ float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
 
-	float specFactor = sin(specCentVal) * 0.25;// mod(timeVal, 360.0); 
+	float specFactor = sin(specCentVal) * 0.25; 
   	float specDisp = sin(specFactor * p.x) * sin(specFactor * p.y) * sin(specFactor * p.z);
 
 	float ampDisp = sin(rmsModVal * 5.0);
@@ -179,8 +169,6 @@ float DE(vec3 p)
 
 	return min(kifDist, min(sphereDist, planeDist));
 }
-
-
 
 float march(vec3 o, vec3 r)
 {
@@ -203,14 +191,16 @@ float march(vec3 o, vec3 r)
 
 // finite difference normal from 
 // http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-ii-lighting-and-coloring/
-vec3 norm(vec3 pos, vec3 dir)
+vec3 norm(vec3 pos)
 {
-	return normalize(vec3(	DE(pos + vec3(EPSILON, 0.0, 0.0)) - DE(pos - vec3(EPSILON, 0.0, 0.0)),
-                			DE(pos + vec3(0.0, EPSILON, 0.0)) - DE(pos - vec3(0.0, EPSILON, 0.0)),
-                			DE(pos + vec3(0.0, 0.0, EPSILON)) - DE(pos - vec3(0.0, 0.0, EPSILON))));
+	vec3 xDir = vec3(EPSILON, 0.0, 0.0);
+	vec3 yDir = vec3(0.0, EPSILON, 0.0);
+	vec3 zDir = vec3(0.0, 0.0, EPSILON);
+
+	return normalize(vec3(	DE(pos + xDir) - DE(pos - xDir),
+                		DE(pos + yDir) - DE(pos - yDir),
+                		DE(pos + zDir) - DE(pos - zDir)));
 }
-
-
 
 // ambient occlusion implementation from 
 // http://www.pouet.net/topic.php?which=7931&page=1&x=3&y=14
@@ -228,13 +218,11 @@ float ao(vec3 p, vec3 n, float d, float i)
 //----------------------------------------------------------------------------------------
 vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 {
-
 	float fogAmount = 1.0 - exp(-dist * 0.1);
-	vec3 normLightDir = normalize(-lightDir);
-	float expDistTerm = exp(dot(rayDir, normLightDir));
-	float lightAmount = max(expDistTerm * 0.06, 0.0);
+
+	vec3 normLightDir = normalize(lightDir);
+	float lightAmount = max(dot(rayDir, normLightDir), 0.0);
 	vec3 fogColour = mix(vec3(0.1, 0.12, 0.14), vec3(0.2, 0.18, 0.14), pow(lightAmount, 8.0));
-	//fogColour *= fftVec;
 
 	vec3 bExt = vec3(0.05, 0.03, 0.06);
 	vec3 bIns = vec3(0.12, 0.05, 0.05);
@@ -242,18 +230,15 @@ vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 	vec3 extCol = vec3(exp(-dist * bExt.x), exp(-dist * bExt.y), exp(-dist * bExt.z));
 	vec3 insCol = vec3(exp(-dist * bIns.x), exp(-dist * bIns.y), exp(-dist * bIns.z));
 
-	//float extCol = exp(-dist * 0.02);
-	//float insCol = exp(-dist * 0.04);
-
 	col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
-	//return vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+
 	return mix(col, fogColour, fogAmount);
 }
 
 void main()
 {
 
-	//************* ray setup code from 
+	//************* ray setup code from **************************//
 	//https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html*/
 	
 	
@@ -265,45 +250,32 @@ void main()
 	
 	// raymarch the point
 	float dist = march(rayOrigin, rayDir);
-	
-	// map audio movement 
-	//float pixToBin = mod((1.0 + gl_FragCoord.x * 1.0 + gl_FragCoord.y), NUM_FFT_BINS);
-	//float pixToBin = mod(int(floor(fbm(gl_FragCoord.xyz))), NUM_FFT_BINS);
-	//int fftIndex = int(floor(pixToBin));
-    
-	//vec3 fftVec = vec3(float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal, float(fftIndex + floor(timeVal)) * timeVal);
-	//float noiseCalc = fbm(fftVec);
+	vec3 pos = rayOrigin + dist * rayDir;		    
 
-	vec3 pos = rayOrigin + dist * rayDir;// + (noiseCalc * 0.01);
-
-		    
 	// material colour
-	//float specMappedVal = (specCentVal - 20.0) / (10000.0 - 20.0) * (1.0 - 0.0) + 0.0;
-
 	vec3 colour = vec3(0.0);
 	vec3 totMatCol = vec3(0.0);
 
 	if(index < MAX_ITERATIONS)
 	{
-		// colouring and shading
-		vec3 norm = norm(pos, rayDir);
-
+		// material colour
 		float sq = float(ITERATIONS) * float(ITERATIONS);
 		float smootherVal = float(index) + log(log(sq)) / log(SCALE) - log(log(dot(pos, pos))) / log(SCALE);
 		vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
 		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.417, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
-		//totMatCol = mix(totMatCol, matCol1, pow(clamp(1.0 - 2.0 * orbit.z, 0.0, 1.0), 8.0 + (specMappedVal * fbm(gl_FragCoord.xyz))));
 
 		// lighting
-		float ao = ao(pos, norm, 0.5, 5.0);
+		vec3 norm = norm(pos);
+
+		float ambOcc = ao(pos, norm, 0.5, 5.0);
 		float sun = clamp(dot(norm, SUN_DIR), 0.0, 1.0);
 		float sky = clamp(0.5 + 0.5 * norm.y, 0.0, 1.0);
-		float ind = clamp(dot(norm, normalize(SUN_DIR * vec3(-1.0, 0.0, -1.0))), 0.0, 1.0);
+		float ind = clamp(dot(norm, normalize(SUN_DIR * vec3(-1.0, -1.0, 0.0))), 0.0, 1.0);
 		    
 		vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
-		lightRig += sky * vec3(0.32, 0.4, 0.56) * ao;
-		lightRig += ind * vec3(0.4, 0.28, 0.2) * ao;
+		lightRig += sky * vec3(0.32, 0.4, 0.56) * ambOcc;
+		lightRig += ind * vec3(0.4, 0.28, 0.2) * ambOcc;
 		    
 		colour = totMatCol * lightRig;
 	}
@@ -312,14 +284,7 @@ void main()
 		colour = vec3(0.16, 0.2, 0.28);
 	}
 	
-	
-	    
-	//float fog = 1.0 / (1.0 + dist * dist * 0.5);
-	    
-	//colour = pow(colour, vec3(fog));
-	//colour *= fog;
-	    
-	colour = fog(colour, dist, rayDir, -SUN_DIR);
+	colour = fog(colour, dist, rayDir, SUN_DIR);
 
 	// gamma corr
 	colour = pow(colour, vec3(1.0/2.2));
