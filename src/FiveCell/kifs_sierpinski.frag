@@ -25,7 +25,7 @@ in vec4 farPos;
 //in vec2 texCoordsOut;
 
 layout(location = 0) out vec4 fragColor; 
-layout(location = 1) out vec4 orbitOut;
+layout(location = 1) out vec4 indexOut;
 
 int index;
 vec4 orbit;
@@ -165,7 +165,7 @@ float DE(vec3 p)
 	}	
 
 	float kifDist = kifSDF(p);
-	float planeDist = planeSDF(p, PLANE_NORMAL);
+	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
 	return min(kifDist, min(sphereDist, planeDist));
 }
@@ -293,7 +293,9 @@ void main()
 	fragColor = vec4(colour,1.0);
 
 	// Output to PBO
-	orbitOut = orbit;
+	// convert index from range 0 - 100 to 0 - 1
+	float indOut = float(index) / 100.0;
+	indexOut = vec4(indOut);
 
 //-----------------------------------------------------------------------------
 // To calculate depth for use with rasterized material

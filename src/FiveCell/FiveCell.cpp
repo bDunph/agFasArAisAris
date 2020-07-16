@@ -628,7 +628,7 @@ void FiveCell::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& mach
 		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
 			inputData.push_back((double)pboInfo.pboPtr[i]); //13
-			std::cout << "PBO VAlUE: " <<  (double)pboInfo.pboPtr[i] << std::endl;
+			//std::cout << "PBO Value: " << (double)pboInfo.pboPtr[i] << std::endl;
 		}
 
 		outputData.push_back((double)*m_cspGaussRange); //0
