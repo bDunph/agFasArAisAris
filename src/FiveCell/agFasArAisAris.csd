@@ -31,8 +31,8 @@ giFMWave  	ftgen  	0, 0, 2^10, 10, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64
 ;giCosine	ftgen	0, 0, 8193, 9, 1, 1, 90		; cosine
 giDisttab	ftgen	0, 0, 32768, 7, 0, 32768, 1	; for kdistribution
 giFile		ftgen	0, 0, 0, 1, "24cellRow.wav", 0, 0, 0	; soundfile for source waveform
-giFile2		ftgen	0, 0, 0, 1, "8cellRow.wav", 0, 0, 0	; soundfile for fm waveform
-giFile3		ftgen	0, 0, 0, 1, "5cellRow.wav", 0, 0, 0	; source waveform
+;giFile2		ftgen	0, 0, 0, 1, "8cellRow.wav", 0, 0, 0	; soundfile for fm waveform
+;giFile3		ftgen	0, 0, 0, 1, "5cellRow.wav", 0, 0, 0	; source waveform
 giWin		ftgen	0, 0, 4096, 20, 6, 1		; gaussian window 
 giPan		ftgen	0, 0, 32768, -21, 1		; for panning (random values between 0 and 1)
 giAttack	ftgen	0, 0, 513, 5, 0.0001, 512, 1	; exponential curve 
