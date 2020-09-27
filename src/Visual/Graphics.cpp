@@ -181,13 +181,13 @@ bool Graphics::BInitGL(bool fullscreen)
 	}
 
 	std::string csdFileName = "agFasArAisAris.csd";
-	if(!fiveCell.setup(csdFileName)) 
+	if(!studio.setup(csdFileName)) 
 	{
-		std::cout << "fiveCell setup failed: Graphics BInitGL" << std::endl;
+		std::cout << "studio setup failed: Graphics BInitGL" << std::endl;
 		return false;
 	}
 
-	if(!fiveCell.BSetupRaymarchQuad(mengerShaderProg))
+	if(!studio.BSetupRaymarchQuad(mengerShaderProg))
 	{
 		std::cout << "raymarch quad failed setup: Graphics::BInitGL" << std::endl;
 		return false;
@@ -1064,8 +1064,8 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	//glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x / m_vec4TranslationVal.w, m_vec4TranslationVal.y / m_vec4TranslationVal.w, m_vec4TranslationVal.z / m_vec4TranslationVal.w);
 	glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
-	//update variables for fiveCell
-	fiveCell.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, vec3TranslationVal);
+	//update variables for studio
+	studio.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, vec3TranslationVal);
 
 
 	//delete[] m_pDataSize;
@@ -1480,8 +1480,8 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//update stuff for raymarching shader
 	raymarchData.aspect = static_cast<float>(m_nRenderWidth) / static_cast<float>(m_nRenderHeight);
 
-	//update variables for fiveCell
-	//fiveCell.update(currentViewMatrix, cameraPosition, machineLearning);
+	//update variables for studio
+	//studio.update(currentViewMatrix, cameraPosition, machineLearning);
 	
 	// draw controllers before scene	
 	if(!m_bDevMode && vrm){
@@ -1532,8 +1532,8 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//{
 		scaleFactor = 1.0f;
 	//}
-	//draw fiveCell scene
-	fiveCell.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, scaleFactor);
+	//draw studio scene
+	studio.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, scaleFactor);
 
 }
 
@@ -1668,7 +1668,7 @@ void Graphics::CleanUpGL(std::unique_ptr<VR_Manager>& vrm){
 
 		glfwTerminate();
 
-		fiveCell.exit();
+		studio.exit();
 		//delete[] m_structPboInfo.pboPtr;
 		//delete[] m_pDataSize;
 
