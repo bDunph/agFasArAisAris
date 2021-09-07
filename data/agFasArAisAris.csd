@@ -55,7 +55,7 @@ instr 2 ; Modal Instrument
 ; get control value from application
 ;kSineControlVal	chnget	"sineControlVal"
 
-iamp    init ampdbfs(-24)
+iamp    init ampdbfs(-12)
 
 ;kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 ;kWgbowAmpVal chnget "randAmp"
@@ -161,7 +161,7 @@ ares	sum	ares1,	ares2,	ares3,	ares4,	ares5, ares6
 ;gaOut1 = (aexc + ares) * kSineControlVal 
 aout2 = (aexc * 0.001) + (ares * 0.166)
 gaOut2 = aout2 * 0.05
-	;outs	gaOut2,	gaOut2
+	outs	gaOut2,	gaOut2
 
 kRms	rms	gaOut2
 	chnset	kRms,	"rmsOut"
@@ -321,6 +321,7 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
 gaParticleOut = aOut * aOutEnv
+	outs	gaParticleOut, gaParticleOut
 
 endin
 
@@ -328,33 +329,35 @@ endin
 instr 8 ; granular instrument using grain3
 ;**************************************************************************************
 
-kCps	chnget	"grainFreq"
-kPhs	chnget	"grainPhase"
-kFmd	chnget	"randFreq"
-kPmd	chnget	"randPhase"
-kGDur	chnget	"grainDur"
-kDens	chnget	"grainDensity"
-kFrPow	chnget	"grainFreqVariationDistrib"
-kPrPow	chnget	"grainPhaseVariationDistrib"
+;kCps	chnget	"grainFreq"
+;kPhs	chnget	"grainPhase"
+;kFmd	chnget	"randFreq"
+;kPmd	chnget	"randPhase"
+;kGDur	chnget	"grainDur"
+;kDens	chnget	"grainDensity"
+;kFrPow	chnget	"grainFreqVariationDistrib"
+;kPrPow	chnget	"grainPhaseVariationDistrib"
 ;kFn	chnget	"grainWaveform"
 
-kGDur = 0.01 + kGDur ; initialisation to avoid perf error 0.0
-kDens = 1 + kDens
+;kGDur = 0.01 + kGDur ; initialisation to avoid perf error 0.0
+;kDens = 1 + kDens
 
 ; get control value from application
-kSineControlVal	chnget	"sineControlVal"
+;kSineControlVal	chnget	"sineControlVal"
 ;kCps = kCps * kSineControlVal + 20
 
-  ;kCPS    =       100
-  ;kPhs    =       0
+  kCps    =       100
+  kPhs    =       0
   ;kFmd    transeg 0,1,0,0, 10,4,15, 10,-4,0
-  ;kFmd	= 3
+  kFmd	= 3
   ;kPmd    transeg 0,1,0,0, 10,4,1,  10,-4,0
-  ;kPmd	= 7
-  ;kGDur   =       0.08
-  ;kDens   =       200
+  kPmd	= 7
+  kGDur   =       0.08
+  kDens   =       200
   iMaxOvr =       1000
   kFn     =       giWave
+  kFrPow = 0
+  kPrPow = 0
   ;print info. to the terminal
           ;printks "Random Phase:%5.2F%TPitch Random:%5.2F%n",1,kPmd,kFmd
 	;printks "Grain Density:%f%n", 1, kDens
@@ -362,9 +365,9 @@ kSineControlVal	chnget	"sineControlVal"
 
 aOutEnv	linseg	0, p3 * 0.05, 1, 0.05, 0.95, 0.8, 0.95, 0.1, 0
 
-gaOut8 = aOut8; * 0.2 * aOutEnv
+gaOut8 = aOut8 * 0.2; * aOutEnv
 
-	;outs	gaOut8, gaOut8
+	outs	gaOut8, gaOut8
 endin
 
 ;**************************************************************************************
@@ -499,19 +502,19 @@ f1	0	1025	8	0	2	1	3	0	4	1	6	0	10	1	12	0	16	1	32	0	1	0	939	0
 ; score events
 ;********************************************************************
 
-i2	2	-1
+;i2	2	-1
 
-i6.01	1	-1	0
-i6.02	2	-1	50.0	
+;i6.01	1	-1	0
+;i6.02	2	-1	50.0	
 
 ;i7	2	-1
 
-;i8	2	-1
+i8	2	-1
 
-i9.01	1	-1
-i9.02	2	-1
+;i9.01	1	-1
+;i9.02	2	-1
 
-i12	2	-1
+;i12	2	-1
 e
 </CsScore>
 </CsoundSynthesizer>
