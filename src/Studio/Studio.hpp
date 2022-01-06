@@ -9,6 +9,7 @@
 
 #include "RapidLib/regression.h"
 #include "StudioTools.hpp"
+#include "RegressionModel.hpp"
 
 class Studio {
 
@@ -98,5 +99,6 @@ private:
 	std::vector<trainingExample> trainingSet;
 	std::vector<double> inputData;
 	std::vector<double> outputData;	
+	RegressionModel regMod;
 };
 #endif
