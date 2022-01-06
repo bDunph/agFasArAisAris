@@ -1,4 +1,4 @@
-#include "AvrApp.hpp"
+#include "ImmersAVApp.hpp"
 
 #include <iostream>
 
@@ -8,7 +8,7 @@
 #endif
 
 //--------------------------------------------
-AvrApp::AvrApp(int argc, char** argv) : 
+ImmersAVApp::ImmersAVApp(int argc, char** argv) : 
 	m_pVR(nullptr), 
 	m_pGraphics(nullptr), 
 	m_pExFlags(nullptr),
@@ -20,7 +20,9 @@ AvrApp::AvrApp(int argc, char** argv) :
 	m_bDevMode(false)  
 {
 
-	for( int i = 0; i < argc; i++ )
+	m_sFileName = argv[1];
+
+	for( int i = 2; i < argc; i++ )
 	{
 		if( !_stricmp(argv[i], "-gldebug"))
 		{
@@ -54,7 +56,7 @@ AvrApp::AvrApp(int argc, char** argv) :
 }
 
 //--------------------------------------------
-bool AvrApp::BInitialise()
+bool ImmersAVApp::BInitialise()
 {
 	if(!m_pExFlags->flagDevMode)
 	{
@@ -83,7 +85,7 @@ bool AvrApp::BInitialise()
 	//initialise OpenGL
 	m_pGraphics = std::make_unique<Graphics>(m_pExFlags);
 
-	if(!m_pGraphics->BInitGL())
+	if(!m_pGraphics->BInitGL(m_sFileName))
 	{
 		std::cout << "Error: OpenGL context not initialised!" << std::endl;
 		return false;
@@ -122,7 +124,7 @@ bool AvrApp::BInitialise()
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void AvrApp::RunMainLoop()
+void ImmersAVApp::RunMainLoop()
 {
 
 	bool bQuit = false;
@@ -141,7 +143,7 @@ void AvrApp::RunMainLoop()
 //-----------------------------------------
 // Clean up each of the modules
 // ----------------------------------------
-void AvrApp::Exit(){
+void ImmersAVApp::Exit(){
 
 	if(!m_pExFlags->flagDevMode){
 		m_pVR->ExitVR();

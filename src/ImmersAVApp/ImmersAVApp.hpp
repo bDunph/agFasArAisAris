@@ -1,5 +1,5 @@
-#ifndef AVRAPP_HPP
-#define AVRAPP_HPP
+#ifndef IMMERSAVAPP_HPP
+#define IMMERSAVAPP_HPP
 
 #include "VR_Manager.hpp"
 #include "Graphics.hpp"
@@ -9,10 +9,10 @@
 #include <string>
 #include <memory>
 
-class AvrApp {
+class ImmersAVApp {
 
 public:
-	AvrApp(int argc, char** argv);
+	ImmersAVApp(int argc, char** argv);
 	bool BInitialise();
 	void Exit();
 	void RunMainLoop();
@@ -23,6 +23,8 @@ private:
 	std::unique_ptr<Graphics> m_pGraphics;
 	//std::unique_ptr<CsoundSession> m_pAudio;
 	std::unique_ptr<ExecutionFlags> m_pExFlags;
+
+	std::string m_sFileName;
 
 	bool m_bDebugGL;
 	bool m_bVSyncBlank;

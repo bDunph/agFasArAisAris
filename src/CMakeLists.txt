@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(avr)
+project(ImmersAV)
 
 #The version number
-set (avr_VERSION_MAJOR 0)
-set (avr_VERSION_MINOR 1)
+set (immersAV_VERSION_MAJOR 0)
+set (immersAV_VERSION_MINOR 1)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
@@ -29,11 +29,6 @@ if(APPLE)
 	find_library(OPENVR OpenVR)
 	if(NOT OPENVR)
 		message(FATAL_ERROR "OpenVR not found")
-	endif()
-
-	find_library(RAPIDMIX RAPID-MIX_API)
-	if(NOT RAPIDMIX)
-		message(FATAL_ERROR "Rapid-Mix not found")
 	endif()
 
 elseif(WIN32)
@@ -81,12 +76,12 @@ endif()
 #configure a header file to pass some of the CMake settings
 #to the source code
 configure_file(
-	"${PROJECT_SOURCE_DIR}/avrConfig.h.in"
-	"${PROJECT_BINARY_DIR}/avrConfig.h"
+	"${PROJECT_SOURCE_DIR}/immersAVConfig.h.in"
+	"${PROJECT_BINARY_DIR}/immersAVConfig.h"
 	)
 
 #add the binary tree to the search path for include files
-#so that we will find avrConfig.h
+#so that we will find immersAVConfig.h
 if(WIN32)
 include_directories(
 		
@@ -97,24 +92,14 @@ include_directories(
 		"${PROJECT_SOURCE_DIR}/Studio"
 		"${PROJECT_SOURCE_DIR}/Visual"
 		"${PROJECT_SOURCE_DIR}/VR"
-		"${PROJECT_SOURCE_DIR}/AvrApp"
+		"${PROJECT_SOURCE_DIR}/ImmersAVApp"
 		"${PROJECT_SOURCE_DIR}/ValveTools"
-		#"${PROJECT_SOURCE_DIR}/Algorithms"
-		#"${PROJECT_SOURCE_DIR}/Audio"
 	)
 elseif(APPLE)
 include_directories(
 
 		"/usr/local/include/"
 		"/Library/Frameworks/CsoundLib64.framework/Headers/"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/RapidLib/src"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/xmm/src"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/GVF"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/third_party/json"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/Maximilian"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/Maximilian/libs"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/pipo/sdk/src"
-		"/Users/bryandunphy/SoftwareAPIs/RAPID-MIX_API/dependencies/pipo/sdk/src/host"
 		"${PROJECT_BINARY_DIR}"
 		"${PROJECT_SOURCE_DIR}"
 		"${PROJECT_SOURCE_DIR}/../include"
@@ -122,8 +107,6 @@ include_directories(
 		"${PROJECT_SOURCE_DIR}/Visual"
 		"${PROJECT_SOURCE_DIR}/VR"
 		"${PROJECT_SOURCE_DIR}/AvrApp"
-		#"${PROJECT_SOURCE_DIR}/Algorithms"
-		#"${PROJECT_SOURCE_DIR}/Audio"
 	)
 
 endif()
@@ -131,20 +114,18 @@ endif()
 add_subdirectory(Studio)
 add_subdirectory(Visual)
 add_subdirectory(VR)
-add_subdirectory(AvrApp)
-if(WIN32)
-add_subdirectory(ValveTools)
+add_subdirectory(ImmersAVApp)
 add_subdirectory(RapidLib)
 add_subdirectory(JSON)
 add_subdirectory(LibSVM)
+if(WIN32)
+add_subdirectory(ValveTools)
 endif()
-#add_subdirectory(Audio)
-#add_subdirectory(Algorithms)
 
 if(APPLE)
-	add_executable(avr main.cpp CsoundSession.cpp CsoundSession.hpp lodepng.cpp lodepng.h)
-	target_link_libraries(avr AvrApp VR ${OPENVR} Visual Studio ${RAPIDMIX} GLEW::GLEW glfw OpenGL::GL ${CSOUND_API} ${CSOUND_PERF_THREAD})
+	add_executable(immersAV main.cpp CsoundSession.cpp CsoundSession.hpp lodepng.cpp lodepng.h)
+	target_link_libraries(immersAV ImmersAVApp VR ${OPENVR} Visual Studio RapidLib JSON LibSVM GLEW::GLEW glfw OpenGL::GL ${CSOUND_API} ${CSOUND_PERF_THREAD})
 elseif(WIN32)
-	add_executable(avr main.cpp CsoundSession.cpp CsoundSession.hpp csPerfThread.cpp csPerfThread.hpp lodepng.cpp lodepng.h)
-	target_link_libraries(avr AvrApp VR OpenVR_target ValveTools Visual Studio RapidLib JSON LibSVM Glew_target ${GLFW_WIN} ${OPENGL_gl_LIBRARY} Csound_target Libsndfile_target)
+	add_executable(immersAV main.cpp CsoundSession.cpp CsoundSession.hpp csPerfThread.cpp csPerfThread.hpp lodepng.cpp lodepng.h)
+	target_link_libraries(immersAV ImmersAVApp VR OpenVR_target ValveTools Visual Studio RapidLib JSON LibSVM Glew_target ${GLFW_WIN} ${OPENGL_gl_LIBRARY} Csound_target Libsndfile_target)
 endif()

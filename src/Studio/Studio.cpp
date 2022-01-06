@@ -1,321 +1,159 @@
 #include "Studio.hpp"
 
-#include <cstdio>
-#include <cstdarg>
-#include <ctime>
-#include <assert.h>
-#include <math.h>
-#include <cmath>
 #include <iostream>
 #include <random>
 
-#include "stb_image.h"
-
 #ifdef __APPLE__ 
 #include "GLFW/glfw3.h"
-#define TRAINING_SET_SIZE trainingData.trainingSet.size()
 #elif _WIN32 
 #include "glfw3.h"
-#define TRAINING_SET_SIZE trainingSet.size()
 #endif
 
-#include "SystemInfo.hpp"
-#include "ShaderManager.hpp"
-
-#define PI 3.14159265359
-
-#ifndef _countof
-#define _countof(x) (sizeof(x)/sizeof((x)[0]))
-#endif
-
-bool Studio::setup(std::string csd)
+//*******************************************************************************************
+// Setup 
+//*******************************************************************************************
+bool Studio::Setup(std::string csd, GLuint shaderProg)
 {
-
-//************************************************************
-//Csound performance thread
-//************************************************************
-
 	// bool to indicate first loop through update and draw functions to 
-	// set initial paramaters
+	// set initial paramaters. For reading from pboInfo in update
 	m_bFirstLoop = true;
-	m_fLastFrame = 0.0f;
+	m_fDeltaTime = 0.0f;
+	m_fTargetVal = 0.0f;
+	m_fCurrentVal = 0.0f;
 
-	// initialise val for mapping
-	m_fPrevSpecCentVal = 0.0f;
+	m_pStTools = new StudioTools();
 
-	std::string csdName = "";
-	if(!csd.empty()) csdName = csd;
-	session = new CsoundSession(csdName);
-
-#ifdef _WIN32
-	session->SetOption("-b -32"); 
-	session->SetOption("-B 2048");
-#endif
-	session->StartThread();
-	session->PlayScore();
-
-	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
-	{
-		std::string val1 = "azimuth" + std::to_string(i);
-		const char* azimuth = val1.c_str();	
-		if(session->GetChannelPtr(azimuthVals[i], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-		{
-			std::cout << "GetChannelPtr could not get the azimuth" << i << " input" << std::endl;
-			return false;
-		}
-
-		std::string val2 = "elevation" + std::to_string(i);
-		const char* elevation = val2.c_str();
-		if(session->GetChannelPtr(elevationVals[i], elevation, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-		{
-			std::cout << "GetChannelPtr could not get the elevation" << i << " input" << std::endl;
-			return false;
-		}	
-
-		std::string val3 = "distance" + std::to_string(i);
-		const char* distance = val3.c_str();
-		if(session->GetChannelPtr(distanceVals[i], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-		{
-			std::cout << "GetChannelPtr could not get the distance" << i << " input" << std::endl;
-			return false;
-		}
-	}		
+	//audio setup
+	CsoundSession* csSession = m_pStTools->PCsoundSetup(csd);
 	
-	//std::string val4 = "azimuth2";
-	//const char* azimuth2 = val4.c_str();	
-	//if(session->GetChannelPtr(hrtfVals[3], azimuth2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the azimuth2 input" << std::endl;
-	//	return false;
-	//}
-
-	//std::string val5 = "elevation2";
-	//const char* elevation2 = val5.c_str();
-	//if(session->GetChannelPtr(hrtfVals[4], elevation2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the elevation2 input" << std::endl;
-	//	return false;
-	//}	
-
-	//std::string val6 = "distance2";
-	//const char* distance2 = val6.c_str();
-	//if(session->GetChannelPtr(hrtfVals[5], distance2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the distance2 input" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainFreq = "grainFreq";
-	//if(session->GetChannelPtr(m_cspGrainFreq, grainFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainFreq value" << std::endl;
-	//	return false;
-	//} 
-
-	//const char* grainPhase = "grainPhse";
-	//if(session->GetChannelPtr(m_cspGrainPhase, grainPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the randAmp value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* randFreq = "randFreq";
-	//if(session->GetChannelPtr(m_cspRandFreq, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* randPhase = "randPhase";
-	//if(session->GetChannelPtr(m_cspRandPhase, randPhase, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the randPhase value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainDur = "grainDur";
-	//if(session->GetChannelPtr(m_cspGrainDur, grainDur, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainDur value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainDensity = "grainDensity";
-	//if(session->GetChannelPtr(m_cspGrainDensity, grainDensity, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainDensity value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainFreqVariationDistrib = "grainFreqVariationDistrib";
-	//if(session->GetChannelPtr(m_cspGrainFreqVariationDistrib, grainFreqVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainFreqVariationDistrib value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainPhaseVariationDistrib = "grainPhaseVariationDistrib";
-	//if(session->GetChannelPtr(m_cspGrainPhaseVariationDistrib, grainPhaseVariationDistrib, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainPhaseVariationDistrib value" << std::endl;
-	//	return false;
-	//}
-
-	//const char* grainWaveform = "grainWaveform";
-	//if(session->GetChannelPtr(m_cspGrainWaveform, grainWaveform, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	//{
-	//	std::cout << "GetChannelPtr could not get the grainWaveform value" << std::endl;
-	//	return false;
-	//}
-
-	// partikkel data
-	const char* fileSpeed = "fileSpeed";
-	if(session->GetChannelPtr(m_cspFileSpeed, fileSpeed, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	if(!m_pStTools->BSoundSourceSetup(csSession, NUM_SOUND_SOURCES))
 	{
-		std::cout << "GetChannelPtr could not get the fileSpeed value" << std::endl;
+		std::cout << "Studio::setup sound sources not set up" << std::endl;
 		return false;
 	}
 
-	const char* grainRate = "grainRate";
-	if(session->GetChannelPtr(m_cspGrainRate, grainRate, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainRate value" << std::endl;
-		return false;
-	}
+	//setup sends to csound
+	std::vector<const char*> sendNames;
 
-	const char* grainSize = "grainSize";
-	if(session->GetChannelPtr(m_cspGrainSize, grainSize, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the grainSize value" << std::endl;
-		return false;
-	}
+	sendNames.push_back("sineControlVal");
+	m_vSendVals.push_back(m_cspSineControlVal);	
 
-	const char* sineVal = "sineControlVal";
-	if(session->GetChannelPtr(m_cspSineControlVal, sineVal, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the sineControlVal value" << std::endl;
-		return false;
-	}
+	sendNames.push_back("randomVal");
+	m_vSendVals.push_back(m_cspRandVal);
 
-	const char* gaussRange = "gaussRange";
-	if(session->GetChannelPtr(m_cspGaussRange, gaussRange, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the gaussRange value" << std::endl;
-		return false;
-	}
+	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
 
-	const char* modeFreq1 = "modeFreq1";
-	if(session->GetChannelPtr(m_cspModeFreq1, modeFreq1, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the modeFreq1 value" << std::endl;
-		return false;
-	}
+	//setup returns from csound 
+	std::vector<const char*> returnNames;
 
-	const char* modeFreq2 = "modeFreq2";
-	if(session->GetChannelPtr(m_cspModeFreq2, modeFreq2, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "GetChannelPtr could not get the modeFreq2 value" << std::endl;
-		return false;
-	}
+	returnNames.push_back("pitchOut");
+	m_vReturnVals.push_back(m_pPitchOut);
 
-	//for(int i = 0; i < MAX_MANDEL_STEPS; i++){
+	returnNames.push_back("freqOut");
+	m_vReturnVals.push_back(m_pFreqOut);
 
-	//	std::string mandelEscapeValString = "mandelEscapeVal" + std::to_string(i);
-	//	const char* mandelEscapeVal = mandelEscapeValString.c_str();
-	//	if(session->GetChannelPtr(m_cspMandelEscapeVals[i], mandelEscapeVal, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-	//		std::cout << "GetChannelPtr could not get the mandelEscapeVal " << std::to_string(i) << " value" << std::endl;
-	//		return false;
-	//	}
-
-	//}
+	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
 	
-	//const char* mandelMaxPoints = "mandelMaxPoints";
-	//if(session->GetChannelPtr(m_cspMaxSteps, mandelMaxPoints, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-	//	std::cout << "GetChannelPtr could not get the mandelMaxPoints value" << std::endl;
-	//	return false;
-	//}
-
-//********* output values from csound to avr *******************//
-
-	m_fPrevRms = 0.0f;
-	const char* rmsOut = "rmsOut";
-	if(session->GetChannelPtr(m_pRmsOut, rmsOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "Csound output value rmsOut not available" << std::endl;
-		return false;
-	}
+	//setup quad to use for raymarching
+	m_pStTools->RaymarchQuadSetup(shaderProg);
 	
-	for(int i = 0; i < NUM_FFT_BINS; i++)
-	{
-		fftAmpBinsOut[i] = "fftAmpBin" + std::to_string(i);
-		if(session->GetChannelPtr(m_pFftAmpBinOut[i], fftAmpBinsOut[i].c_str(), CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-		{
-		std::cout << "Csound output value fftAmpBinsOut" << std::to_string(i) << " not available" << std::endl;
-		return false;
-		}
-	}
+	//shader uniforms
+	m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
+	m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
+	m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
 	
-	const char* specCentOut = "specCentOut";
-	if(session->GetChannelPtr(m_cspSpecCentOut, specCentOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+	//machine learning setup
+	MLRegressionSetup();
+
+	return true;
+}
+//*******************************************************************************************
+
+
+//*******************************************************************************************
+// Update 
+//*******************************************************************************************
+void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
+
+	// For return values from shader.
+	// vec4 for each fragment is returned in the order RGBA. 
+	// You have to wait until the 2nd frame to read from the buffer. 
+	// At the moment, only the RGB channels are useable when the A channel is set to max.
+	// The values returned are unpredictable if A channel is anything other than max.
+	//if(!m_bFirstLoop)
+	//std::cout << (double)pboInfo.pboPtr[0] << ":" << (double)pboInfo.pboPtr[1] << ":" << (double)pboInfo.pboPtr[2] << ":" << (double)pboInfo.pboPtr[3] << std::endl;
+
+	// spectral pitch data processing
+	m_fCurrentFrame = glfwGetTime();
+	m_fDeltaTime = m_fCurrentFrame - m_fLastFrame;	
+	m_fDeltaTime *= 1000.0f;
+	if(*m_vReturnVals[0] > 0) m_fTargetVal = *m_vReturnVals[0];	
+	if(m_fTargetVal > m_fCurrentVal)
 	{
-		std::cout << "Csound output value specCentOut not available" << std::endl;
-		return false;
-	}
-
-	const char* metroOut = "metroOut";
-	if(session->GetChannelPtr(m_cspMetroOut, metroOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+		m_fCurrentVal += m_fDeltaTime;
+	} else if(m_fTargetVal <= m_fCurrentVal)
 	{
-		std::cout << "Csound output value metroOut not available" << std::endl;
-		return false;
-	}
-
-	const char* freqOut = "freqOut";
-	if(session->GetChannelPtr(m_cspFreqOut, freqOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
+		m_fCurrentVal -= m_fDeltaTime;
+	} else if(m_fTargetVal == m_fCurrentVal)
 	{
-		std::cout << "Csound output value freqOut not available" << std::endl;
-		return false;
+		m_fCurrentVal = m_fTargetVal;
 	}
+	if(m_fCurrentVal < 0.0f) m_fCurrentVal = 0.0f;
+	m_fPitch = m_fCurrentVal;
+	
+	// example sound source at origin
+	StudioTools::SoundSourceData soundSource1;
+	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	soundSource1.position = sourcePosWorldSpace;
+	std::vector<StudioTools::SoundSourceData> soundSources;
+	soundSources.push_back(soundSource1);
 
-	const char* ampOut = "ampOut";
-	if(session->GetChannelPtr(m_cspAmpOut, ampOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0)
-	{
-		std::cout << "Csound output value ampOut not available" << std::endl;
-		return false;
-	}
-//**********************************************************
+	m_pStTools->SoundSourceUpdate(soundSources, viewMat);
 
+	//example control signal - sine function
+	//sent to shader and csound
+	m_fSineControlVal = sin(glfwGetTime() * 0.33f);
+	*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
 
-//**********************************************************
-// Lighting Components
-//**********************************************************
+	//run machine learning
+	MLAudioParameter paramData;
+	paramData.distributionLow = 400.0f;
+	paramData.distributionHigh = 1000.0f;
+	paramData.sendVecPosition = 1;
+	std::vector<MLAudioParameter> paramVec;
+	paramVec.push_back(paramData);
+	MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
+}
+//*********************************************************************************************
 
-	m_vec3MoonDirection = glm::vec3(-0.2f, -1.0f, -0.3f);
-	m_vec3MoonColour = glm::vec3(0.86f, 0.9f, 0.88f);
-	m_vec3MoonAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
-	m_vec3MoonDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-	m_vec3MoonSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
-
-//**********************************************************
-// Material Properties
-//**********************************************************
-
-	//Ground
-	m_vec3GroundColour = glm::vec3(0.0f, 0.0f, 0.0f);
-	m_vec3GroundAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
-	m_vec3GroundDiffuse = glm::vec3(0.2f, 0.2f, 0.2f);	
-	m_vec3GroundSpecular = glm::vec3(0.2f, 0.2f, 0.2f);
-	m_fGroundShininess = 8.0f;
-
-	//Cube
-	m_vec3CubeAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
-	m_vec3CubeDiffuse = glm::vec3(0.2f, 0.2f, 0.2f);
-	m_vec3CubeSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
-	m_fCubeShininess = 256.0f;
 
 //*********************************************************************************************
-// Machine Learning
-//********************************************************************************************
+// Draw 
+//*********************************************************************************************
+void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint shaderProg, glm::vec3 translateVec)
+{
+	m_pStTools->DrawStart(projMat, eyeMat, viewMat, shaderProg, translateVec);
+	
+	glUniform1f(m_gliSineControlValLoc, m_fSineControlVal);
+	glUniform1f(m_gliPitchOutLoc, m_fPitch);
+	glUniform1f(m_gliFreqOutLoc, *m_vReturnVals[1]);
 
+	m_pStTools->DrawEnd();
+
+	// update first loop switch
+	m_bFirstLoop = false;
+	// set end of frame timestamp
+	m_fLastFrame = m_fCurrentFrame;
+}
+//*********************************************************************************************
+
+
+
+//*********************************************************************************************
+// Machine Learning 
+//*********************************************************************************************
+void Studio::MLRegressionSetup()
+{
 	m_bPrevSaveState = false;
 	m_bPrevRandomState = false;
 	m_bPrevTrainState = false;
@@ -327,254 +165,10 @@ bool Studio::setup(std::string csd)
 	m_bCurrentRunMsgState = false;
 	sizeVal = 0.0f;
 	m_bModelTrained = false;
-
-//********************************************************************************************
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-//******************************************************************************************
-// Matrices & Light Positions
-//*******************************************************************************************
-	
-	//model matrix
-	modelMatrix = glm::mat4(1.0f);
-
-//*********************************************************************************************
-	return true;
 }
 
-bool Studio::BSetupRaymarchQuad(GLuint shaderProg)
+void Studio::MLRegressionUpdate(MachineLearning& machineLearning, PBOInfo& pboInfo, std::vector<MLAudioParameter>& params)
 {
-	float sceneVerts[] = {
-		-1.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f
-	};
-	m_uiNumSceneVerts = _countof(sceneVerts);
-
-	unsigned int sceneIndices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-	m_uiNumSceneIndices = _countof(sceneIndices);
-
-	float groundRayTexCoords [] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-	};
-	m_uiNumSceneTexCoords = _countof(groundRayTexCoords);	
-
-	glGenVertexArrays(1, &m_uiglSceneVAO);
-
-	glBindVertexArray(m_uiglSceneVAO);
-
-	GLuint m_uiglSceneVBO;
-	glGenBuffers(1, &m_uiglSceneVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_uiglSceneVBO);
-	glBufferData(GL_ARRAY_BUFFER, m_uiNumSceneVerts * sizeof(float), sceneVerts, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-	GLuint m_uiglGroundTexCoords;
-	glGenBuffers(1, &m_uiglGroundTexCoords);
-	glBindBuffer(GL_ARRAY_BUFFER, m_uiglGroundTexCoords);
-	glBufferData(GL_ARRAY_BUFFER, m_uiNumSceneTexCoords * sizeof(float), groundRayTexCoords, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL); 
-
-	glGenBuffers(1, &m_uiglIndexBuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_uiNumSceneIndices * sizeof(unsigned int), sceneIndices, GL_STATIC_DRAW);
-	
-	
-	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-
-	m_uiglCubeMoonDirectionLoc = glGetUniformLocation(shaderProg, "moonlight.direction");
-	m_uiglCubeMoonColourLoc = glGetUniformLocation(shaderProg, "moonlight.colour");
-	m_uiglCubeMoonAmbientLoc = glGetUniformLocation(shaderProg, "moonlight.ambient");
-	m_uiglCubeMoonDiffuseLoc = glGetUniformLocation(shaderProg, "moonlight.diffuse");
-	m_uiglCubeMoonSpecularLoc = glGetUniformLocation(shaderProg, "moonlight.specular");
-
-	m_uiglCubeMaterialAmbientLoc = glGetUniformLocation(shaderProg, "material.ambient");
-	m_uiglCubeMaterialDiffuseLoc = glGetUniformLocation(shaderProg, "material.diffuse");
-	m_uiglCubeMaterialSpecularLoc = glGetUniformLocation(shaderProg, "material.specular");
-	m_uiglCubeMaterialShininessLoc = glGetUniformLocation(shaderProg, "material.shininess");
-
-	m_uiglGroundPlaneColourLoc = glGetUniformLocation(shaderProg, "ground.colour");
-	m_uiglGroundPlaneAmbientLoc = glGetUniformLocation(shaderProg, "ground.ambient");
-	m_uiglGroundPlaneDiffuseLoc = glGetUniformLocation(shaderProg, "ground.diffuse");
-	m_uiglGroundPlaneSpecularLoc = glGetUniformLocation(shaderProg, "ground.specular");
-	m_uiglGroundPlaneShininessLoc = glGetUniformLocation(shaderProg, "ground.shininess");
-	
-	m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
-	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
-	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
-	m_gliValBinScaleLoc = glGetUniformLocation(shaderProg, "fftBinValScale");
-	m_gliRMSModulateValLocation = glGetUniformLocation(shaderProg, "rmsModVal");
-	m_gliSpecCentOutLoc = glGetUniformLocation(shaderProg, "specCentVal");
-	m_gliHighFreqAvgLoc = glGetUniformLocation(shaderProg, "highFreqVal");
-	m_gliLowFreqAvgLoc = glGetUniformLocation(shaderProg, "lowFreqVal");
-	m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
-	m_gliNumFftBinsLoc = glGetUniformLocation(shaderProg, "numFftBins");
-	m_gliThetaAngleLoc = glGetUniformLocation(shaderProg, "thetaScale");
-	m_gliPhiAngleLoc = glGetUniformLocation(shaderProg, "phiScale");
-	m_gliTotFFTAmpLoc = glGetUniformLocation(shaderProg, "totFFTAmp");
-
-	m_uiglSkyboxTexLoc = glGetUniformLocation(shaderProg, "skyboxTex");
-	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "ground.texture");
-	m_gluiFftAmpBinsLoc = glGetUniformLocation(shaderProg, "fftAmpBins");
-	m_gliTimeValLoc = glGetUniformLocation(shaderProg, "timeVal");
-
-	return true;
-}
-
-//*******************************************************************************************
-// Update Stuff Here
-//*******************************************************************************************
-void Studio::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec3 translateVec){
-
-
-	//std::cout << "PBO : " << pboInfo.pboPtr[8] << std::endl;
-	//std::cout << (int)pboInfo.pboPtr[0] << std::endl;//" --- " << (int)pboInfo.pboPtr[99] << " --- " << (int)pboInfo.pboPtr[198] << std::endl;
-
-	modelMatrix = glm::mat4(1.0f);
-
-	m_vec3Translation = translateVec;
-	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
-	m_fTranslationMag = glm::length(m_vec3Translation);
-
-	//rms value from Csound
-	float avgRms = (*m_pRmsOut + m_fPrevRms) / 2;
-	
-	modulateVal = avgRms;			
-	
-	m_fPrevRms = *m_pRmsOut;
-
-	m_fInterpolatedSpecCentVal = *m_cspSpecCentOut;
-	// spectral centroid value from csound
-	//std::cout << "Spectral Centroid Value : " << *m_cspSpecCentOut << std::endl; 
-	//if(*m_cspSpecCentOut > 0)
-	//{
-	//	float currentSpecCentVal = *m_cspSpecCentOut;
-	//	float lerpFraction = 0.8f;
-	//	m_fInterpolatedSpecCentVal = currentSpecCentVal + lerpFraction * (m_fPrevSpecCentVal - currentSpecCentVal);
-	//	std::cout << m_fInterpolatedSpecCentVal << std::endl;
-	//	m_fPrevSpecCentVal = currentSpecCentVal;
-	//}	
-
-	double lowFreqVals = 0.0f;
-	double highFreqVals = 0.0f;
-	double totAmp;
-
-	//fft frequency bin values from Csound
-	for(int i = 0; i < NUM_FFT_BINS; i++)
-	{
-		totAmp += *m_pFftAmpBinOut[i];
-		//std::cout << *m_pFftAmpBinOut[i] << std::endl;	
-
-		//if(i < 342 && i > 0)
-		//{
-		//	lowFreqVals += *m_pFftAmpBinOut[i];
-		//}
-		//else if(i < NUM_FFT_BINS && i >= 342)
-		//{
-		//	highFreqVals += *m_pFftAmpBinOut[i];
-		//}
-	}	
-
-	//totAmp /= NUM_FFT_BINS;
-	m_dTotFFTAmp = totAmp;	
-	//std::cout << m_dTotFFTAmp << std::endl;
-	
-	//m_dLowFreqAvg = lowFreqVals / 341;
-	//m_dHighFreqAvg = highFreqVals / 171;	
-
-	//std::cout << "Average amplitudes in low bins: " << m_dLowFreqAvg << std::endl;
-	//std::cout << "Average amplitudes in high bins: " << m_dHighFreqAvg << std::endl;
-
-	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	glm::vec4 pos1 = glm::vec4(0.0f, 0.0f, 8.0f, 1.0f);
-	float newPosX = (pos1.x * cos(glfwGetTime())) - (pos1.y * sin(glfwGetTime()));
-	float newPosY = (pos1.x * sin(glfwGetTime())) + (pos1.y * cos(glfwGetTime())); 
-	glm::vec4 rotPos = glm::vec4(newPosX, newPosY, 0.0f, 1.0f);
-	SoundSourceData soundSource1;
-	soundSource1.position = rotPos;
-	m_vSoundSources.push_back(soundSource1);
-
-	glm::vec4 pos2 = glm::vec4(0.25f, 0.0f, 0.0f, 1.0f);
-	float newPosX2 = (pos2.x * cos(glfwGetTime())) - (pos2.y * sin(glfwGetTime()));
-	float newPosY2 = (pos2.x * sin(glfwGetTime())) + (pos2.y * cos(glfwGetTime())); 
-	glm::vec4 rotPos2 = glm::vec4(newPosX2, newPosY2, 0.0f, 1.0f);
-	SoundSourceData soundSource2;
-	soundSource2.position = pos2;
- 	m_vSoundSources.push_back(soundSource2);
-	
-	glm::vec4 pos3 = glm::vec4(-0.25f, 0.0f, 0.0f, 1.0f);
-	float newPosZ3 = (pos3.z * cos(glfwGetTime())) - (pos3.y * sin(glfwGetTime()));
-	float newPosY3 = (pos3.z * sin(glfwGetTime())) + (pos3.y * cos(glfwGetTime())); 
-	glm::vec4 rotPos3 = glm::vec4(0.0f, newPosY3, newPosZ3, 1.0f);
-	SoundSourceData soundSource3;
-	soundSource3.position = pos3;
- 	m_vSoundSources.push_back(soundSource3);
-
-	for(int i = 0; i < NUM_SOUND_SOURCES; i++)
-	{
-		// camera space positions
-		m_vSoundSources[i].posCamSpace = viewMat * modelMatrix * m_vSoundSources[i].position;
-
-		// distance value
-		m_vSoundSources[i].distCamSpace = sqrt(pow(m_vSoundSources[i].posCamSpace.x, 2) + pow(m_vSoundSources[i].posCamSpace.y, 2) + pow(m_vSoundSources[i].posCamSpace.z, 2));
-
-		//azimuth in camera space
-		float valX = m_vSoundSources[i].posCamSpace.x - viewerPosCameraSpace.x;
-		float valZ = m_vSoundSources[i].posCamSpace.z - viewerPosCameraSpace.z;
-
-		m_vSoundSources[i].azimuth = atan2(valX, valZ);
-		m_vSoundSources[i].azimuth *= (180.0f/PI); 	
-
-		//elevation in camera space
-		float oppSide = m_vSoundSources[i].posCamSpace.y - viewerPosCameraSpace.y;
-		float sinVal = oppSide / m_vSoundSources[i].distCamSpace;
-		m_vSoundSources[i].elevation = asin(sinVal);
-		m_vSoundSources[i].elevation *= (180.0f/PI);		
-
-		//send values to Csound pointers
-		*azimuthVals[i] = (MYFLT)m_vSoundSources[i].azimuth;
-		*elevationVals[i] = (MYFLT)m_vSoundSources[i].elevation;
-		*distanceVals[i] = (MYFLT)m_vSoundSources[i].distCamSpace;
-	}
-	
-	m_vSoundSources.clear();
-
-	//sine function
-	sineControlVal = sin(glfwGetTime() * 0.15f);
-
-	*m_cspSineControlVal = (MYFLT)sineControlVal;
-
-	float currentFrame = glfwGetTime();
-	float deltaTime = currentFrame - m_fLastFrame;
-	
-	//std::cout << "AmpOut : " << *m_cspAmpOut << std::endl;
-	//std::cout << "FreqOut : " << *m_cspFreqOut << std::endl;
-
-	if(*m_cspAmpOut)
-	{
-		m_fTimeControlVal += deltaTime * 0.05;
-	}
-	
-	m_fLastFrame = currentFrame;
-	
-//*********************************************************************************************
-// Machine Learning 
-//*********************************************************************************************
 
 	bool currentRandomState = m_bPrevRandomState;
 
@@ -585,65 +179,36 @@ void Studio::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machin
 		std::random_device rd;
 
 		//random audio params
-		
-		// partikkel parameters
-		
-		// file read speed
-		std::uniform_real_distribution<float> distFileSpeed(0.0f, 7.0f);
-		std::default_random_engine genFileSpeed(rd());
-		float valFileSpeed = distFileSpeed(genFileSpeed);
-		*m_cspFileSpeed = (MYFLT)valFileSpeed;
+		for(int i = 0; i < params.size(); i++)
+		{
 
-		// grain size
-		std::uniform_real_distribution<float> distGrainSize(50.0f, 100.0f);
-		std::default_random_engine genGrainSize(rd());
-		float valGrainSize = distGrainSize(genGrainSize);
-		*m_cspGrainSize = (MYFLT)valGrainSize;
-		
-		// wgbow params
-		
-		// percentage deviation range
-		std::uniform_real_distribution<float> distGaussRange(1.0f, 20.0f);
-		std::default_random_engine genGaussRange(rd());
-		float valGaussRange = floor(distGaussRange(genGaussRange));
-		*m_cspGaussRange = (MYFLT)valGaussRange;
-
-		std::uniform_real_distribution<float> distModeFreq1(467.9f, 483.2f);
-		std::default_random_engine genModeFreq1(rd());
-		float valModeFreq1= floor(distModeFreq1(genModeFreq1));
-		*m_cspModeFreq1= (MYFLT)valModeFreq1;
-
-		std::uniform_real_distribution<float> distModeFreq2(921.4f, 935.8f);
-		std::default_random_engine genModeFreq2(rd());
-		float valModeFreq2 = floor(distModeFreq2(genModeFreq2));
-		*m_cspModeFreq2 = (MYFLT)valModeFreq2;
-
+			std::uniform_real_distribution<float> distribution(params[i].distributionLow, params[i].distributionHigh);
+			std::default_random_engine generator(rd());
+			float val = distribution(generator);
+			*m_vSendVals[params[i].sendVecPosition] = (MYFLT)val;		
+		}
+			
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
 	// record training examples
 	if(machineLearning.bRecord)
 	{
-		//input every 100th orbit value from frag shader = 51,840 on the mbp 
+		//shader values provide input to neural network
 		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
 		{
-			inputData.push_back((double)pboInfo.pboPtr[i]); //13
-			//std::cout << "PBO Value: " << (double)pboInfo.pboPtr[i] << std::endl;
+			inputData.push_back((double)pboInfo.pboPtr[i]);
 		}
 
-		outputData.push_back((double)*m_cspGaussRange); //0
-		outputData.push_back((double)*m_cspModeFreq1); //1
-		outputData.push_back((double)*m_cspModeFreq2); //2
-		outputData.push_back((double)*m_cspFileSpeed); //3
-		outputData.push_back((double)*m_cspGrainSize); //4
+		//neural network outputs to audio engine 
+		for(int i = 0; i < params.size(); i++)
+		{
+			outputData.push_back((double)*m_vSendVals[params[i].sendVecPosition]);
+		}
 
-#ifdef __APPLE__
-		trainingData.recordSingleElement(inputData, outputData);	
-#elif _WIN32
 		trainingData.input = inputData;
 		trainingData.output = outputData;
 		trainingSet.push_back(trainingData);
-#endif
 
 		std::cout << "Recording Data" << std::endl;
 		inputData.clear();
@@ -653,337 +218,132 @@ void Studio::update(glm::mat4 viewMat, glm::vec3 camPos, MachineLearning& machin
 
 	// train model
 	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && TRAINING_SET_SIZE > 0)
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() > 0)
 	{
 
-#ifdef __APPLE__
-		staticRegression.train(trainingData);
-#elif _WIN32
 		staticRegression.train(trainingSet);
-#endif
 		m_bModelTrained = true;
 		std::cout << "Model Trained" << std::endl;
 	}	
-	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && TRAINING_SET_SIZE == 0)
+	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() == 0)
 	{
 		std::cout << "Can't train model. No training data." << std::endl;
 	}
 
 	m_bPrevTrainState = machineLearning.bTrainModel;
 
-#ifdef __APPLE__
-
-	// run/stop model
-	bool currentHaltState = m_bPrevHaltState;
-	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
+	//run and halt model
+	if(machineLearning.bDevMode)
 	{
-		std::vector<double> modelOut;
-		std::vector<double> modelIn;
-
-		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
+		bool currentHaltState = m_bPrevHaltState;
+		if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
 		{
-			modelIn.push_back((double)pboInfo.pboPtr[i]); 
-		}
-		
-		modelOut = staticRegression.run(modelIn);
+			std::vector<double> modelOut;
+			std::vector<double> modelIn;
 
-		//if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
-		//if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
-		//*m_cspGrainFreq = (MYFLT)modelOut[0];
-
-		//if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
-		//if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
-		//*m_cspGrainPhase = (MYFLT)modelOut[1];
-
-		//if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
-		//if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
-		//*m_cspRandFreq = (MYFLT)modelOut[2];
-
-		//if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
-		//if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		//*m_cspRandPhase = (MYFLT)modelOut[3];
-
-		//if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
-		//if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
-		//*m_cspGrainDur = (MYFLT)modelOut[4];
-
-		//if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
-		//if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
-		//*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
-	
-		//if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
-		//if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
-		//*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
-
-		//if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
-		//if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
-		//*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
-
-		//if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
-		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
-		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
-
-		if(modelOut[0] > 50.0f) modelOut[0] = 10.0f;
-		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
-		*m_cspGaussRange = (MYFLT)modelOut[0];
-
-		if(modelOut[1] > 483.2f) modelOut[1] = 483.2f;
-		if(modelOut[1] < 467.9f) modelOut[1] = 467.9f;
-		*m_cspModeFreq1 = (MYFLT)modelOut[1];
-
-		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
-		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
-		*m_cspModeFreq2 = (MYFLT)modelOut[2];
-	
-		if(modelOut[3] > 7.0f) modelOut[3] = 7.0f;
-		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		*m_cspFileSpeed = (MYFLT)modelOut[3];
-
-		if(modelOut[4] > 100.0f) modelOut[4] = 100.0f;
-		if(modelOut[4] < 50.0f) modelOut[4] = 50.0f;
-		*m_cspGrainSize = (MYFLT)modelOut[4];
-
-		std::cout << "Model Running" << std::endl;
-		modelIn.clear();
-		modelOut.clear();
-	} 
-	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
-	{
-
-		std::cout << "Model Stopped" << std::endl;
-	}
-	m_bPrevHaltState = machineLearning.bHaltModel;
-#elif _WIN32
-	if(machineLearning.bRunModel && m_bModelTrained)
-	{
-		std::vector<double> modelOut;
-		std::vector<double> modelIn;
-
-		for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
-		{
-			modelIn.push_back((double)pboInfo.pboPtr[i]); 
-		}
-
-		modelOut = staticRegression.run(modelIn);
-		
-		//if(modelOut[0] > 1000.0f) modelOut[0] = 1000.0f;
-		//if(modelOut[0] < 50.0f) modelOut[0] = 50.0f;
-		//*m_cspGrainFreq = (MYFLT)modelOut[0];
-
-		//if(modelOut[1] > 1.0f) modelOut[1] = 1.0f;
-		//if(modelOut[1] < 0.0f) modelOut[1] = 0.0f;
-		//*m_cspGrainPhase = (MYFLT)modelOut[1];
-
-		//if(modelOut[2] > 500.0f) modelOut[2] = 500.0f;
-		//if(modelOut[2] < 1.0f) modelOut[2] = 1.0f;
-		//*m_cspRandFreq = (MYFLT)modelOut[2];
-
-		//if(modelOut[3] > 1.0f) modelOut[3] = 1.0f;
-		//if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		//*m_cspRandPhase = (MYFLT)modelOut[3];
-
-		//if(modelOut[4] > 0.2f) modelOut[4] = 0.2f;
-		//if(modelOut[4] < 0.01f) modelOut[4] = 0.01f;
-		//*m_cspGrainDur = (MYFLT)modelOut[4];
-
-		//if(modelOut[5] > 500.0f) modelOut[5] = 500.0f;
-		//if(modelOut[5] < 50.0f) modelOut[5] = 50.0f;
-		//*m_cspGrainDensity = (MYFLT)floor(modelOut[5]);
-	
-		//if(modelOut[6] > 1.0f) modelOut[6] = 1.0f;
-		//if(modelOut[6] < -1.0f) modelOut[6] = -1.0f;
-		//*m_cspGrainFreqVariationDistrib = (MYFLT)modelOut[6];
-
-		//if(modelOut[7] > 1.0f) modelOut[7] = 1.0f;
-		//if(modelOut[7] < -1.0f) modelOut[7] = -1.0f;
-		//*m_cspGrainPhaseVariationDistrib = (MYFLT)modelOut[7];
-
-		//if(modelOut[8] > 4.0f) modelOut[8] = 4.0f;
-		//if(modelOut[8] < 1.0f) modelOut[8] = 1.0f;
-		//*m_cspGrainWaveform = (MYFLT)floor(modelOut[8]);
-
-		if(modelOut[0] > 50.0f) modelOut[0] = 10.0f;
-		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
-		*m_cspGaussRange = (MYFLT)modelOut[0];
-
-		if(modelOut[1] > 483.2f) modelOut[1] = 483.2f;
-		if(modelOut[1] < 467.9f) modelOut[1] = 467.9f;
-		*m_cspModeFreq1= (MYFLT)modelOut[1];
-
-		if(modelOut[2] > 935.8f) modelOut[2] = 935.8f;
-		if(modelOut[2] < 921.4f) modelOut[2] = 921.4f;
-		*m_cspModeFreq2= (MYFLT)modelOut[2];
-
-		if(modelOut[3] > 7.0f) modelOut[3] = 7.0f;
-		if(modelOut[3] < 0.0f) modelOut[3] = 0.0f;
-		*m_cspFileSpeed = (MYFLT)modelOut[3];
-
-		if(modelOut[4] > 100.0f) modelOut[4] = 100.0f;
-		if(modelOut[4] < 50.0f) modelOut[4] = 50.0f;
-		*m_cspGrainSize = (MYFLT)modelOut[4];
-
-		bool prevRunMsgState = m_bCurrentRunMsgState;
-		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)
-		{
+			for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
+			{
+				modelIn.push_back((double)pboInfo.pboPtr[i]); 
+			}
+			
+			modelOut = staticRegression.run(modelIn);
+			
+			for(int i = 0; i < modelOut.size(); i++)
+			{
+				if(modelOut[i] > params[i].distributionHigh) modelOut[i] = params[i].distributionHigh;
+				if(modelOut[i] < params[i].distributionLow) modelOut[i] = params[i].distributionLow;
+				*m_vSendVals[params[i].sendVecPosition] = (MYFLT)modelOut[i];
+			}
+			
 			std::cout << "Model Running" << std::endl;
-			m_bRunMsg = !m_bRunMsg;
-		}
-		m_bCurrentRunMsgState = m_bRunMsg;
-
-		modelIn.clear();
-		modelOut.clear();
-		m_bMsg = true;
-	} 
-	else if(!machineLearning.bRunModel)
-	{
-		bool prevMsgState = m_bCurrentMsgState;
-		if(m_bMsg != prevMsgState && m_bMsg == true)
+			modelIn.clear();
+			modelOut.clear();
+		} 
+		else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
 		{
+
 			std::cout << "Model Stopped" << std::endl;
-			m_bMsg = !m_bMsg;
 		}
-		m_bCurrentMsgState = m_bMsg;
-		m_bRunMsg = true;
+		m_bPrevHaltState = machineLearning.bHaltModel;
+	} else 
+	{
+		if(machineLearning.bRunModel && m_bModelTrained)
+		{
+			std::vector<double> modelOut;
+			std::vector<double> modelIn;
+
+			for(int i = 0; i < pboInfo.pboSize; i+=pboInfo.pboSize * 0.01)
+			{
+				modelIn.push_back((double)pboInfo.pboPtr[i]); 
+			}
+
+			modelOut = staticRegression.run(modelIn);
+			
+			for(int i = 0; i < modelOut.size(); i++)
+			{
+				if(modelOut[i] > params[i].distributionHigh) modelOut[i] = params[i].distributionHigh;;
+				if(modelOut[i] < params[i].distributionLow) modelOut[i] = params[i].distributionLow;
+				*m_vSendVals[params[i].sendVecPosition] = (MYFLT)modelOut[i];
+			}
+
+			bool prevRunMsgState = m_bCurrentRunMsgState;
+			if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true)
+			{
+				std::cout << "Model Running" << std::endl;
+				m_bRunMsg = !m_bRunMsg;
+			}
+			m_bCurrentRunMsgState = m_bRunMsg;
+
+			modelIn.clear();
+			modelOut.clear();
+			m_bMsg = true;
+		} 
+		else if(!machineLearning.bRunModel)
+		{
+			bool prevMsgState = m_bCurrentMsgState;
+			if(m_bMsg != prevMsgState && m_bMsg == true)
+			{
+				std::cout << "Model Stopped" << std::endl;
+				m_bMsg = !m_bMsg;
+			}
+			m_bCurrentMsgState = m_bMsg;
+			m_bRunMsg = true;
+		}
 	}
-#endif
 		
 	// save model
-	std::string mySavedModel = "mySavedModel.json";
+	std::string mySavedModel = "mySavedModel_cyclicalEx.json";
 	bool currentSaveState = m_bPrevSaveState;
-#ifdef __APPLE__
-	if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true)
-	{
-
-		trainingData.writeJSON(mySavedModel);	
-
-		std::cout << "Saving Training Data" << std::endl;
-	}
-	m_bPrevSaveState = machineLearning.bSaveTrainingData;
-#elif _WIN32
 	if(machineLearning.bSaveModel!= currentSaveState && machineLearning.bSaveModel == true)
 	{
-
 		staticRegression.writeJSON(mySavedModel);
 		std::cout << "Saving Training Data" << std::endl;
 	}
 	m_bPrevSaveState = machineLearning.bSaveModel;
-#endif
 
 	// load model
 	bool currentLoadState = m_bPrevLoadState;
-#ifdef __APPLE__
-	if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true)
-	{
-	
-		trainingData.readJSON(mySavedModel);
-		staticRegression.train(trainingData);
-
-		std::cout << "Loading Data and Training Model" << std::endl;
-	}
-	m_bPrevLoadState = machineLearning.bLoadTrainingData;
-#elif _WIN32
 	if(machineLearning.bLoadModel != currentLoadState && machineLearning.bLoadModel == true)
 	{
-	
+		staticRegression.reset();
 		staticRegression.readJSON(mySavedModel);	
 		m_bModelTrained = true;
-
 		std::cout << "Loading Data and Training Model" << std::endl;
 	}
 	m_bPrevLoadState = machineLearning.bLoadModel;
-#endif
-
 }
 //*********************************************************************************************
 
+
 //*********************************************************************************************
-// Draw Stuff Here
+// Clean up
 //*********************************************************************************************
-void Studio::draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg, float scaleVal)
-{
-	//std::cout << m_vec3Translation.x << "	" << m_vec3Translation.y << "	" << m_vec3Translation.z << std::endl;
-	//std::cout << m_fTranslationMag << std::endl;
-	//if(m_fTranslationMag <= 30.0f)
-	//{
-		//std::cout << "below 30" << std::endl;
-		//scaleVal *= 0.02f;
-		//glm::vec3 scaleVec = glm::vec3(-scaleVal, -scaleVal, -scaleVal);
-		//modelMatrix = glm::scale(modelMatrix, scaleVec); 
-		modelMatrix = glm::translate(modelMatrix, m_vec3Translation);
-	//}
-	//else
-	//{
-	      //std::cout << "above 30" << std::endl;
-	//      float scaleVal = -m_fTranslationMag;
-	//      modelMatrix = glm::scale(modelMatrix, glm::vec3(scaleVal));	
-	//}
-	//matrices for raymarch shaders
-	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * modelMatrix;
-	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
+void Studio::Exit(){
 
-	//draw glass mandelbulb -----------------------------------------------------------------
-	float mengerAspect = raymarchData.aspect;
-	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
+	//delete StudioTools pointer
+	m_pStTools->Exit();
+	delete m_pStTools;
 
-	glBindVertexArray(m_uiglSceneVAO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
-
-	glUseProgram(mengerProg);
-
-	glUniform1i(m_uiglSkyboxTexLoc, 0);
-	glUniform1i(m_uiglGroundTexLoc, 1);
-	glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
-	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
-
-	glUniform3f(m_uiglCubeMoonDirectionLoc, m_vec3MoonDirection.x, m_vec3MoonDirection.y, m_vec3MoonDirection.z);
-	glUniform3f(m_uiglCubeMoonColourLoc, m_vec3MoonColour.x, m_vec3MoonColour.y, m_vec3MoonColour.z);
-	glUniform3f(m_uiglCubeMoonAmbientLoc, m_vec3MoonAmbient.x, m_vec3MoonAmbient.y, m_vec3MoonAmbient.z);
-	glUniform3f(m_uiglCubeMoonDiffuseLoc, m_vec3MoonDiffuse.x, m_vec3MoonDiffuse.y, m_vec3MoonDiffuse.z);
-	glUniform3f(m_uiglCubeMoonSpecularLoc, m_vec3MoonSpecular.x, m_vec3MoonSpecular.y, m_vec3MoonSpecular.z);
-
-	glUniform3f(m_uiglCubeMaterialAmbientLoc, m_vec3CubeAmbient.x, m_vec3CubeAmbient.y, m_vec3CubeAmbient.z);
-	glUniform3f(m_uiglCubeMaterialDiffuseLoc, m_vec3CubeDiffuse.x, m_vec3CubeDiffuse.y, m_vec3CubeDiffuse.z);
-	glUniform3f(m_uiglCubeMaterialSpecularLoc, m_vec3CubeSpecular.x, m_vec3CubeSpecular.y, m_vec3CubeSpecular.z);
-	glUniform1f(m_uiglCubeMaterialShininessLoc, m_fCubeShininess);
-
-	glUniform3f(m_uiglGroundPlaneColourLoc, m_vec3GroundColour.x, m_vec3GroundColour.y, m_vec3GroundColour.z);
-	glUniform3f(m_uiglGroundPlaneAmbientLoc, m_vec3GroundAmbient.x, m_vec3GroundAmbient.y, m_vec3GroundAmbient.z);
-	glUniform3f(m_uiglGroundPlaneDiffuseLoc, m_vec3GroundDiffuse.x, m_vec3GroundDiffuse.y, m_vec3GroundDiffuse.z);
-	glUniform3f(m_uiglGroundPlaneSpecularLoc, m_vec3GroundSpecular.x, m_vec3GroundSpecular.y, m_vec3GroundSpecular.z);
-	glUniform1f(m_uiglGroundPlaneShininessLoc, m_fGroundShininess);
-	
-	glUniform1f(m_gliRandomSizeLocation, sizeVal);
-	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
-	glUniform1f(m_gliSpecCentOutLoc, m_fInterpolatedSpecCentVal);
-	glUniform1f(m_gliHighFreqAvgLoc, m_dHighFreqAvg);
-	glUniform1f(m_gliLowFreqAvgLoc, m_dLowFreqAvg);
-	glUniform1f(m_gliTotFFTAmpLoc, (float)m_dTotFFTAmp);
-	glUniform1f(m_gliSineControlValLoc, sineControlVal);
-	glUniform1fv(m_gluiFftAmpBinsLoc, NUM_FFT_BINS, (float*)&m_pFftAmpBinOut); 
-	//glUniform1i(m_gliNumFftBinsLoc, NUM_FFT_BINS);
-	glUniform1f(m_gliTimeValLoc, m_fTimeControlVal);
-	//glUniform1f(m_gliValBinScaleLoc, valBinScale);
-	//glUniform1f(m_gliThetaAngleLoc, valThetaScale);
-	//glUniform1f(m_gliPhiAngleLoc, valPhiScale);
-	
-	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-	// update first loop switch
-	m_bFirstLoop = false;
-
-}
-
-
-void Studio::exit(){
-	//stop csound
-	session->StopPerformance();
 	//close GL context and any other GL resources
 	glfwTerminate();
 }

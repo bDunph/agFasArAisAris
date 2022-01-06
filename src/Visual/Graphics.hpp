@@ -22,7 +22,7 @@ class Graphics{
 public:
 
 	Graphics(std::unique_ptr<ExecutionFlags>& flagPtr);
-	bool BInitGL(bool fullscreen = true);
+	bool BInitGL(std::string avFileName, bool fullscreen = false);
 	bool BCreateDefaultShaders();
 	GLuint BCreateSceneShaders(std::string shaderName);
 	GLuint CompileGLShader( const char *pchShaderName, const char *pchVertexShader, const char *pchFragmentShader );
@@ -160,7 +160,7 @@ private:
 	GLuint skyboxShaderProg;
 	GLuint soundObjShaderProg;
 	GLuint groundPlaneShaderProg;
-	//GLuint studioShaderProg;
+	GLuint studioShaderProg;
 	GLuint quadShaderProg;
 
 	Studio studio;
@@ -189,7 +189,6 @@ private:
 	GLuint mengerShaderProg;
 
 	
-	Studio::RaymarchData raymarchData;
 	float m_fFov;
 	
 	//rapidmix
@@ -229,9 +228,10 @@ private:
 	Studio::PBOInfo m_structPboInfo;	
 
 	glm::vec4 m_vec4TranslationVal;
+	glm::vec3 m_vec3TranslationVal;
 	float m_fMaxDist;
 	glm::vec3 m_vec3InitCamPos;
-
-	glm::vec3 m_vec3DevGlobalPos;
 };
+
+
 #endif

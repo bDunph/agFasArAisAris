@@ -74,26 +74,26 @@ bool VR_Manager::BInit(){
 
 //*********** removing pathtools from osx build *************//
 #ifdef __APPLE__
-	std::string manifestPath = "/Users/bryandunphy/Projects/5CellAVR/src/VR/avr_iml_actions.json";
+	std::string manifestPath = "../../data/immersAV_iml_actions.json";
 	vr::VRInput()->SetActionManifestPath(manifestPath.c_str()); 
 #elif _WIN32
-	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "avr_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
+	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "immersAV_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
 #endif
 	
 	//generic actions
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/HideThisController", &m_actionHideThisController);
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/TriggerHaptic", &m_actionTriggerHaptic );
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/AnalogInput", &m_actionAnalongInput );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/in/HideThisController", &m_actionHideThisController);
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/in/TriggerHaptic", &m_actionTriggerHaptic );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/in/AnalogInput", &m_actionAnalongInput );
 
-	vr::VRInput()->GetActionSetHandle( "/actions/avr", &m_actionSetAvr );
+	vr::VRInput()->GetActionSetHandle( "/actions/immersAV", &m_actionSetAvr );
 
-	vr::VRInput()->GetActionHandle( "/actions/avr/out/Haptic_Left", &m_rHand[Left].m_actionHaptic );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/out/Haptic_Left", &m_rHand[Left].m_actionHaptic );
 	vr::VRInput()->GetInputSourceHandle( "/user/hand/left", &m_rHand[Left].m_source );
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/Hand_Left", &m_rHand[Left].m_actionPose );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/in/Hand_Left", &m_rHand[Left].m_actionPose );
 
-	vr::VRInput()->GetActionHandle( "/actions/avr/out/Haptic_Right", &m_rHand[Right].m_actionHaptic );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/out/Haptic_Right", &m_rHand[Right].m_actionHaptic );
 	vr::VRInput()->GetInputSourceHandle( "/user/hand/right", &m_rHand[Right].m_source );
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/Hand_Right", &m_rHand[Right].m_actionPose );
+	vr::VRInput()->GetActionHandle( "/actions/immersAV/in/Hand_Right", &m_rHand[Right].m_actionPose );
 
 	//machine learning actions
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/RandomiseParameters", &m_actionRandomParameters);
@@ -198,7 +198,7 @@ bool VR_Manager::HandleInput()
 	}
 
 	//TODO I have button logic here because it is switching based on the opposite value of 
-	//m_bViveRunModel. It would be better to keep the button logic in FiveCell.cpp with the other 
+	//m_bViveRunModel. It would be better to keep the button logic in Studio.cpp with the other 
 	//controls and just have a true/false switch here.
 	vr::VRInputValueHandle_t ulRunDevice;
 	bool deviceCall = helper->GetDigitalActionState(m_actionRunModel, &ulRunDevice);
@@ -236,9 +236,9 @@ bool VR_Manager::HandleInput()
 	}
 
 	//generic controls
-	vr::VRActiveActionSet_t avrActionSet = {0};
-	avrActionSet.ulActionSet = m_actionSetAvr;
-	vr::VRInput()->UpdateActionState(&avrActionSet, sizeof(avrActionSet), 1);
+	vr::VRActiveActionSet_t immersAVActionSet = {0};
+	immersAVActionSet.ulActionSet = m_actionSetAvr;
+	vr::VRInput()->UpdateActionState(&immersAVActionSet, sizeof(immersAVActionSet), 1);
 
 	vr::VRInputValueHandle_t ulHapticDevice;
 	if (helper->GetDigitalActionRisingEdge(m_actionTriggerHaptic, &ulHapticDevice))

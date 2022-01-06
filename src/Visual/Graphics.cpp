@@ -77,15 +77,16 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	machineLearning.bRecord = false;
 	machineLearning.bTrainModel = false;
 	machineLearning.bRunModel = false;
-	machineLearning.bSaveTrainingData = false;
+	machineLearning.bSaveModel = false;
 	machineLearning.bHaltModel = false;
-	machineLearning.bLoadTrainingData = false;
+	machineLearning.bLoadModel = false;
+	machineLearning.bDevMode = m_bDevMode;
 }
 
 //----------------------------------------------------------------------
 // Initialise OpenGL context, companion window, glew and vsync.
 // ---------------------------------------------------------------------	
-bool Graphics::BInitGL(bool fullscreen)
+bool Graphics::BInitGL(std::string avFileName, bool fullscreen)
 {
 	
 	//start gl context and O/S window using the glfw helper library
@@ -126,7 +127,7 @@ bool Graphics::BInitGL(bool fullscreen)
 		m_nCompanionWindowHeight = windowHeight;
 	}
 
-	m_pGLContext = glfwCreateWindow(windowWidth, windowHeight, "AVR", NULL, NULL);	
+	m_pGLContext = glfwCreateWindow(windowWidth, windowHeight, "ImmersAV", NULL, NULL);	
 
 	if(!m_pGLContext)
 	{
@@ -173,25 +174,25 @@ bool Graphics::BInitGL(bool fullscreen)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	mengerShaderProg = BCreateSceneShaders("agFasArAisAris");
+	mengerShaderProg = BCreateSceneShaders(avFileName);
 	if(mengerShaderProg == NULL)
 	{
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
 
-	std::string csdFileName = "agFasArAisAris.csd";
-	if(!studio.setup(csdFileName)) 
+	std::string csdFileName = avFileName + ".csd";
+	if(!studio.Setup(csdFileName, mengerShaderProg)) 
 	{
 		std::cout << "studio setup failed: Graphics BInitGL" << std::endl;
 		return false;
 	}
 
-	if(!studio.BSetupRaymarchQuad(mengerShaderProg))
-	{
-		std::cout << "raymarch quad failed setup: Graphics::BInitGL" << std::endl;
-		return false;
-	}
+	//if(!studio.BSetupRaymarchQuad(mengerShaderProg))
+	//{
+	//	std::cout << "raymarch quad failed setup: Graphics::BInitGL" << std::endl;
+	//	return false;
+	//}
 
 	//create matrices for devmode
 	if(m_bDevMode)
@@ -205,9 +206,6 @@ bool Graphics::BInitGL(bool fullscreen)
 		m_vec3DevCamPos = glm::vec3(0.0f, 1.0f, -1.0f);	
 		m_vec3DevCamUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		m_vec3DevCamFront = glm::vec3(0.0f, 0.0f, -1.0f);
-
-		//global position for use with scaling
-		m_vec3DevGlobalPos = m_vec3DevCamPos;
 
 		//values for framebuffer setup to make up for no headset
 		m_nRenderWidth = m_nCompanionWindowWidth;
@@ -486,6 +484,7 @@ bool Graphics::BSetupStereoRenderTargets(std::unique_ptr<VR_Manager>& vrm)
 	}
 
 	m_vec4TranslationVal = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	m_vec3TranslationVal = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	//delete[] dummyTex;
 
@@ -780,7 +779,7 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 
 void Graphics::DevProcessInput(GLFWwindow *window){
 	
-	float cameraSpeed = 0.5f * m_fDeltaTime; // adjust accordingly
+	float cameraSpeed = 5.0f * m_fDeltaTime; // adjust accordingly
 	
 	//convert camera position to spherical coordinates
 	//float radius = glm::length(m_vec3DevCamPos);
@@ -798,113 +797,22 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	//m_vec3DevCamPos.y = sin(phi) * radius;
 
     	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
         	m_vec3DevCamPos += cameraSpeed * m_vec3DevCamFront;
-		m_vec3DevGlobalPos = m_vec3DevCamPos;
-	}
     	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
         	m_vec3DevCamPos -= cameraSpeed * m_vec3DevCamFront;
-		m_vec3DevGlobalPos = m_vec3DevCamPos;
-	}
     	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
         	m_vec3DevCamPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-		m_vec3DevGlobalPos = m_vec3DevCamPos;
-	}
     	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-		m_vec3DevGlobalPos = m_vec3DevCamPos;
-	}
 	
 	//keep camera movement on the XZ plane
 	if(m_vec3DevCamPos.y < 1.0f || m_vec3DevCamPos.y > 1.0f) m_vec3DevCamPos.y = 1.0f;
 
 	//keep camera within a certain distance from origin
-	if(m_vec3DevCamPos.x > m_fMaxDist) 
-	{
-		m_vec3DevCamPos.x = m_fMaxDist;
-		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-		//}
-	}
-	if(m_vec3DevCamPos.x < -m_fMaxDist) 
-	{
-		m_vec3DevCamPos.x = -m_fMaxDist;
-
-		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-		//}
-    		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		//{
-        	//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-		//}
-	}
-	if(m_vec3DevCamPos.z > m_fMaxDist) 
-	{
-		m_vec3DevCamPos.z = m_fMaxDist;
-
-		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-		//}	
-	}
-	if(m_vec3DevCamPos.z < -m_fMaxDist) 
-	{
-		m_vec3DevCamPos.z = -m_fMaxDist;
-
-		//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos += cameraSpeed * m_vec3DevCamFront;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos -= cameraSpeed * m_vec3DevCamFront;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos -= glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;
-		//}
-		//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		//{
-		//	m_vec3DevGlobalPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
-		//}
-	}
+	if(m_vec3DevCamPos.x > m_fMaxDist) m_vec3DevCamPos.x = m_fMaxDist;
+	if(m_vec3DevCamPos.x < -m_fMaxDist) m_vec3DevCamPos.x = -m_fMaxDist;
+	if(m_vec3DevCamPos.z > m_fMaxDist) m_vec3DevCamPos.z = m_fMaxDist;
+	if(m_vec3DevCamPos.z < -m_fMaxDist) m_vec3DevCamPos.z = -m_fMaxDist;
 	
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
@@ -941,16 +849,16 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 
 	//save model
 	if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
-		machineLearning.bSaveTrainingData = true;
+		machineLearning.bSaveModel = true;
 	} else if(glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE){
-		machineLearning.bSaveTrainingData = false;
+		machineLearning.bSaveModel = false;
 	}
 
 	//load model
 	if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS){
-		machineLearning.bLoadTrainingData = true;
+		machineLearning.bLoadModel = true;
 	} else if(glfwGetKey(window, GLFW_KEY_L) == GLFW_RELEASE){
-		machineLearning.bLoadTrainingData = false;
+		machineLearning.bLoadModel = false;
 	}
 }
 
@@ -976,7 +884,7 @@ void Graphics::TransferDataToCPU()
 	// copy memory block from pixel buffer object to memory block on cpu
 	memcpy(m_structPboInfo.pboPtr, pboData, m_nRenderWidth * m_nRenderHeight * 4 * sizeof(unsigned char));
 
-	//std::cout << "PBO : " << static_cast<unsigned>(m_structPboInfo.pboPtr[8]) << std::endl;
+	//std::cout << "PBO : " << static_cast<unsigned>(m_pDataSize[8]) << std::endl;
 
 	if(glUnmapBuffer(GL_PIXEL_PACK_BUFFER) != GL_TRUE)
 		std::cout << "ERROR: PBO failed to unmap: Graphics::TransferDataToCPU()" << std::endl;
@@ -992,7 +900,6 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 {
 
 	glm::vec3 cameraPosition;
-	float translationMag;
 
 	if(!m_bDevMode && !m_bPBOFirstFrame) //m_bPBOFirstFrame here because rightDirVec4 was nan on 1st frame
 	{
@@ -1013,8 +920,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		rightDirVec4 = glm::normalize(rightDirVec4);
 
 		float camSpeed = 0.8f * m_fDeltaTime; // adjust accordingly
-		translationMag = glm::length(m_vec4TranslationVal);
-
+		float translationMag = glm::length(m_vec4TranslationVal);
 
 		if (m_vVRPos.x > 0.0f)
 		{
@@ -1063,10 +969,9 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	//m_structPboInfo.pboPtr = m_pDataSize;
 
 	//glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x / m_vec4TranslationVal.w, m_vec4TranslationVal.y / m_vec4TranslationVal.w, m_vec4TranslationVal.z / m_vec4TranslationVal.w);
-	glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
+	m_vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
 	//update variables for studio
-	studio.update(m_mat4CurrentViewMatrix, cameraPosition, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, vec3TranslationVal);
-
+	studio.Update(m_mat4CurrentViewMatrix, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;
@@ -1450,8 +1355,6 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 		//cameraPosition = glm::vec3(currentViewMatrix[3][0], currentViewMatrix[3][1], currentViewMatrix[3][2]);
 
-		glm::vec4 m_vFarPlaneDimensions = vrm->GetFarPlaneDimensions(nEye);
-		raymarchData.tanFovYOver2 = m_vFarPlaneDimensions.w;
 	} 
 	else 
 	{
@@ -1462,10 +1365,6 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		currentEyeMatrix = glm::mat4(1.0f);
 		cameraFront = m_vec3DevCamFront;
 		//cameraPosition = m_vec3DevCamPos;
-
-		double fovYRadians = m_fFov * (PI / 180.0f);
-		//raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
-		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
 	}
 
 	
@@ -1476,9 +1375,6 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//	input.push_back(cameraPosition);
 	////********* continue here - need to grab some audio and visual parameters and add to output vector *************//
 	//}
-
-	//update stuff for raymarching shader
-	raymarchData.aspect = static_cast<float>(m_nRenderWidth) / static_cast<float>(m_nRenderHeight);
 
 	//update variables for studio
 	//studio.update(currentViewMatrix, cameraPosition, machineLearning);
@@ -1522,18 +1418,8 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		glUseProgram(0);
 	}
 
-	float scaleFactor;
-	//if(m_bDevMode)
-	//{
-	//	float globalDist = glm::length(m_vec3DevGlobalPos);	
-	//	scaleFactor = globalDist - m_fMaxDist + 1.0f;
-	//}
-	//else
-	//{
-		scaleFactor = 1.0f;
-	//}
 	//draw studio scene
-	studio.draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, scaleFactor);
+	studio.Draw(currentProjMatrix, m_mat4CurrentViewMatrix, currentEyeMatrix, mengerShaderProg, m_vec3TranslationVal);
 
 }
 
@@ -1668,7 +1554,7 @@ void Graphics::CleanUpGL(std::unique_ptr<VR_Manager>& vrm){
 
 		glfwTerminate();
 
-		studio.exit();
+		studio.Exit();
 		//delete[] m_structPboInfo.pboPtr;
 		//delete[] m_pDataSize;
 
