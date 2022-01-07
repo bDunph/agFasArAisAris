@@ -65,6 +65,15 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
+	data = std::make_unique<DataInfo>();
+	data->name = "testParam";
+	data->value = std::make_unique<double>();
+	data->minVal = 0.0f;
+	data->maxVal = 0.0f;
+	data->paramType = OUTPUT;
+	
+	dataVec.push_back(std::move(data));
+
 	return true;
 }
 //*******************************************************************************************

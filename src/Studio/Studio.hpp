@@ -6,6 +6,8 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+#include <utility>
 
 #include "RapidLib/regression.h"
 #include "StudioTools.hpp"
@@ -39,6 +41,19 @@ public:
 		float distributionLow;
 		float distributionHigh;
 		int sendVecPosition;
+	};
+
+	enum ParamType {
+		INPUT,
+		OUTPUT
+	};
+
+	struct DataInfo{
+		std::string name;
+		std::unique_ptr<double> value;
+		double minVal;
+		double maxVal;
+		ParamType paramType;
 	};
 
 	bool Setup(std::string csd, GLuint shaderProg);
@@ -100,5 +115,7 @@ private:
 	std::vector<double> inputData;
 	std::vector<double> outputData;	
 	RegressionModel regMod;
+	std::unique_ptr<DataInfo> data;
+	std::vector<std::unique_ptr<DataInfo>> dataVec;
 };
 #endif

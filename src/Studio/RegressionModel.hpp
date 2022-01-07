@@ -3,11 +3,15 @@
 
 #include "RapidLib/regression.h"
 
+#include <memory>
+
+struct DataInfo; // forward declaration
+
 class RegressionModel{
 
 	private:
-		std::vector<double> inputData;
-		std::vector<double> outputData;
+		std::vector<std::unique_ptr<double>> inputData;
+		std::vector<std::unique_ptr<double>> outputData;
 
 		regression staticRegression;
 		trainingExample trainingEx;
@@ -15,5 +19,6 @@ class RegressionModel{
 
 	public:
 		RegressionModel();
+		void sortData(const std::vector<std::unique_ptr<DataInfo>> &dataVec);
 };
 #endif
