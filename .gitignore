@@ -5,3 +5,5 @@ bin/*
 lib/*
 .vs/*
 out/*
+src/RapidLib/.vs/*
+src/RapidLib/out/*
