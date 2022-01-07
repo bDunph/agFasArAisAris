@@ -67,23 +67,23 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	data = std::make_unique<RegressionModel::DataInfo>();
 	data->name = "testParam";
-	data->value = 34.5f;
-	data->minVal = 10.0f;
-	data->maxVal = 40.0f;
+	data->value = 0.5f;
+	data->minVal = 0.0f;
+	data->maxVal = 1.0f;
 	data->paramType = RegressionModel::OUTPUT;
 
 	outputDataVec.push_back(std::move(data));
 
 	data1 = std::make_unique<RegressionModel::DataInfo>();
 	data1->name = "testParam1";
-	data1->value = -347.34f;
-	data1->minVal = -400.0f;
-	data1->maxVal = 300.0f;
+	data1->value = 0.87f;
+	data1->minVal = 0.0f;
+	data1->maxVal = 1.0f;
 	data1->paramType = RegressionModel::OUTPUT;
 	
 	outputDataVec.push_back(std::move(data1));
 
-	regMod.setOutputData(outputDataVec);
+	//regMod.setOutputData(outputDataVec);
 
 	return true;
 }
@@ -156,18 +156,36 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	inputDataEx = std::make_unique<RegressionModel::DataInfo>();
 	inputDataEx->name = "testInputParam";
-	inputDataEx->value = 900.4f;
-	inputDataEx->minVal = 890.0f;
-	inputDataEx->maxVal = 2300.0f;
+	inputDataEx->value = 0.4f;
+	inputDataEx->minVal = 0.0f;
+	inputDataEx->maxVal = 1.0f;
 	inputDataEx->paramType = RegressionModel::INPUT;
 
 	inputDataVec.push_back(std::move(inputDataEx));
 
+	inputDataEx1 = std::make_unique<RegressionModel::DataInfo>();
+	inputDataEx1->name = "testInputParam1";
+	inputDataEx1->value = 0.23f;
+	inputDataEx1->minVal = 0.0f;
+	inputDataEx1->maxVal = 1.0f;
+	inputDataEx1->paramType = RegressionModel::INPUT;
+
+	inputDataVec.push_back(std::move(inputDataEx1));
+
 	if(machineLearning.bRecord){
 		regMod.collectData(inputDataVec, outputDataVec);
-		regMod.displayDataSet();
 	}
 	machineLearning.bRecord = false;
+
+	bool currentTrainState = m_bPrevTrainState;
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
+		m_bModelTrained = regMod.trainModel();
+		std::cout << "MODEL TRAINED: " << m_bModelTrained << std::endl;
+	}
+	m_bPrevTrainState = machineLearning.bTrainModel;
+		
+
+
 }
 //*********************************************************************************************
 

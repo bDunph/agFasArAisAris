@@ -11,8 +11,8 @@ class RegressionModel{
 		std::vector<double> m_vInputData;
 		std::vector<double> m_vOutputData;
 
-		regression m_regStaticRegression;
-		trainingExample m_texTrainingEx;
+		regression m_staticRegression;
+		trainingExample m_trainingEx;
 		std::vector<trainingExample> m_vTrainingSet;
 
 	public:
@@ -34,5 +34,6 @@ class RegressionModel{
 		void randomiseOutputData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
 		void collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
 		void displayDataSet();
+		bool trainModel();
 };
 #endif

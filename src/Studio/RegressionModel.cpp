@@ -36,33 +36,42 @@ void RegressionModel::collectData(std::vector<std::unique_ptr<DataInfo>> &inputD
 	
 	std::cout << "I WILL COLLECT DATA FOR THE TRAINING SET" << std::endl;
 
-	//shader values provide input to neural network
 	for(int i = 0; i < inputDataVec.size(); i++){
 
-		m_vInputData.push_back(inputDataVec[i]->value);
+		double tempVal = (*inputDataVec[i]).value;
+		m_vInputData.push_back(tempVal);
 	}
 
-	//neural network outputs to audio engine 
 	for(int i = 0; i < outputDataVec.size(); i++)
 	{
-		m_vOutputData.push_back(outputDataVec[i]->value);
+		double tempVal = (*outputDataVec[i]).value;
+		m_vOutputData.push_back(tempVal);
 	}
 
-	m_texTrainingEx.input = m_vInputData;
-	m_texTrainingEx.output = m_vOutputData;
-	m_vTrainingSet.push_back(m_texTrainingEx);
+	m_trainingEx.input = m_vInputData;
+	std::cout << "TRAINING EX IN VEC VALS: " << m_trainingEx.input[0] << "		" << m_trainingEx.input[1] << std::endl;
+	m_trainingEx.output = m_vOutputData;
+	std::cout << "TRAINING EX OUT VEC VALS: " << m_trainingEx.output[0] << "	" << m_trainingEx.output[1] << std::endl;
+	m_vTrainingSet.push_back(m_trainingEx);
 
 	m_vInputData.clear();
 	m_vOutputData.clear();
 }
 
-void RegressionModel::displayDataSet(){
+bool RegressionModel::trainModel(){
+	
+	bool trained = false;
+	if(m_vTrainingSet.size() > 0){
+		std::cout << "TRAINING SET SIZE : " << m_vTrainingSet.size() << std::endl;
+		trained = m_staticRegression.train(m_vTrainingSet);
 
-	for(int i = 0; i < m_vTrainingSet.size(); i++){
-		std::cout << "Trainin Set Contents: /n/n" << "Element " << i << ": /n" << "Input Vec : " << m_vTrainingSet[i].input[i] << "/n" << "Output Vec : " << m_vTrainingSet[i].output[i] << ", " << m_vTrainingSet[i].output[i] << std::endl; 
+	} else {
+		std::cout << "ERROR: NO DATA IN TRAINING SET (RegressionModel.cpp line 64)" << std::endl;
 	}
-
+	return trained;
 }
+
+
 
 
 

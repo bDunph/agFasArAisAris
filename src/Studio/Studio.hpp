@@ -106,6 +106,7 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> data1;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputDataVec;
 	std::unique_ptr<RegressionModel::DataInfo> inputDataEx;
+	std::unique_ptr<RegressionModel::DataInfo> inputDataEx1;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputDataVec;
 };
 #endif
