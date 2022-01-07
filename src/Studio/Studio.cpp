@@ -65,14 +65,25 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-	data = std::make_unique<DataInfo>();
+	data = std::make_unique<RegressionModel::DataInfo>();
 	data->name = "testParam";
-	data->value = std::make_unique<double>();
-	data->minVal = 0.0f;
-	data->maxVal = 0.0f;
-	data->paramType = OUTPUT;
+	data->value = 34.5f;
+	data->minVal = 10.0f;
+	data->maxVal = 40.0f;
+	data->paramType = RegressionModel::OUTPUT;
+
+	outputDataVec.push_back(std::move(data));
+
+	data1 = std::make_unique<RegressionModel::DataInfo>();
+	data1->name = "testParam1";
+	data1->value = -347.34f;
+	data1->minVal = -400.0f;
+	data1->maxVal = 300.0f;
+	data1->paramType = RegressionModel::OUTPUT;
 	
-	dataVec.push_back(std::move(data));
+	outputDataVec.push_back(std::move(data1));
+
+	regMod.setOutputData(outputDataVec);
 
 	return true;
 }
@@ -131,7 +142,32 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	paramData.sendVecPosition = 1;
 	std::vector<MLAudioParameter> paramVec;
 	paramVec.push_back(paramData);
-	MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
+	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
+
+	bool currentRandomState = m_bPrevRandomState;
+	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
+		regMod.randomiseOutputData(outputDataVec);
+
+		for(int i = 0; i < outputDataVec.size(); i++){
+			std::cout << "Output Data Element " << i << " is randomised to " << outputDataVec[i]->value << std::endl;
+		}
+	}
+	m_bPrevRandomState = machineLearning.bRandomParams;
+
+	inputDataEx = std::make_unique<RegressionModel::DataInfo>();
+	inputDataEx->name = "testInputParam";
+	inputDataEx->value = 900.4f;
+	inputDataEx->minVal = 890.0f;
+	inputDataEx->maxVal = 2300.0f;
+	inputDataEx->paramType = RegressionModel::INPUT;
+
+	inputDataVec.push_back(std::move(inputDataEx));
+
+	if(machineLearning.bRecord){
+		regMod.collectData(inputDataVec, outputDataVec);
+		regMod.displayDataSet();
+	}
+	machineLearning.bRecord = false;
 }
 //*********************************************************************************************
 

@@ -43,19 +43,6 @@ public:
 		int sendVecPosition;
 	};
 
-	enum ParamType {
-		INPUT,
-		OUTPUT
-	};
-
-	struct DataInfo{
-		std::string name;
-		std::unique_ptr<double> value;
-		double minVal;
-		double maxVal;
-		ParamType paramType;
-	};
-
 	bool Setup(std::string csd, GLuint shaderProg);
 	void Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo);
 	void Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint mengerProg, glm::vec3 translateVec);
@@ -115,7 +102,10 @@ private:
 	std::vector<double> inputData;
 	std::vector<double> outputData;	
 	RegressionModel regMod;
-	std::unique_ptr<DataInfo> data;
-	std::vector<std::unique_ptr<DataInfo>> dataVec;
+	std::unique_ptr<RegressionModel::DataInfo> data;
+	std::unique_ptr<RegressionModel::DataInfo> data1;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputDataVec;
+	std::unique_ptr<RegressionModel::DataInfo> inputDataEx;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputDataVec;
 };
 #endif

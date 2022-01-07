@@ -5,20 +5,34 @@
 
 #include <memory>
 
-struct DataInfo; // forward declaration
-
 class RegressionModel{
 
 	private:
-		std::vector<std::unique_ptr<double>> inputData;
-		std::vector<std::unique_ptr<double>> outputData;
+		std::vector<double> m_vInputData;
+		std::vector<double> m_vOutputData;
 
-		regression staticRegression;
-		trainingExample trainingEx;
-		std::vector<trainingExample> trainingSet;
+		regression m_regStaticRegression;
+		trainingExample m_texTrainingEx;
+		std::vector<trainingExample> m_vTrainingSet;
 
 	public:
+		enum ParamType {
+			INPUT,
+			OUTPUT
+		};
+
+		struct DataInfo{
+			std::string name;
+			double value;
+			double minVal;
+			double maxVal;
+			ParamType paramType;
+		};
+
 		RegressionModel();
-		void sortData(const std::vector<std::unique_ptr<DataInfo>> &dataVec);
+		void setOutputData(const std::vector<std::unique_ptr<DataInfo>> &dataVec);
+		void randomiseOutputData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
+		void collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
+		void displayDataSet();
 };
 #endif
