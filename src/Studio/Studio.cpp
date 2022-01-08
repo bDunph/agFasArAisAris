@@ -65,21 +65,33 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-	data = std::make_unique<RegressionModel::DataInfo>();
-	data->name = "testParam";
-	data->value = 0.5f;
-	data->minVal = 0.0f;
-	data->maxVal = 1.0f;
-	data->paramType = RegressionModel::OUTPUT;
+//	data = std::make_unique<RegressionModel::DataInfo>();
+//	data->name = "testParam";
+//	data->value = 0.5f;
+//	data->minVal = 0.0f;
+//	data->maxVal = 1.0f;
+//	data->paramType = RegressionModel::OUTPUT;
+//
+	data.name = "testParam";
+	data.value = 0.5f;
+	data.minVal = 0.0f;
+	data.maxVal = 1.0f;
+	data.paramType = RegressionModel::OUTPUT;
 
 	outputDataVec.push_back(std::move(data));
 
-	data1 = std::make_unique<RegressionModel::DataInfo>();
-	data1->name = "testParam1";
-	data1->value = 0.87f;
-	data1->minVal = 0.0f;
-	data1->maxVal = 1.0f;
-	data1->paramType = RegressionModel::OUTPUT;
+	//data1 = std::make_unique<RegressionModel::DataInfo>();
+	//data1->name = "testParam1";
+	//data1->value = 0.87f;
+	//data1->minVal = 0.0f;
+	//data1->maxVal = 1.0f;
+	//data1->paramType = RegressionModel::OUTPUT;
+	
+	data1.name = "testParam1";
+	data1.value = 0.87f;
+	data1.minVal = 0.0f;
+	data1.maxVal = 1.0f;
+	data1.paramType = RegressionModel::OUTPUT;
 	
 	outputDataVec.push_back(std::move(data1));
 
@@ -149,26 +161,38 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		regMod.randomiseOutputData(outputDataVec);
 
 		for(int i = 0; i < outputDataVec.size(); i++){
-			std::cout << "Output Data Element " << i << " is randomised to " << outputDataVec[i]->value << std::endl;
+			std::cout << "Output Data Element " << i << " is randomised to " << outputDataVec[i].value << std::endl;
 		}
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
-	inputDataEx = std::make_unique<RegressionModel::DataInfo>();
-	inputDataEx->name = "testInputParam";
-	inputDataEx->value = 0.4f;
-	inputDataEx->minVal = 0.0f;
-	inputDataEx->maxVal = 1.0f;
-	inputDataEx->paramType = RegressionModel::INPUT;
+//	inputDataEx = std::make_unique<RegressionModel::DataInfo>();
+//	inputDataEx->name = "testInputParam";
+//	inputDataEx->value = 0.4f;
+//	inputDataEx->minVal = 0.0f;
+//	inputDataEx->maxVal = 1.0f;
+//	inputDataEx->paramType = RegressionModel::INPUT;
+
+	inputDataEx.name = "testInputParam";
+	inputDataEx.value = 0.4f;
+	inputDataEx.minVal = 0.0f;
+	inputDataEx.maxVal = 1.0f;
+	inputDataEx.paramType = RegressionModel::INPUT;
 
 	inputDataVec.push_back(std::move(inputDataEx));
 
-	inputDataEx1 = std::make_unique<RegressionModel::DataInfo>();
-	inputDataEx1->name = "testInputParam1";
-	inputDataEx1->value = 0.23f;
-	inputDataEx1->minVal = 0.0f;
-	inputDataEx1->maxVal = 1.0f;
-	inputDataEx1->paramType = RegressionModel::INPUT;
+//	inputDataEx1 = std::make_unique<RegressionModel::DataInfo>();
+//	inputDataEx1->name = "testInputParam1";
+//	inputDataEx1->value = 0.23f;
+//	inputDataEx1->minVal = 0.0f;
+//	inputDataEx1->maxVal = 1.0f;
+//	inputDataEx1->paramType = RegressionModel::INPUT;
+
+	inputDataEx1.name = "testInputParam1";
+	inputDataEx1.value = 0.23f;
+	inputDataEx1.minVal = 0.0f;
+	inputDataEx1.maxVal = 1.0f;
+	inputDataEx1.paramType = RegressionModel::INPUT;
 
 	inputDataVec.push_back(std::move(inputDataEx1));
 

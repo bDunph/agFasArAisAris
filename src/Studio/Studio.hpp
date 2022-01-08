@@ -102,11 +102,17 @@ private:
 	std::vector<double> inputData;
 	std::vector<double> outputData;	
 	RegressionModel regMod;
-	std::unique_ptr<RegressionModel::DataInfo> data;
-	std::unique_ptr<RegressionModel::DataInfo> data1;
-	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputDataVec;
-	std::unique_ptr<RegressionModel::DataInfo> inputDataEx;
-	std::unique_ptr<RegressionModel::DataInfo> inputDataEx1;
-	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputDataVec;
+	//std::unique_ptr<RegressionModel::DataInfo> data;
+	//std::unique_ptr<RegressionModel::DataInfo> data1;
+	//std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputDataVec;
+	//std::unique_ptr<RegressionModel::DataInfo> inputDataEx;
+	//std::unique_ptr<RegressionModel::DataInfo> inputDataEx1;
+	//std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputDataVec;
+	RegressionModel::DataInfo data;
+	RegressionModel::DataInfo data1;
+	std::vector<RegressionModel::DataInfo> outputDataVec;
+	RegressionModel::DataInfo inputDataEx;
+	RegressionModel::DataInfo inputDataEx1;
+	std::vector<RegressionModel::DataInfo> inputDataVec;
 };
 #endif
