@@ -65,37 +65,43 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-//	data = std::make_unique<RegressionModel::DataInfo>();
-//	data->name = "testParam";
-//	data->value = 0.5f;
-//	data->minVal = 0.0f;
-//	data->maxVal = 1.0f;
-//	data->paramType = RegressionModel::OUTPUT;
-//
 	data.name = "testParam";
-	data.value = 0.5f;
-	data.minVal = 0.0f;
-	data.maxVal = 1.0f;
+	data.value = 0.5;
+	data.minVal = 0.0;
+	data.maxVal = 1.0;
 	data.paramType = RegressionModel::OUTPUT;
+
+	outDataExPtr = std::make_unique<double>(data.value);
+	//outDataExPtr->&data.value;
 
 	outputDataVec.push_back(std::move(data));
 
-	//data1 = std::make_unique<RegressionModel::DataInfo>();
-	//data1->name = "testParam1";
-	//data1->value = 0.87f;
-	//data1->minVal = 0.0f;
-	//data1->maxVal = 1.0f;
-	//data1->paramType = RegressionModel::OUTPUT;
-	
 	data1.name = "testParam1";
-	data1.value = 0.87f;
-	data1.minVal = 0.0f;
-	data1.maxVal = 1.0f;
+	data1.value = 0.87;
+	data1.minVal = 0.0;
+	data1.maxVal = 1.0;
 	data1.paramType = RegressionModel::OUTPUT;
 	
-	outputDataVec.push_back(std::move(data1));
+	//outputDataVec.push_back(std::move(data1));
+	
+	inputDataEx.name = "testInputParam";
+	inputDataEx.value = 0.4;
+	inputDataEx.minVal = 0.0;
+	inputDataEx.maxVal = 1.0;
+	inputDataEx.paramType = RegressionModel::INPUT;
 
-	//regMod.setOutputData(outputDataVec);
+	inDataExPtr = std::make_unique<double>(inputDataEx.value);
+	//inDataExPtr->&inputDataEx.value;
+
+	inputDataVec.push_back(std::move(inputDataEx));
+
+	inputDataEx1.name = "testInputParam1";
+	inputDataEx1.value = 0.23;
+	inputDataEx1.minVal = 0.0;
+	inputDataEx1.maxVal = 1.0;
+	inputDataEx1.paramType = RegressionModel::INPUT;
+
+	//inputDataVec.push_back(std::move(inputDataEx1));
 
 	return true;
 }
@@ -158,6 +164,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	bool currentRandomState = m_bPrevRandomState;
 	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
+
 		regMod.randomiseOutputData(outputDataVec);
 
 		for(int i = 0; i < outputDataVec.size(); i++){
@@ -166,37 +173,10 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
-//	inputDataEx = std::make_unique<RegressionModel::DataInfo>();
-//	inputDataEx->name = "testInputParam";
-//	inputDataEx->value = 0.4f;
-//	inputDataEx->minVal = 0.0f;
-//	inputDataEx->maxVal = 1.0f;
-//	inputDataEx->paramType = RegressionModel::INPUT;
-
-	inputDataEx.name = "testInputParam";
-	inputDataEx.value = 0.4f;
-	inputDataEx.minVal = 0.0f;
-	inputDataEx.maxVal = 1.0f;
-	inputDataEx.paramType = RegressionModel::INPUT;
-
-	inputDataVec.push_back(std::move(inputDataEx));
-
-//	inputDataEx1 = std::make_unique<RegressionModel::DataInfo>();
-//	inputDataEx1->name = "testInputParam1";
-//	inputDataEx1->value = 0.23f;
-//	inputDataEx1->minVal = 0.0f;
-//	inputDataEx1->maxVal = 1.0f;
-//	inputDataEx1->paramType = RegressionModel::INPUT;
-
-	inputDataEx1.name = "testInputParam1";
-	inputDataEx1.value = 0.23f;
-	inputDataEx1.minVal = 0.0f;
-	inputDataEx1.maxVal = 1.0f;
-	inputDataEx1.paramType = RegressionModel::INPUT;
-
-	inputDataVec.push_back(std::move(inputDataEx1));
 
 	if(machineLearning.bRecord){
+ 		//*inDataExPtr = 0.342;
+		inputDataVec[0].value = 0.342; //*****This is not the best way to do it************
 		regMod.collectData(inputDataVec, outputDataVec);
 	}
 	machineLearning.bRecord = false;
@@ -208,8 +188,6 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	}
 	m_bPrevTrainState = machineLearning.bTrainModel;
 		
-
-
 }
 //*********************************************************************************************
 

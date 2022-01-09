@@ -114,5 +114,7 @@ private:
 	RegressionModel::DataInfo inputDataEx;
 	RegressionModel::DataInfo inputDataEx1;
 	std::vector<RegressionModel::DataInfo> inputDataVec;
+	std::unique_ptr<double> inDataExPtr;
+	std::unique_ptr<double> outDataExPtr;
 };
 #endif

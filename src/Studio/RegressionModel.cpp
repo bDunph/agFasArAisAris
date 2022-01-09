@@ -8,15 +8,6 @@ RegressionModel::RegressionModel(){
 	std::cout << "Hello from Regression Model class!" << std::endl;
 }
 
-//void RegressionModel::setOutputData(const std::vector<std::unique_ptr<DataInfo>> &dataVec){
-//void RegressionModel::setOutputData(std::vector<DataInfo> &dataVec){
-//	
-//	for(int i = 0; i < dataVec.size(); i++){
-//		m_vOutputData.push_back(std::move(dataVec[i]->value));
-//		std::cout << "Output vector element " << i << " is " << m_vOutputData[i] << std::endl;
-//	}
-//}
-
 //void RegressionModel::randomiseOutputData(std::vector<std::unique_ptr<DataInfo>> &dataVec){
 void RegressionModel::randomiseOutputData(std::vector<DataInfo> &dataVec){
 	
@@ -41,31 +32,53 @@ void RegressionModel::collectData(std::vector<DataInfo> &inputDataVec, std::vect
 	
 	std::cout << "I WILL COLLECT DATA FOR THE TRAINING SET" << std::endl;
 
+	trainingExample trainingEx;
+
+	std::cout << "InputDataVec Size = " << inputDataVec.size() << std:: endl;
+	std::cout << "OutputDataVec Size = " << outputDataVec.size() << std:: endl;
+
 	for(int i = 0; i < inputDataVec.size(); i++){
 
-		//double tempVal = (*inputDataVec[i]).value;
-		//m_trainingEx.input.push_back(tempVal);
-		m_trainingEx.input.push_back(inputDataVec[i].value);
+		trainingEx.input.push_back(inputDataVec[i].value);
 	}
 
 	for(int i = 0; i < outputDataVec.size(); i++)
 	{
-		//double tempVal = (*outputDataVec[i]).value;
-		//m_trainingEx.output.push_back(tempVal);
-		m_trainingEx.output.push_back(outputDataVec[i].value);
+		trainingEx.output.push_back(outputDataVec[i].value);
 	}
 
-	std::cout << "TRAINING EX IN VEC VALS: " << m_trainingEx.input[0] << "		" << m_trainingEx.input[1] << std::endl;
-	std::cout << "TRAINING EX OUT VEC VALS: " << m_trainingEx.output[0] << "	" << m_trainingEx.output[1] << std::endl;
-	m_vTrainingSet.push_back(m_trainingEx);
+	std::cout << "TRAINING EX IN VEC VALS: " << trainingEx.input[0] << std::endl;
+	std::cout << "TRAINING EX OUT VEC VALS: " << trainingEx.output[0] << std::endl;
+	
+	m_vTrainingSet.push_back(trainingEx);
+	trainingEx.input.clear();
+	trainingEx.output.clear();
 }
 
 bool RegressionModel::trainModel(){
+
+	trainingExample tEx;
+	double in1 = 0.3f;
+	double out1 = 0.7f;
+	tEx.input.push_back(in1);
+	tEx.output.push_back(out1);
+
+	trainingExample tEx1;
+	tEx1.input.push_back(in1);
+	tEx1.output.push_back(out1);
+
+	std::vector<trainingExample> tSetEx;
+	tSetEx.push_back(tEx);
+	tSetEx.push_back(tEx1);
 	
 	bool trained = false;
 	if(m_vTrainingSet.size() > 0){
+//	if(tSetEx.size() > 0){
 		std::cout << "TRAINING SET SIZE : " << m_vTrainingSet.size() << std::endl;
+		//std::cout << "TRAINING SET SIZE : " << tSetEx.size() << std::endl;
 		trained = m_staticRegression.train(m_vTrainingSet);
+		m_vTrainingSet.clear();
+		//trained = m_staticRegression.train(tSetEx);
 
 	} else {
 		std::cout << "ERROR: NO DATA IN TRAINING SET (RegressionModel.cpp)" << std::endl;
