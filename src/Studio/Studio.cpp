@@ -71,10 +71,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	data.maxVal = 1.0;
 	data.paramType = RegressionModel::OUTPUT;
 
-	outDataExPtr = std::make_unique<double>(data.value);
+	//outDataExPtr = std::make_unique<double>(data.value);
 	//outDataExPtr->&data.value;
 
-	outputDataVec.push_back(std::move(data));
+	//outputDataVec.push_back(std::move(data));
 
 	data1.name = "testParam1";
 	data1.value = 0.87;
@@ -90,10 +90,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	inputDataEx.maxVal = 1.0;
 	inputDataEx.paramType = RegressionModel::INPUT;
 
-	inDataExPtr = std::make_unique<double>(inputDataEx.value);
+	//inDataExPtr = std::make_unique<double>(inputDataEx.value);
 	//inDataExPtr->&inputDataEx.value;
 
-	inputDataVec.push_back(std::move(inputDataEx));
+	//inputDataVec.push_back(std::move(inputDataEx));
 
 	inputDataEx1.name = "testInputParam1";
 	inputDataEx1.value = 0.23;
@@ -175,8 +175,11 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 
 	if(machineLearning.bRecord){
- 		//*inDataExPtr = 0.342;
-		inputDataVec[0].value = 0.342; //*****This is not the best way to do it************
+
+		inputDataEx.value = 0.342; //*****This is not the best way to do it************
+		inputDataVec.push_back(std::move(inputDataEx)); //TODO: THIS IS A MESS. SORT OUT DATA*******
+		outputDataVec.push_back(std::move(data));
+		//inputDataVec[0].value = 0.342; //*****This is not the best way to do it************
 		regMod.collectData(inputDataVec, outputDataVec);
 	}
 	machineLearning.bRecord = false;
