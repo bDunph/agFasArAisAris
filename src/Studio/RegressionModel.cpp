@@ -9,7 +9,7 @@ RegressionModel::RegressionModel(){
 }
 
 //void RegressionModel::randomiseOutputData(std::vector<std::unique_ptr<DataInfo>> &dataVec){
-void RegressionModel::randomiseOutputData(std::vector<DataInfo> &dataVec){
+void RegressionModel::randomiseData(std::vector<DataInfo> &dataVec, std::vector<std::unique_ptr<DataInfo>> &ptrVals){
 	
 	std::cout << "I WILL RANDOMISE THE OUTPUT DATA" << std::endl;
 
@@ -24,6 +24,17 @@ void RegressionModel::randomiseOutputData(std::vector<DataInfo> &dataVec){
 		std::default_random_engine generator(rd());
 		//dataVec[i]->value = distribution(generator);
 		dataVec[i].value = distribution(generator);
+	}
+
+	for(int i = 0; i < ptrVals.size(); i++)
+	{
+		//std::uniform_real_distribution<double> distribution(datavec[i]->minval, datavec[i]->maxval);
+		std::uniform_real_distribution<double> distribution(ptrVals[i]->minVal, ptrVals[i]->maxVal);
+		std::default_random_engine generator(rd());
+		//dataVec[i]->value = distribution(generator);
+		double randVal = distribution(generator);
+		ptrVals[i]->value = randVal;
+		//***************HHHHHHHHHHHEEEEEEEEERRRRRRRRRRRREEEEEEEEEEEEEE*****************
 	}
 }
 
@@ -86,7 +97,24 @@ bool RegressionModel::trainModel(){
 	return trained;
 }
 
+void RegressionModel::run(std::vector<DataInfo> &inputDataVec, std::vector<DataInfo> &outputDataVec){
 
+	std::vector<double> inputs;
+	std::vector<double> outputs;
+
+	for(int i = 0; i < inputDataVec.size(); i++){
+		inputs.push_back(inputDataVec[i].value);
+	}
+
+	outputs = m_staticRegression.run(inputs);
+
+	for(int i = 0; i < outputDataVec.size(); i++){
+		outputDataVec[i].value = outputs[i];
+	}
+
+	inputs.clear();
+	outputs.clear();
+}
 
 
 

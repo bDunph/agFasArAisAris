@@ -71,6 +71,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	data.maxVal = 1.0;
 	data.paramType = RegressionModel::OUTPUT;
 
+	dataPtr = std::make_unique<RegressionModel::DataInfo>(data);
 	//outDataExPtr = std::make_unique<double>(data.value);
 	//outDataExPtr->&data.value;
 
@@ -90,6 +91,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	inputDataEx.maxVal = 1.0;
 	inputDataEx.paramType = RegressionModel::INPUT;
 
+	inputDataExPtr = std::make_unique<RegressionModel::DataInfo>(inputDataEx);
 	//inDataExPtr = std::make_unique<double>(inputDataEx.value);
 	//inDataExPtr->&inputDataEx.value;
 
@@ -165,22 +167,58 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	bool currentRandomState = m_bPrevRandomState;
 	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
 
-		regMod.randomiseOutputData(outputDataVec);
-
+		//inputDataVec.push_back(std::move(inputDataEx));
+		inputDataVec.push_back(std::move(inputDataEx1));
+		std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputPtrVec;
+		inputPtrVec.push_back(std::move(inputDataExPtr));
+		regMod.randomiseData(inputDataVec, inputPtrVec);
+		//outputDataVec.push_back(std::move(data));
+		outputDataVec.push_back(std::move(data1));
+		std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputPtrVec;
+		outputPtrVec.push_back(std::move(dataPtr));
+		regMod.randomiseData(outputDataVec, outputPtrVec);
+			
 		for(int i = 0; i < outputDataVec.size(); i++){
 			std::cout << "Output Data Element " << i << " is randomised to " << outputDataVec[i].value << std::endl;
+			
 		}
+		for(int i = 0; i < inputDataVec.size(); i++){
+			std::cout << "Input Data Element " << i << " is randomised to " << inputDataVec[i].value << std::endl;
+		}
+
+		for(int i = 0; i < outputPtrVec.size(); i++){
+			std::cout << "Output Data Element " << i << " is randomised to " << outputPtrVec[i]->value << std::endl;
+			
+		}
+		for(int i = 0; i < inputPtrVec.size(); i++){
+			std::cout << "Input Data Element " << i << " is randomised to " << inputPtrVec[i]->value << std::endl;
+		}
+
+		inputDataVec.clear();
+		outputDataVec.clear();
+		inputPtrVec.clear();
+		outputPtrVec.clear();
+
+		std::cout << "NEW DATA VAL: " << data.value << std::endl;
+		std::cout << "NEW DATA1 VAL: " << data1.value << std::endl;
+		std::cout << "NEW INPUTDATAEX VAL: " << inputDataEx.value << std::endl;
+		std::cout << "NEW INPUTDATAEX1 VAL: " << inputDataEx1.value << std::endl;
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
 
+	// when collecting data, the values of the parameters in the current frame are pushed back onto
+	// the input and output vectors. These are then stored as a training example. The input and 
+	// output data vectors are then cleared. 
 	if(machineLearning.bRecord){
 
-		inputDataEx.value = 0.342; //*****This is not the best way to do it************
-		inputDataVec.push_back(std::move(inputDataEx)); //TODO: THIS IS A MESS. SORT OUT DATA*******
+		inputDataVec.push_back(std::move(inputDataEx)); 
+		inputDataVec.push_back(std::move(inputDataEx1));
 		outputDataVec.push_back(std::move(data));
-		//inputDataVec[0].value = 0.342; //*****This is not the best way to do it************
+		outputDataVec.push_back(std::move(data1));
 		regMod.collectData(inputDataVec, outputDataVec);
+		inputDataVec.clear();
+		outputDataVec.clear();
 	}
 	machineLearning.bRecord = false;
 
@@ -190,7 +228,31 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		std::cout << "MODEL TRAINED: " << m_bModelTrained << std::endl;
 	}
 	m_bPrevTrainState = machineLearning.bTrainModel;
-		
+
+	bool currentHaltState = m_bPrevHaltState;
+	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
+	{
+		//std::cout << "Model Running" << std::endl;
+
+		inputDataEx.value = 0.29;
+		inputDataEx1.value = 0.65;
+		inputDataVec.push_back(std::move(inputDataEx)); 
+		inputDataVec.push_back(std::move(inputDataEx1));
+		outputDataVec.push_back(std::move(data));
+		outputDataVec.push_back(std::move(data1));
+			
+		regMod.run(inputDataVec, outputDataVec);
+
+		std::cout << "OUTPUT TEST DATA: " << data.value << "	:	" << data1.value << std::endl;
+		inputDataVec.clear();
+		outputDataVec.clear();
+	} 
+	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
+	{
+		std::cout << "Model Stopped" << std::endl;
+	}
+	m_bPrevHaltState = machineLearning.bHaltModel;
+	
 }
 //*********************************************************************************************
 
