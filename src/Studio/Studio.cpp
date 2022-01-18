@@ -65,46 +65,41 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-	data.name = "testParam";
-	data.value = 0.5;
-	data.minVal = 0.0;
-	data.maxVal = 1.0;
-	data.paramType = RegressionModel::OUTPUT;
-
-	dataPtr = std::make_unique<RegressionModel::DataInfo>(data);
-	//outDataExPtr = std::make_unique<double>(data.value);
-	//outDataExPtr->&data.value;
-
-	//outputDataVec.push_back(std::move(data));
-
-	data1.name = "testParam1";
-	data1.value = 0.87;
-	data1.minVal = 0.0;
-	data1.maxVal = 1.0;
-	data1.paramType = RegressionModel::OUTPUT;
+	outDataPtr = std::make_unique<RegressionModel::DataInfo>();
+	outDataPtr->name = "testParam";
+	outDataPtr->value = 0.5;
+	outDataPtr->minVal = 0.0;
+	outDataPtr->maxVal = 1.0;
+	outDataPtr->paramType = RegressionModel::OUTPUT;
 	
-	//outputDataVec.push_back(std::move(data1));
+	outDataPtr1 = std::make_unique<RegressionModel::DataInfo>();
+	outDataPtr1->name = "testParam1";
+	outDataPtr1->value = 0.87;
+	outDataPtr1->minVal = 0.0;
+	outDataPtr1->maxVal = 1.0;
+	outDataPtr1->paramType = RegressionModel::OUTPUT;
 	
-	inputDataEx.name = "testInputParam";
-	inputDataEx.value = 0.4;
-	inputDataEx.minVal = 0.0;
-	inputDataEx.maxVal = 1.0;
-	inputDataEx.paramType = RegressionModel::INPUT;
+	outParamVec.push_back(std::move(outDataPtr));
+	outParamVec.push_back(std::move(outDataPtr1));
 
-	inputDataExPtr = std::make_unique<RegressionModel::DataInfo>(inputDataEx);
-	//inDataExPtr = std::make_unique<double>(inputDataEx.value);
-	//inDataExPtr->&inputDataEx.value;
+	inDataPtr = std::make_unique<RegressionModel::DataInfo>();
+	inDataPtr->name = "testInputParam";
+	inDataPtr->value = 0.4;
+	inDataPtr->minVal = 0.0;
+	inDataPtr->maxVal = 1.0;
+	inDataPtr->paramType = RegressionModel::INPUT;
 
-	//inputDataVec.push_back(std::move(inputDataEx));
+	inDataPtr1 = std::make_unique<RegressionModel::DataInfo>();
+	inDataPtr1->name = "testInputParam1";
+	inDataPtr1->value = 0.23;
+	inDataPtr1->minVal = 0.0;
+	inDataPtr1->maxVal = 1.0;
+	inDataPtr1->paramType = RegressionModel::INPUT;
 
-	inputDataEx1.name = "testInputParam1";
-	inputDataEx1.value = 0.23;
-	inputDataEx1.minVal = 0.0;
-	inputDataEx1.maxVal = 1.0;
-	inputDataEx1.paramType = RegressionModel::INPUT;
+	inParamVec.push_back(std::move(inDataPtr));
+	inParamVec.push_back(std::move(inDataPtr1));
 
-	//inputDataVec.push_back(std::move(inputDataEx1));
-
+	mySavedModel = "agFasModel.json";
 	return true;
 }
 //*******************************************************************************************
@@ -164,61 +159,20 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	paramVec.push_back(paramData);
 	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
 
+	//********** RegressionModel Class********************
 	bool currentRandomState = m_bPrevRandomState;
 	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
 
-		//inputDataVec.push_back(std::move(inputDataEx));
-		inputDataVec.push_back(std::move(inputDataEx1));
-		std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputPtrVec;
-		inputPtrVec.push_back(std::move(inputDataExPtr));
-		regMod.randomiseData(inputDataVec, inputPtrVec);
-		//outputDataVec.push_back(std::move(data));
-		outputDataVec.push_back(std::move(data1));
-		std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputPtrVec;
-		outputPtrVec.push_back(std::move(dataPtr));
-		regMod.randomiseData(outputDataVec, outputPtrVec);
+		regMod.randomiseData(outParamVec);
+		regMod.randomiseData(inParamVec);
 			
-		for(int i = 0; i < outputDataVec.size(); i++){
-			std::cout << "Output Data Element " << i << " is randomised to " << outputDataVec[i].value << std::endl;
-			
-		}
-		for(int i = 0; i < inputDataVec.size(); i++){
-			std::cout << "Input Data Element " << i << " is randomised to " << inputDataVec[i].value << std::endl;
-		}
-
-		for(int i = 0; i < outputPtrVec.size(); i++){
-			std::cout << "Output Data Element " << i << " is randomised to " << outputPtrVec[i]->value << std::endl;
-			
-		}
-		for(int i = 0; i < inputPtrVec.size(); i++){
-			std::cout << "Input Data Element " << i << " is randomised to " << inputPtrVec[i]->value << std::endl;
-		}
-
-		inputDataVec.clear();
-		outputDataVec.clear();
-		inputPtrVec.clear();
-		outputPtrVec.clear();
-
-		std::cout << "NEW DATA VAL: " << data.value << std::endl;
-		std::cout << "NEW DATA1 VAL: " << data1.value << std::endl;
-		std::cout << "NEW INPUTDATAEX VAL: " << inputDataEx.value << std::endl;
-		std::cout << "NEW INPUTDATAEX1 VAL: " << inputDataEx1.value << std::endl;
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
 
-	// when collecting data, the values of the parameters in the current frame are pushed back onto
-	// the input and output vectors. These are then stored as a training example. The input and 
-	// output data vectors are then cleared. 
 	if(machineLearning.bRecord){
 
-		inputDataVec.push_back(std::move(inputDataEx)); 
-		inputDataVec.push_back(std::move(inputDataEx1));
-		outputDataVec.push_back(std::move(data));
-		outputDataVec.push_back(std::move(data1));
-		regMod.collectData(inputDataVec, outputDataVec);
-		inputDataVec.clear();
-		outputDataVec.clear();
+		regMod.collectData(inParamVec, outParamVec);
 	}
 	machineLearning.bRecord = false;
 
@@ -232,20 +186,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	bool currentHaltState = m_bPrevHaltState;
 	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
 	{
-		//std::cout << "Model Running" << std::endl;
+		inParamVec[0]->value = 0.83;
+		inParamVec[1]->value = 0.12;
 
-		inputDataEx.value = 0.29;
-		inputDataEx1.value = 0.65;
-		inputDataVec.push_back(std::move(inputDataEx)); 
-		inputDataVec.push_back(std::move(inputDataEx1));
-		outputDataVec.push_back(std::move(data));
-		outputDataVec.push_back(std::move(data1));
-			
-		regMod.run(inputDataVec, outputDataVec);
+		regMod.run(inParamVec, outParamVec);
 
-		std::cout << "OUTPUT TEST DATA: " << data.value << "	:	" << data1.value << std::endl;
-		inputDataVec.clear();
-		outputDataVec.clear();
+		std::cout << "OUT 0 After Run: " << outParamVec[0]->value << std::endl;
+		std::cout << "OUT 1 After Run: " << outParamVec[1]->value << std::endl;
 	} 
 	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
 	{
@@ -253,6 +200,22 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	}
 	m_bPrevHaltState = machineLearning.bHaltModel;
 	
+	// save model
+	bool currentSaveState = m_bPrevSaveState;
+	if(machineLearning.bSaveModel!= currentSaveState && machineLearning.bSaveModel == true)
+	{
+		regMod.saveModel(mySavedModel);
+	}
+	m_bPrevSaveState = machineLearning.bSaveModel;
+
+	// load model
+	bool currentLoadState = m_bPrevLoadState;
+	if(machineLearning.bLoadModel != currentLoadState && machineLearning.bLoadModel == true)
+	{
+		m_bModelTrained = regMod.loadModel(mySavedModel);	
+	}
+	m_bPrevLoadState = machineLearning.bLoadModel;
+
 }
 //*********************************************************************************************
 

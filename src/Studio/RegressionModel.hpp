@@ -9,7 +9,6 @@ class RegressionModel{
 
 	private:
 		regression m_staticRegression;
-		//trainingExample m_trainingEx;
 		std::vector<trainingExample> m_vTrainingSet;
 
 	public:
@@ -27,11 +26,12 @@ class RegressionModel{
 		};
 
 		RegressionModel();
-		//void randomiseOutputData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
-		void randomiseData(std::vector<DataInfo> &dataVec, std::vector<std::unique_ptr<DataInfo>> &ptrVals);
-		//void collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
-		void collectData(std::vector<DataInfo> &inputDataVec, std::vector<DataInfo> &outputDataVec);
+		void randomiseData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
+		void collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
 		bool trainModel();
-		void run(std::vector<DataInfo> &inputDataVec, std::vector<DataInfo> &outputDataVec);
+		void run(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
+		void saveModel(std::string mySavedModel);
+		bool loadModel(std::string mySavedModel);
+
 };
 #endif

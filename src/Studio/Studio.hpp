@@ -101,22 +101,14 @@ private:
 	std::vector<trainingExample> trainingSet;
 	std::vector<double> inputData;
 	std::vector<double> outputData;	
+	
 	RegressionModel regMod;
-	//std::unique_ptr<RegressionModel::DataInfo> data;
-	//std::unique_ptr<RegressionModel::DataInfo> data1;
-	//std::vector<std::unique_ptr<RegressionModel::DataInfo>> outputDataVec;
-	//std::unique_ptr<RegressionModel::DataInfo> inputDataEx;
-	//std::unique_ptr<RegressionModel::DataInfo> inputDataEx1;
-	//std::vector<std::unique_ptr<RegressionModel::DataInfo>> inputDataVec;
-	RegressionModel::DataInfo data;
-	std::unique_ptr<RegressionModel::DataInfo> dataPtr;
-	RegressionModel::DataInfo data1;
-	std::vector<RegressionModel::DataInfo> outputDataVec;
-	RegressionModel::DataInfo inputDataEx;
-	std::unique_ptr<RegressionModel::DataInfo> inputDataExPtr;
-	RegressionModel::DataInfo inputDataEx1;
-	std::vector<RegressionModel::DataInfo> inputDataVec;
-	std::unique_ptr<double> inDataExPtr;
-	std::unique_ptr<double> outDataExPtr;
+	std::unique_ptr<RegressionModel::DataInfo> outDataPtr;
+	std::unique_ptr<RegressionModel::DataInfo> outDataPtr1;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
+	std::unique_ptr<RegressionModel::DataInfo> inDataPtr;
+	std::unique_ptr<RegressionModel::DataInfo> inDataPtr1;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inParamVec;
+	std::string mySavedModel;
 };
 #endif
