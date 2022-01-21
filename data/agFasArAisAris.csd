@@ -21,8 +21,7 @@ nchnls = 2
 seed 0 ; seed the random generators from the system clock
 
 ;------------------------ global send variables ---------------------------------------------
-gaSendL init 0 			;send variable for Granulated Rain	 
-gaSendR init 0			;send variable for Granulated Rain
+gaSend init 0 			;send variable for Granulated Rain	 
 
 gaReverbSend	init	0	;global reverb send variable for Karplus-Strong
 gaCompSend	init	0	;global compression send variable for Karplus-Strong
@@ -518,32 +517,30 @@ ioverlap    =		8
 itimemode   =          	1
 
 ; create a stereo granular synthesis texture using sndwarp
-aSigL,aSigR sndwarpst  kamp,ktimewarp,iresample,ifn1,ibeg,\
+aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
                               iwsize,irandw,ioverlap,ifn2,itimemode
 
 ; envelope the signal with a lowpass filter
 kcf         expseg     50,p3/2,12000,p3/2,50
-aSigL       moogvcf2    aSigL, kcf, 0.5
-aSigR       moogvcf2    aSigR, kcf, 0.5
+aSig       moogvcf2    aSig, kcf, 0.5
 
 ; add a little of our audio signals to the global send variables -
 ; - these will be sent to the reverb instrument (2)
-gaSendL     =          gaSendL+(aSigL*0.4)
-gaSendR     =          gaSendR+(aSigR*0.4)
+gaSend     =          gaSend+(aSig*0.4)
 
-            outs       aSigL,aSigR
+            outs       aSig,aSig
   endin
 
 ;**************************************************************************************
   instr GranularRainReverb, 9 ;	Reverb for GranulatedRain 
 ;**************************************************************************************
 
-aRvbL,aRvbR reverbsc   gaSendL,gaSendR,0.85,8000
+aRvbL,aRvbR reverbsc   gaSend,gaSend,0.85,8000
 
             outs       aRvbL,aRvbR
 
 ;clear variables to prevent out of control accumulation
-            clear      gaSendL,gaSendR
+            clear      gaSend
 
   endin
 
@@ -864,13 +861,13 @@ f0	86400 ;keep csound running for a day
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-;i7	0	-1
+i "GranulatedRainTrigger"	0	-1
 
 ;i9	0	-1
 
-i "KarplusStrongTrigger"	0	-1
-i "KarplusStrongCompressor"	0	-1
-i "KarplusStrongReverb"		0	-1
+;i "KarplusStrongTrigger"	0	-1
+;i "KarplusStrongCompressor"	0	-1
+;i "KarplusStrongReverb"		0	-1
 
 ;i "KickDrumTrigger"	0	-1
 e

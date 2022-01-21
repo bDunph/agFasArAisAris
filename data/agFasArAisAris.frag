@@ -81,7 +81,7 @@ float planeSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), timeVal);
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
@@ -131,7 +131,7 @@ float DE(vec3 p)
 		sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 	}	
 
-	float kifDist = kifSDF(p * fbmVal);
+	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
 	return min(kifDist, min(sphereDist, planeDist));
