@@ -61,6 +61,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
 	m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
 	m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
+	m_gliDisplayRes = glGetUniformLocation(shaderProg, "dispRes");
+	m_gliTime = glGetUniformLocation(shaderProg, "time");
 	
 	//machine learning setup
 	MLRegressionSetup();
@@ -108,7 +110,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 //*******************************************************************************************
 // Update 
 //*******************************************************************************************
-void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo){
+void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes){
 
 	// For return values from shader.
 	// vec4 for each fragment is returned in the order RGBA. 
@@ -149,6 +151,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//sent to shader and csound
 	m_fSineControlVal = sin(glfwGetTime() * 0.33f);
 	*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
+
+	m_fTime = glfwGetTime();
+	m_vDisplayRes = displayRes;
 
 	//run machine learning
 	MLAudioParameter paramData;
@@ -230,6 +235,8 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1f(m_gliSineControlValLoc, m_fSineControlVal);
 	glUniform1f(m_gliPitchOutLoc, m_fPitch);
 	glUniform1f(m_gliFreqOutLoc, *m_vReturnVals[1]);
+	glUniform2f(m_gliDisplayRes, m_vDisplayRes.x, m_vDisplayRes.y);
+	glUniform1f(m_gliTime, m_fTime);
 
 	m_pStTools->DrawEnd();
 

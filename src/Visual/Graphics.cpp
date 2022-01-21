@@ -970,8 +970,10 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	//glm::vec3 vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x / m_vec4TranslationVal.w, m_vec4TranslationVal.y / m_vec4TranslationVal.w, m_vec4TranslationVal.z / m_vec4TranslationVal.w);
 	m_vec3TranslationVal = glm::vec3(m_vec4TranslationVal.x, m_vec4TranslationVal.y, m_vec4TranslationVal.z);
+
+	glm::vec2 displayRes = glm::vec2(m_nRenderWidth, m_nRenderHeight);
 	//update variables for studio
-	studio.Update(m_mat4CurrentViewMatrix, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo);
+	studio.Update(m_mat4CurrentViewMatrix, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, displayRes);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;

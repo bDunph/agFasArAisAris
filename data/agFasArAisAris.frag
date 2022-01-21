@@ -7,7 +7,7 @@
 #define FOLD_CUTOFF 50
 #define SCALE 2.0
 #define OFFSET 2.0
-#define NUM_NOISE_OCTAVES 2
+//#define NUM_NOISE_OCTAVES 2
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
 #define EPSILON 0.01
 #define NUM_FFT_BINS 512
@@ -20,6 +20,9 @@ uniform float specCentVal;
 uniform float timeVal;
 uniform float rmsModVal;
 
+uniform vec2 dispRes;
+uniform float time;
+
 in vec4 nearPos;
 in vec4 farPos;
 //in vec2 texCoordsOut;
@@ -30,43 +33,7 @@ layout(location = 1) out vec4 indexOut;
 int index;
 vec4 orbit;
 
-// hash, noise and fbm implementations from morgan3d
-// https://www.shadertoy.com/view/4dS3Wd
-// By Morgan McGuire @morgan3d, http://graphicscodex.com
-// Reuse permitted under the BSD license.
-
-float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
-
-float noise(vec3 x) 
-{
-    const vec3 step = vec3(110, 241, 171);
-
-    vec3 i = floor(x);
-    vec3 f = fract(x);
- 
-    // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
-    // incremental change to the 1D based on the 3D -> 1D wrapping
-    float n = dot(i, step);
-
-    vec3 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
-               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
-                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
-}
-
-float fbm(vec3 x) 
-{
-	float v = 0.0;
-	float a = 0.5;
-	vec3 shift = vec3(100);
-	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
-		v += a * noise(x);
-		x = x * 2.0 + shift;
-		a *= 0.5;
-	}
-	return v;
-}
+float fbmVal;
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -164,7 +131,7 @@ float DE(vec3 p)
 		sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 	}	
 
-	float kifDist = kifSDF(p);
+	float kifDist = kifSDF(p * fbmVal);
 	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
 	return min(kifDist, min(sphereDist, planeDist));
@@ -235,9 +202,59 @@ vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 	return mix(col, fogColour, fogAmount);
 }
 
+//------------------------------------------------------------------------------------------
+// fBM implementation from Morgan McGuire @morgan3d
+// https://www.shadertoy.com/view/4dS3Wd
+//------------------------------------------------------------------------------------------
+#define NUM_NOISE_OCTAVES 5
+
+// Precision-adjusted variations of https://www.shadertoy.com/view/4djSRW
+float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+float hash(vec2 p) {vec3 p3 = fract(vec3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
+
+float noise(vec3 x) {
+    const vec3 step = vec3(110, 241, 171);
+
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+ 
+    // For performance, compute the base input to a 1D hash from the integer part of the argument and the 
+    // incremental change to the 1D based on the 3D -> 1D wrapping
+    float n = dot(i, step);
+
+    vec3 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
+                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+}
+
+float fbm(vec3 x) {
+	float v = 0.0;
+	float a = 0.5;
+	vec3 shift = vec3(100);
+	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
+		v += a * noise(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
+
 void main()
 {
 
+	//************* calculate fBM *******************************//
+	// st calculation taken from https://thebookofshaders.com/13/ 
+	// Author @patriciogv - 2015
+	// http:patriciogonzalezvivo.com 
+
+	vec2 st = gl_FragCoord.xy / dispRes.xy;
+	st.x *= dispRes.x / dispRes.y;
+
+	vec3 animFBM = vec3(st.x, st.y, time);
+	fbmVal = fbm(animFBM);
+	
 	//************* ray setup code from **************************//
 	//https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html*/
 	
