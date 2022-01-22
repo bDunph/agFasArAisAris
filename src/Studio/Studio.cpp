@@ -23,37 +23,6 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	m_pStTools = new StudioTools();
 
-	//audio setup
-	CsoundSession* csSession = m_pStTools->PCsoundSetup(csd);
-	
-	if(!m_pStTools->BSoundSourceSetup(csSession, NUM_SOUND_SOURCES))
-	{
-		std::cout << "Studio::setup sound sources not set up" << std::endl;
-		return false;
-	}
-
-	//setup sends to csound
-	std::vector<const char*> sendNames;
-
-	sendNames.push_back("sineControlVal");
-	m_vSendVals.push_back(m_cspSineControlVal);	
-
-	sendNames.push_back("randomVal");
-	m_vSendVals.push_back(m_cspRandVal);
-
-	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
-
-	//setup returns from csound 
-	std::vector<const char*> returnNames;
-
-	returnNames.push_back("pitchOut");
-	m_vReturnVals.push_back(m_pPitchOut);
-
-	returnNames.push_back("freqOut");
-	m_vReturnVals.push_back(m_pFreqOut);
-
-	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
-	
 	//setup quad to use for raymarching
 	m_pStTools->RaymarchQuadSetup(shaderProg);
 	
@@ -63,6 +32,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
 	m_gliDisplayRes = glGetUniformLocation(shaderProg, "dispRes");
 	m_gliTime = glGetUniformLocation(shaderProg, "time");
+	m_gliFbmAmp = glGetUniformLocation(shaderProg, "fbmAmp");
+	m_gliFbmSpeed = glGetUniformLocation(shaderProg, "fbmSpeed");
 	
 	//machine learning setup
 	MLRegressionSetup();
@@ -74,7 +45,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pNoteFreq->normVal = 0.0;
 	m_pNoteFreq->minVal = 2.0;
 	m_pNoteFreq->maxVal = 25.0;
-	m_pNoteFreq->paramType = RegressionMode::OUTPUT;
+	m_pNoteFreq->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteFreq));
 
@@ -97,6 +68,26 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pWinSize->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pWinSize));
+
+	m_pFbmAmp = std::make_unique<RegressionModel::DataInfo>();
+	m_pFbmAmp->name = "fbmAmp";
+	m_pFbmAmp->value = 0.5;
+	m_pFbmAmp->normVal = 0.0;
+	m_pFbmAmp->minVal = 0.0;
+	m_pFbmAmp->maxVal = 5.0;
+	m_pFbmAmp->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pFbmAmp));
+
+	m_pFbmSpeed = std::make_unique<RegressionModel::DataInfo>();
+	m_pFbmSpeed->name = "fbmSpeed";
+	m_pFbmSpeed->value = 1.0;
+	m_pFbmSpeed->normVal = 0.0;
+	m_pFbmSpeed->minVal = 0.0;
+	m_pFbmSpeed->maxVal = 2.0;
+	m_pFbmSpeed->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pFbmSpeed));
 
 	m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pLControllerX->name = "lControllerX";
@@ -159,6 +150,41 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	inParamVec.push_back(std::move(m_pRControllerZ));
 
 	mySavedModel = "agFasModel.json";
+
+	//audio setup
+	CsoundSession* csSession = m_pStTools->PCsoundSetup(csd);
+	
+	if(!m_pStTools->BSoundSourceSetup(csSession, NUM_SOUND_SOURCES))
+	{
+		std::cout << "Studio::setup sound sources not set up" << std::endl;
+		return false;
+	}
+
+	//setup sends to csound
+	std::vector<const char*> sendNames;
+
+	sendNames.push_back("noteFreq");
+	m_vSendVals.push_back(m_cspNoteFreq);	
+
+	sendNames.push_back("noteLength");
+	m_vSendVals.push_back(m_cspNoteLength);
+
+	sendNames.push_back("winSize");
+	m_vSendVals.push_back(m_cspWinSize);
+
+	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
+
+	//setup returns from csound 
+	std::vector<const char*> returnNames;
+
+	returnNames.push_back("pitchOut");
+	m_vReturnVals.push_back(m_pPitchOut);
+
+	returnNames.push_back("freqOut");
+	m_vReturnVals.push_back(m_pFreqOut);
+
+	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
+
 	return true;
 }
 //*******************************************************************************************
@@ -206,8 +232,8 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	//example control signal - sine function
 	//sent to shader and csound
-	m_fSineControlVal = sin(glfwGetTime() * 0.33f);
-	*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
+	//m_fSineControlVal = sin(glfwGetTime() * 0.33f);
+	//*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
 
 	m_fTime = glfwGetTime();
 	m_vDisplayRes = displayRes;
@@ -226,6 +252,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
 
 		regMod.randomiseData(outParamVec);
+		std::cout << "RANDOMISED WIN SIZE: " << outParamVec[2]->value << std::endl;
 			
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
@@ -233,16 +260,21 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	if(machineLearning.bRecord){
 
-		inParamVec[0]->value = controllerWorldPos_0.x;
-		inParamVec[1]->value = controllerWorldPos_0.y;
-		inParamVec[2]->value = controllerWorldPos_0.z;
-		inParamVec[3]->value = controllerWorldPos_1.x;
-		inParamVec[4]->value = controllerWorldPos_1.y;
-		inParamVec[5]->value = controllerWorldPos_1.z;
+		//inParamVec[0]->value = controllerWorldPos_0.x;
+		//inParamVec[1]->value = controllerWorldPos_0.y;
+		//inParamVec[2]->value = controllerWorldPos_0.z;
+		//inParamVec[3]->value = controllerWorldPos_1.x;
+		//inParamVec[4]->value = controllerWorldPos_1.y;
+		//inParamVec[5]->value = controllerWorldPos_1.z;
+		inParamVec[0]->value = 2.43;
+		inParamVec[1]->value = 5.32;
+		inParamVec[2]->value = 4.53;
+		inParamVec[3]->value = 3.21;
+		inParamVec[4]->value = 4.23;
+		inParamVec[5]->value = 4.56;
 
 		regMod.normaliseData(inParamVec);
 		regMod.normaliseData(outParamVec);
-
 		regMod.collectData(inParamVec, outParamVec);
 	}
 	machineLearning.bRecord = false;
@@ -257,22 +289,45 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	bool currentHaltState = m_bPrevHaltState;
 	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
 	{
-		inParamVec[0]->value = controllerWorldPos_0.x;
-		inParamVec[1]->value = controllerWorldPos_0.y;
-		inParamVec[2]->value = controllerWorldPos_0.z;
-		inParamVec[3]->value = controllerWorldPos_1.x;
-		inParamVec[4]->value = controllerWorldPos_1.y;
-		inParamVec[5]->value = controllerWorldPos_1.z;
+//		inParamVec[0]->value = controllerWorldPos_0.x;
+//		inParamVec[1]->value = controllerWorldPos_0.y;
+//		inParamVec[2]->value = controllerWorldPos_0.z;
+//		inParamVec[3]->value = controllerWorldPos_1.x;
+//		inParamVec[4]->value = controllerWorldPos_1.y;
+//		inParamVec[5]->value = controllerWorldPos_1.z;
+
+		inParamVec[0]->value = 5.32;
+		inParamVec[1]->value = 1.23;
+		inParamVec[2]->value = 2.53;
+		inParamVec[3]->value = 5.23;
+		inParamVec[4]->value = 3.26;
+		inParamVec[5]->value = 3.05;
 
 		regMod.normaliseData(inParamVec);
-		regMod.normaliseData(outParamVec);
 
 		regMod.run(inParamVec, outParamVec);
 
-		std::cout << "OUT 0 After Run: " << outParamVec[0]->normVal << std::endl;
-		std::cout << "OUT 1 After Run: " << outParamVec[1]->normVal << std::endl;
+		std::cout << "NORM OUT 0 After Run: " << outParamVec[0]->normVal << std::endl;
+		std::cout << "NORM OUT 1 After Run: " << outParamVec[1]->normVal << std::endl;
+		std::cout << "NORM OUT 2 After Run: " << outParamVec[2]->normVal << std::endl;
+		std::cout << "NORM OUT 3 After Run: " << outParamVec[3]->normVal << std::endl;
+		std::cout << "NORM OUT 4 After Run: " << outParamVec[4]->normVal << std::endl;
 
-		//************REMAP TO ORIGINAL RANGE*****************************
+		regMod.remapData(outParamVec);
+
+		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+		m_dFbmAmp = outParamVec[3]->value;
+		m_dFbmSpeed = outParamVec[4]->value;
+
+		std::cout << "Param 0 to Csound : " << *m_vSendVals[0] << std::endl;
+		std::cout << "Param 1 to Csound : " << *m_vSendVals[1] << std::endl;
+		std::cout << "Param 2 to Csound : " << *m_vSendVals[2] << std::endl;
+		std::cout << "Param 3 to Shader: " << m_dFbmAmp << std::endl;
+		std::cout << "Param 4 to Shader: " << m_dFbmSpeed << std::endl;
+
+
 	} 
 	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
 	{
@@ -307,11 +362,13 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 {
 	m_pStTools->DrawStart(projMat, eyeMat, viewMat, shaderProg, translateVec);
 	
-	glUniform1f(m_gliSineControlValLoc, m_fSineControlVal);
-	glUniform1f(m_gliPitchOutLoc, m_fPitch);
-	glUniform1f(m_gliFreqOutLoc, *m_vReturnVals[1]);
+	//glUniform1f(m_gliSineControlValLoc, m_fSineControlVal);
+	//glUniform1f(m_gliPitchOutLoc, m_fPitch);
+	//glUniform1f(m_gliFreqOutLoc, *m_vReturnVals[1]);
 	glUniform2f(m_gliDisplayRes, m_vDisplayRes.x, m_vDisplayRes.y);
 	glUniform1f(m_gliTime, m_fTime);
+	glUniform1f(m_gliFbmAmp, m_dFbmAmp);
+	glUniform1f(m_gliFbmSpeed, m_dFbmSpeed);
 
 	m_pStTools->DrawEnd();
 

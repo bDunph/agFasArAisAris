@@ -478,13 +478,19 @@ endin
   					;	granular swishing type texture.
 ;**************************************************************************************
 
-kFreq     	random  	2, 	25 
+kFreq		chnget		"noteFreq"
+kNoteLen	chnget		"noteLength"
+kWSize		chnget		"winSize"
+kWSize = floor(kWSize)
+
+
+;kFreq     	random  	2, 	25 
 kMetVal		metro   	0.2,	0.00000001		
 kTrigVal	samphold	kFreq,	kMetVal	
 
 kTrigger	metro		kTrigVal
-kNoteLen	random		0.05,		0.2
-kWSize		random		80,		85
+;kNoteLen	random		0.05,		0.2
+;kWSize		random		80,		85
 
 schedkwhen kTrigger,0,0,8,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
 

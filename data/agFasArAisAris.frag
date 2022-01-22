@@ -22,6 +22,8 @@ uniform float rmsModVal;
 
 uniform vec2 dispRes;
 uniform float time;
+uniform float fbmAmp;
+uniform float fbmSpeed;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -206,7 +208,7 @@ vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 // fBM implementation from Morgan McGuire @morgan3d
 // https://www.shadertoy.com/view/4dS3Wd
 //------------------------------------------------------------------------------------------
-#define NUM_NOISE_OCTAVES 5
+#define NUM_NOISE_OCTAVES 5 
 
 // Precision-adjusted variations of https://www.shadertoy.com/view/4djSRW
 float hash(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
@@ -231,7 +233,7 @@ float noise(vec3 x) {
 
 float fbm(vec3 x) {
 	float v = 0.0;
-	float a = 0.5;
+	float a = fbmAmp;
 	vec3 shift = vec3(100);
 	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
 		v += a * noise(x);
@@ -252,7 +254,7 @@ void main()
 	vec2 st = gl_FragCoord.xy / dispRes.xy;
 	st.x *= dispRes.x / dispRes.y;
 
-	vec3 animFBM = vec3(st.x, st.y, time);
+	vec3 animFBM = vec3(st.x, st.y, time * fbmSpeed);
 	fbmVal = fbm(animFBM);
 	
 	//************* ray setup code from **************************//

@@ -67,6 +67,10 @@ private:
 	GLint m_gliFreqOutLoc;
 	GLint m_gliDisplayRes;
 	GLint m_gliTime;
+	GLint m_gliFbmAmp;
+	double m_dFbmAmp;
+	GLint m_gliFbmSpeed;
+	double m_dFbmSpeed;
 	glm::vec2 m_vDisplayRes;
 	float m_fTime;
 	
@@ -112,6 +116,8 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pNoteFreq;
 	std::unique_ptr<RegressionModel::DataInfo> m_pNoteLength;
 	std::unique_ptr<RegressionModel::DataInfo> m_pWinSize;
+	std::unique_ptr<RegressionModel::DataInfo> m_pFbmAmp;
+	std::unique_ptr<RegressionModel::DataInfo> m_pFbmSpeed;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
 	
 	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
@@ -121,6 +127,10 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerY;
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerZ;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inParamVec;
+
+	MYFLT* m_cspNoteFreq;
+	MYFLT* m_cspNoteLength;
+	MYFLT* m_cspWinSize;
 
 	std::string mySavedModel;
 };

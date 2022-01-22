@@ -29,6 +29,7 @@ class RegressionModel{
 		RegressionModel();
 		void randomiseData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
 		void normaliseData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
+		void remapData(std::vector<std::unique_ptr<DataInfo>> &dataVec);
 		void collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);
 		bool trainModel();
 		void run(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec);

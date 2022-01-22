@@ -29,6 +29,13 @@ void RegressionModel::normaliseData(std::vector<std::unique_ptr<DataInfo>> &data
 
 }
 
+void RegressionModel::remapData(std::vector<std::unique_ptr<DataInfo>> &dataVec){
+
+	for(int i = 0; i < dataVec.size(); i++){
+		dataVec[i]->value = dataVec[i]->minVal + (dataVec[i]->normVal * (dataVec[i]->maxVal - dataVec[i]->minVal));
+	}
+
+}
 
 void RegressionModel::collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec){
 
