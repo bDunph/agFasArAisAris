@@ -67,39 +67,96 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-	outDataPtr = std::make_unique<RegressionModel::DataInfo>();
-	outDataPtr->name = "testParam";
-	outDataPtr->value = 0.5;
-	outDataPtr->minVal = 0.0;
-	outDataPtr->maxVal = 1.0;
-	outDataPtr->paramType = RegressionModel::OUTPUT;
-	
-	outDataPtr1 = std::make_unique<RegressionModel::DataInfo>();
-	outDataPtr1->name = "testParam1";
-	outDataPtr1->value = 0.87;
-	outDataPtr1->minVal = 0.0;
-	outDataPtr1->maxVal = 1.0;
-	outDataPtr1->paramType = RegressionModel::OUTPUT;
-	
-	outParamVec.push_back(std::move(outDataPtr));
-	outParamVec.push_back(std::move(outDataPtr1));
+	//parameter setup
+	m_pNoteFreq = std::make_unique<RegressionModel::DataInfo>();
+	m_pNoteFreq->name = "noteFreq";
+	m_pNoteFreq->value = 12.0;
+	m_pNoteFreq->normVal = 0.0;
+	m_pNoteFreq->minVal = 2.0;
+	m_pNoteFreq->maxVal = 25.0;
+	m_pNoteFreq->paramType = RegressionMode::OUTPUT;
 
-	inDataPtr = std::make_unique<RegressionModel::DataInfo>();
-	inDataPtr->name = "testInputParam";
-	inDataPtr->value = 0.4;
-	inDataPtr->minVal = 0.0;
-	inDataPtr->maxVal = 1.0;
-	inDataPtr->paramType = RegressionModel::INPUT;
+	outParamVec.push_back(std::move(m_pNoteFreq));
 
-	inDataPtr1 = std::make_unique<RegressionModel::DataInfo>();
-	inDataPtr1->name = "testInputParam1";
-	inDataPtr1->value = 0.23;
-	inDataPtr1->minVal = 0.0;
-	inDataPtr1->maxVal = 1.0;
-	inDataPtr1->paramType = RegressionModel::INPUT;
+	m_pNoteLength = std::make_unique<RegressionModel::DataInfo>();
+	m_pNoteLength->name = "noteLength";
+	m_pNoteLength->value = 0.1;
+	m_pNoteLength->normVal = 0.0;
+	m_pNoteLength->minVal = 0.05;
+	m_pNoteLength->maxVal = 0.2;
+	m_pNoteLength->paramType = RegressionModel::OUTPUT;
 
-	inParamVec.push_back(std::move(inDataPtr));
-	inParamVec.push_back(std::move(inDataPtr1));
+	outParamVec.push_back(std::move(m_pNoteLength));	
+
+	m_pWinSize = std::make_unique<RegressionModel::DataInfo>();
+	m_pWinSize->name = "winSize";
+	m_pWinSize->value = 81.0;
+	m_pWinSize->normVal = 0.0;
+	m_pWinSize->minVal = 80.0;
+	m_pWinSize->maxVal = 85.0;
+	m_pWinSize->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pWinSize));
+
+	m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerX->name = "lControllerX";
+	m_pLControllerX->value = 0.0;
+	m_pLControllerX->normVal = 0.0;
+	m_pLControllerX->minVal = -21.0;
+	m_pLControllerX->maxVal = 21.0;
+	m_pLControllerX->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pLControllerX));
+
+	m_pLControllerY = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerY->name = "lControllerY";
+	m_pLControllerY->value = 0.0;
+	m_pLControllerY->normVal = 0.0;
+	m_pLControllerY->minVal = -21.0;
+	m_pLControllerY->maxVal = 21.0;
+	m_pLControllerY->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pLControllerY));
+
+	m_pLControllerZ = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerZ->name = "lControllerZ";
+	m_pLControllerZ->value = 0.0;
+	m_pLControllerZ->normVal = 0.0;
+	m_pLControllerZ->minVal = -21.0;
+	m_pLControllerZ->maxVal = 21.0;
+	m_pLControllerZ->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pLControllerZ));
+
+	m_pRControllerX = std::make_unique<RegressionModel::DataInfo>();
+	m_pRControllerX->name = "rControllerX";
+	m_pRControllerX->value = 0.0;
+	m_pRControllerX->normVal = 0.0;
+	m_pRControllerX->minVal = -21.0;
+	m_pRControllerX->maxVal = 21.0;
+	m_pRControllerX->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pRControllerX));
+
+	m_pRControllerY = std::make_unique<RegressionModel::DataInfo>();
+	m_pRControllerY->name = "rControllerY";
+	m_pRControllerY->value = 0.0;
+	m_pRControllerY->normVal = 0.0;
+	m_pRControllerY->minVal = -21.0;
+	m_pRControllerY->maxVal = 21.0;
+	m_pRControllerY->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pRControllerY));
+
+	m_pRControllerZ = std::make_unique<RegressionModel::DataInfo>();
+	m_pRControllerZ->name = "rControllerZ";
+	m_pRControllerZ->value = 0.0;
+	m_pRControllerZ->normVal = 0.0;
+	m_pRControllerZ->minVal = -21.0;
+	m_pRControllerZ->maxVal = 21.0;
+	m_pRControllerZ->paramType = RegressionModel::INPUT;
+
+	inParamVec.push_back(std::move(m_pRControllerZ));
 
 	mySavedModel = "agFasModel.json";
 	return true;
@@ -169,13 +226,22 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
 
 		regMod.randomiseData(outParamVec);
-		regMod.randomiseData(inParamVec);
 			
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
 
 	if(machineLearning.bRecord){
+
+		inParamVec[0]->value = controllerWorldPos_0.x;
+		inParamVec[1]->value = controllerWorldPos_0.y;
+		inParamVec[2]->value = controllerWorldPos_0.z;
+		inParamVec[3]->value = controllerWorldPos_1.x;
+		inParamVec[4]->value = controllerWorldPos_1.y;
+		inParamVec[5]->value = controllerWorldPos_1.z;
+
+		regMod.normaliseData(inParamVec);
+		regMod.normaliseData(outParamVec);
 
 		regMod.collectData(inParamVec, outParamVec);
 	}
@@ -191,13 +257,22 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	bool currentHaltState = m_bPrevHaltState;
 	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
 	{
-		inParamVec[0]->value = 0.83;
-		inParamVec[1]->value = 0.12;
+		inParamVec[0]->value = controllerWorldPos_0.x;
+		inParamVec[1]->value = controllerWorldPos_0.y;
+		inParamVec[2]->value = controllerWorldPos_0.z;
+		inParamVec[3]->value = controllerWorldPos_1.x;
+		inParamVec[4]->value = controllerWorldPos_1.y;
+		inParamVec[5]->value = controllerWorldPos_1.z;
+
+		regMod.normaliseData(inParamVec);
+		regMod.normaliseData(outParamVec);
 
 		regMod.run(inParamVec, outParamVec);
 
-		std::cout << "OUT 0 After Run: " << outParamVec[0]->value << std::endl;
-		std::cout << "OUT 1 After Run: " << outParamVec[1]->value << std::endl;
+		std::cout << "OUT 0 After Run: " << outParamVec[0]->normVal << std::endl;
+		std::cout << "OUT 1 After Run: " << outParamVec[1]->normVal << std::endl;
+
+		//************REMAP TO ORIGINAL RANGE*****************************
 	} 
 	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
 	{

@@ -925,22 +925,26 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 		if (m_vVRPos.x > 0.0f)
 		{
         		m_vec4TranslationVal -= camSpeed * rightDirVec4;
-			if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * rightDirVec4; 
+			//if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * rightDirVec4; 
+			if(translationMag >= m_fMaxDist) m_vec4TranslationVal += camSpeed * rightDirVec4; 
 		}
     		if (m_vVRPos.x < 0.0f)
 		{
         		m_vec4TranslationVal += camSpeed * rightDirVec4;
-			if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * rightDirVec4;
+			//if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * rightDirVec4;
+			if(translationMag >= m_fMaxDist) m_vec4TranslationVal -= camSpeed * rightDirVec4;
 		}
     		if (m_vVRPos.y > 0.0f)
 		{
         		m_vec4TranslationVal += camSpeed * forwardDirVec4; 
-			if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * forwardDirVec4;
+			//if(translationMag >= 30.0f) m_vec4TranslationVal -= camSpeed * forwardDirVec4;
+			if(translationMag >= m_fMaxDist) m_vec4TranslationVal -= camSpeed * forwardDirVec4;
 		}
     		if (m_vVRPos.y < 0.0f)
 		{
         		m_vec4TranslationVal -= camSpeed * forwardDirVec4;
-			if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * forwardDirVec4;
+			//if(translationMag >= 30.0f) m_vec4TranslationVal += camSpeed * forwardDirVec4;
+			if(translationMag >= m_fMaxDist) m_vec4TranslationVal += camSpeed * forwardDirVec4;
 		}
 			
 		////keep camera movement on the XZ plane

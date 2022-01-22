@@ -107,12 +107,21 @@ private:
 	std::vector<double> outputData;	
 	
 	RegressionModel regMod;
-	std::unique_ptr<RegressionModel::DataInfo> outDataPtr;
-	std::unique_ptr<RegressionModel::DataInfo> outDataPtr1;
+	
+	//parameter setup
+	std::unique_ptr<RegressionModel::DataInfo> m_pNoteFreq;
+	std::unique_ptr<RegressionModel::DataInfo> m_pNoteLength;
+	std::unique_ptr<RegressionModel::DataInfo> m_pWinSize;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
-	std::unique_ptr<RegressionModel::DataInfo> inDataPtr;
-	std::unique_ptr<RegressionModel::DataInfo> inDataPtr1;
+	
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerY;
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerZ;
+	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerX;
+	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerY;
+	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerZ;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inParamVec;
+
 	std::string mySavedModel;
 };
 #endif

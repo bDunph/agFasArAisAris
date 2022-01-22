@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 #include <random>
+#include <algorithm>
 
 RegressionModel::RegressionModel(){
 	std::cout << "Hello from Regression Model class!" << std::endl;
@@ -20,18 +21,27 @@ void RegressionModel::randomiseData(std::vector<std::unique_ptr<DataInfo>> &data
 	}
 }
 
+void RegressionModel::normaliseData(std::vector<std::unique_ptr<DataInfo>> &dataVec){
+
+	for(int i = 0; i < dataVec.size(); i++){
+		dataVec[i]->normVal = std::max(0.0, std::min(1.0, (dataVec[i]->value - dataVec[i]->minVal) / (dataVec[i]->maxVal - dataVec[i]->minVal)));
+	}
+
+}
+
+
 void RegressionModel::collectData(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, std::vector<std::unique_ptr<DataInfo>> &outputDataVec){
 
 	trainingExample trainingEx;
 
 	for(int i = 0; i < inputDataVec.size(); i++){
-		double inVal = inputDataVec[i]->value;
+		double inVal = inputDataVec[i]->normVal;
 		trainingEx.input.push_back(inVal);
 	}
 
 	for(int i = 0; i < outputDataVec.size(); i++)
 	{
-		double outVal = outputDataVec[i]->value;
+		double outVal = outputDataVec[i]->normVal;
 		trainingEx.output.push_back(outVal);
 	}
 
@@ -59,14 +69,14 @@ void RegressionModel::run(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, 
 	std::vector<double> outputs;
 
 	for(int i = 0; i < inputDataVec.size(); i++){
-		double inVal = inputDataVec[i]->value;
+		double inVal = inputDataVec[i]->normVal;
 		inputs.push_back(inVal);
 	}
 
 	outputs = m_staticRegression.run(inputs);
 
 	for(int i = 0; i < outputDataVec.size(); i++){
-		outputDataVec[i]->value = outputs[i];
+		outputDataVec[i]->normVal = outputs[i];
 	}
 
 	inputs.clear();
