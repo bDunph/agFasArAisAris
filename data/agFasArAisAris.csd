@@ -528,13 +528,13 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
 
 ; envelope the signal with a lowpass filter
 kcf         expseg     50,p3/2,12000,p3/2,50
-aSig       moogvcf2    aSig, kcf, 0.5
+gaGranulatedRainDrySig moogvcf2    aSig, kcf, 0.5
 
 ; add a little of our audio signals to the global send variables -
 ; - these will be sent to the reverb instrument (2)
-gaSend     =          gaSend+(aSig*0.4)
+gaSend     =          gaSend+(gaGranulatedRainDrySig*0.4)
 
-            outs       aSig,aSig
+            ;outs       gaGranulatedRainDrySig,gaGranulatedRainDrySig
   endin
 
 ;**************************************************************************************
@@ -783,7 +783,7 @@ instr SoundLocaliser, 17	; Sound Localisation using hrtf2
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init 3
+iNumAudioSources init	1 
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
@@ -805,9 +805,7 @@ channelLoop:
 	loop_lt	kCount, 1, iNumAudioSources, channelLoop
 	
 aInstSigs[]	init	iNumAudioSources
-aInstSigs[0] = gaOut1
-aInstSigs[1] = gaParticleOut * 0.5
-aInstSigs[2] = gaParticleOut * 0.5 
+aInstSigs[0] =	gaGranulatedRainDrySig 
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -819,23 +817,11 @@ aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0
 aLeftSigs[0] = aLeftSigs[0] / (kDistVals[0] + 0.00001)
 aRightSigs[0] = aRightSigs[0] / (kDistVals[0] + 0.00001)
 
-kDistVals[1]	portk	kDistances[1],	kPortTime
-
-aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
-aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
-
-kDistVals[2] portk kDistances[2], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
-	
-aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[2] = aLeftSigs[2] / (kDistVals[2] + 0.00001)
-aRightSigs[2] = aRightSigs[2] / (kDistVals[2] + 0.00001)
-
 aL init 0
 aR init 0
 
-aL sum aLeftSigs[0], aLeftSigs[1], aLeftSigs[2]
-aR sum aRightSigs[0], aRightSigs[1], aRightSigs[2]
+aL =	aLeftSigs[0]
+aR =	aRightSigs[0]
 
 outs	aL,	aR
 endin
@@ -868,6 +854,8 @@ f0	86400 ;keep csound running for a day
 ;i6.02	2	-1	50.0	
 
 i "GranulatedRainTrigger"	0	-1
+
+i "SoundLocaliser"		0	-1
 
 ;i9	0	-1
 

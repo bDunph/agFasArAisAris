@@ -260,18 +260,18 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	if(machineLearning.bRecord){
 
-		//inParamVec[0]->value = controllerWorldPos_0.x;
-		//inParamVec[1]->value = controllerWorldPos_0.y;
-		//inParamVec[2]->value = controllerWorldPos_0.z;
-		//inParamVec[3]->value = controllerWorldPos_1.x;
-		//inParamVec[4]->value = controllerWorldPos_1.y;
-		//inParamVec[5]->value = controllerWorldPos_1.z;
-		inParamVec[0]->value = 2.43;
-		inParamVec[1]->value = 5.32;
-		inParamVec[2]->value = 4.53;
-		inParamVec[3]->value = 3.21;
-		inParamVec[4]->value = 4.23;
-		inParamVec[5]->value = 4.56;
+		inParamVec[0]->value = controllerWorldPos_0.x;
+		inParamVec[1]->value = controllerWorldPos_0.y;
+		inParamVec[2]->value = controllerWorldPos_0.z;
+		inParamVec[3]->value = controllerWorldPos_1.x;
+		inParamVec[4]->value = controllerWorldPos_1.y;
+		inParamVec[5]->value = controllerWorldPos_1.z;
+		//inParamVec[0]->value = 2.43;
+		//inParamVec[1]->value = 5.32;
+		//inParamVec[2]->value = 4.53;
+		//inParamVec[3]->value = 3.21;
+		//inParamVec[4]->value = 4.23;
+		//inParamVec[5]->value = 4.56;
 
 		regMod.normaliseData(inParamVec);
 		regMod.normaliseData(outParamVec);
@@ -286,32 +286,26 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	}
 	m_bPrevTrainState = machineLearning.bTrainModel;
 
-	bool currentHaltState = m_bPrevHaltState;
-	if(machineLearning.bRunModel && !machineLearning.bHaltModel && m_bModelTrained)
+	bool currentRunState = machineLearning.bRunModel;
+	if(machineLearning.bRunModel && m_bModelTrained)
 	{
-//		inParamVec[0]->value = controllerWorldPos_0.x;
-//		inParamVec[1]->value = controllerWorldPos_0.y;
-//		inParamVec[2]->value = controllerWorldPos_0.z;
-//		inParamVec[3]->value = controllerWorldPos_1.x;
-//		inParamVec[4]->value = controllerWorldPos_1.y;
-//		inParamVec[5]->value = controllerWorldPos_1.z;
+		inParamVec[0]->value = controllerWorldPos_0.x;
+		inParamVec[1]->value = controllerWorldPos_0.y;
+		inParamVec[2]->value = controllerWorldPos_0.z;
+		inParamVec[3]->value = controllerWorldPos_1.x;
+		inParamVec[4]->value = controllerWorldPos_1.y;
+		inParamVec[5]->value = controllerWorldPos_1.z;
 
-		inParamVec[0]->value = 5.32;
-		inParamVec[1]->value = 1.23;
-		inParamVec[2]->value = 2.53;
-		inParamVec[3]->value = 5.23;
-		inParamVec[4]->value = 3.26;
-		inParamVec[5]->value = 3.05;
+		//inParamVec[0]->value = 5.32;
+		//inParamVec[1]->value = 1.23;
+		//inParamVec[2]->value = 2.53;
+		//inParamVec[3]->value = 5.23;
+		//inParamVec[4]->value = 3.26;
+		//inParamVec[5]->value = 3.05;
 
 		regMod.normaliseData(inParamVec);
 
 		regMod.run(inParamVec, outParamVec);
-
-		std::cout << "NORM OUT 0 After Run: " << outParamVec[0]->normVal << std::endl;
-		std::cout << "NORM OUT 1 After Run: " << outParamVec[1]->normVal << std::endl;
-		std::cout << "NORM OUT 2 After Run: " << outParamVec[2]->normVal << std::endl;
-		std::cout << "NORM OUT 3 After Run: " << outParamVec[3]->normVal << std::endl;
-		std::cout << "NORM OUT 4 After Run: " << outParamVec[4]->normVal << std::endl;
 
 		regMod.remapData(outParamVec);
 
@@ -320,20 +314,12 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
 		m_dFbmAmp = outParamVec[3]->value;
 		m_dFbmSpeed = outParamVec[4]->value;
-
-		std::cout << "Param 0 to Csound : " << *m_vSendVals[0] << std::endl;
-		std::cout << "Param 1 to Csound : " << *m_vSendVals[1] << std::endl;
-		std::cout << "Param 2 to Csound : " << *m_vSendVals[2] << std::endl;
-		std::cout << "Param 3 to Shader: " << m_dFbmAmp << std::endl;
-		std::cout << "Param 4 to Shader: " << m_dFbmSpeed << std::endl;
-
-
 	} 
-	else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState)
+	else if(!machineLearning.bRunModel && currentRunState != m_bPrevRunState)
 	{
 		std::cout << "Model Stopped" << std::endl;
 	}
-	m_bPrevHaltState = machineLearning.bHaltModel;
+	m_bPrevRunState = currentRunState;
 	
 	// save model
 	bool currentSaveState = m_bPrevSaveState;

@@ -838,12 +838,12 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	//run model
 	if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
 		machineLearning.bRunModel = true;
-		machineLearning.bHaltModel = false;
+		//machineLearning.bHaltModel = false;
 	}
 
 	//halt model
 	if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
-		machineLearning.bHaltModel = true;
+		//machineLearning.bHaltModel = true;
 		machineLearning.bRunModel = false;
 	}
 

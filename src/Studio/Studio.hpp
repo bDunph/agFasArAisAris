@@ -95,6 +95,7 @@ private:
 	bool m_bPrevRandomState;
 	bool m_bPrevTrainState;
 	bool m_bPrevHaltState;
+	bool m_bPrevRunState;
 	bool m_bPrevLoadState;
 	bool m_bCurrentMsgState;
 	bool m_bMsg;

@@ -202,13 +202,14 @@ bool VR_Manager::HandleInput()
 	//controls and just have a true/false switch here.
 	vr::VRInputValueHandle_t ulRunDevice;
 	bool deviceCall = helper->GetDigitalActionState(m_actionRunModel, &ulRunDevice);
-	bool prevDeviceState = m_bCurrentDeviceState;
-	if(deviceCall && deviceCall != prevDeviceState){
+	bool prevDeviceState;
+	m_bCurrentDeviceState = deviceCall;
+	if(deviceCall && m_bCurrentDeviceState != prevDeviceState){
 		if(ulRunDevice == m_rHand[Left].m_source || ulRunDevice == m_rHand[Right].m_source){
 			m_bViveRunModel = !m_bViveRunModel;
 		}
 	}
-	m_bCurrentDeviceState = deviceCall;
+	prevDeviceState = m_bCurrentDeviceState;
 
 	vr::VRInputValueHandle_t ulSaveDevice;
 	if(helper->GetDigitalActionState(m_actionSaveModel, &ulSaveDevice)){
