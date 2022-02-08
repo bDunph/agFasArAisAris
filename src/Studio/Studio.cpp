@@ -27,9 +27,9 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pStTools->RaymarchQuadSetup(shaderProg);
 	
 	//shader uniforms
-	m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
-	m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
-	m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
+	//m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
+	//m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
+	//m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
 	m_gliDisplayRes = glGetUniformLocation(shaderProg, "dispRes");
 	m_gliTime = glGetUniformLocation(shaderProg, "time");
 	m_gliFbmAmp = glGetUniformLocation(shaderProg, "fbmAmp");
@@ -204,22 +204,22 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//std::cout << (double)pboInfo.pboPtr[0] << ":" << (double)pboInfo.pboPtr[1] << ":" << (double)pboInfo.pboPtr[2] << ":" << (double)pboInfo.pboPtr[3] << std::endl;
 
 	// spectral pitch data processing
-	m_fCurrentFrame = glfwGetTime();
-	m_fDeltaTime = m_fCurrentFrame - m_fLastFrame;	
-	m_fDeltaTime *= 1000.0f;
-	if(*m_vReturnVals[0] > 0) m_fTargetVal = *m_vReturnVals[0];	
-	if(m_fTargetVal > m_fCurrentVal)
-	{
-		m_fCurrentVal += m_fDeltaTime;
-	} else if(m_fTargetVal <= m_fCurrentVal)
-	{
-		m_fCurrentVal -= m_fDeltaTime;
-	} else if(m_fTargetVal == m_fCurrentVal)
-	{
-		m_fCurrentVal = m_fTargetVal;
-	}
-	if(m_fCurrentVal < 0.0f) m_fCurrentVal = 0.0f;
-	m_fPitch = m_fCurrentVal;
+	//m_fCurrentFrame = glfwGetTime();
+	//m_fDeltaTime = m_fCurrentFrame - m_fLastFrame;	
+	//m_fDeltaTime *= 1000.0f;
+	//if(*m_vReturnVals[0] > 0) m_fTargetVal = *m_vReturnVals[0];	
+	//if(m_fTargetVal > m_fCurrentVal)
+	//{
+	//	m_fCurrentVal += m_fDeltaTime;
+	//} else if(m_fTargetVal <= m_fCurrentVal)
+	//{
+	//	m_fCurrentVal -= m_fDeltaTime;
+	//} else if(m_fTargetVal == m_fCurrentVal)
+	//{
+	//	m_fCurrentVal = m_fTargetVal;
+	//}
+	//if(m_fCurrentVal < 0.0f) m_fCurrentVal = 0.0f;
+	//m_fPitch = m_fCurrentVal;
 	
 	// example sound source at origin
 	StudioTools::SoundSourceData soundSource1;
@@ -235,8 +235,8 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//m_fSineControlVal = sin(glfwGetTime() * 0.33f);
 	//*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
 
-	m_fTime = glfwGetTime();
-	m_vDisplayRes = displayRes;
+	//m_fTime = glfwGetTime();
+	//m_vDisplayRes = displayRes;
 
 	//run machine learning
 	MLAudioParameter paramData;

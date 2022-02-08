@@ -2,8 +2,8 @@
 // raymarch basic setup adapted from dila's tutorial
 // https://www.youtube.com/watch?v=yxNnRSefK94
 
-#define ITERATIONS 16 
-#define MAX_ITERATIONS 100
+#define ITERATIONS 8 
+#define MAX_ITERATIONS 20 
 #define FOLD_CUTOFF 50
 #define SCALE 2.0
 #define OFFSET 2.0
@@ -16,9 +16,9 @@
 #define FACTOR 5.0
 
 uniform mat4 MVEPMat;
-uniform float specCentVal;
-uniform float timeVal;
-uniform float rmsModVal;
+//uniform float specCentVal;
+//uniform float timeVal;
+//uniform float rmsModVal;
 
 uniform vec2 dispRes;
 uniform float time;
@@ -83,7 +83,8 @@ float planeSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
+	//mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), 0.65);
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
@@ -119,10 +120,12 @@ float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
 
-	float specFactor = sin(specCentVal) * 0.25; 
+	//float specFactor = sin(specCentVal) * 0.25; 
+	float specFactor = sin(0.43) * 0.25; 
   	float specDisp = sin(specFactor * p.x) * sin(specFactor * p.y) * sin(specFactor * p.z);
 
-	float ampDisp = sin(rmsModVal * 5.0);
+	//float ampDisp = sin(rmsModVal * 5.0);
+	float ampDisp = sin(5.0);
 	
 	float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 
@@ -313,8 +316,8 @@ void main()
 
 	// Output to PBO
 	// convert index from range 0 - 100 to 0 - 1
-	float indOut = float(index) / 100.0;
-	indexOut = vec4(indOut);
+	//float indOut = float(index) / 100.0;
+	//indexOut = vec4(indOut);
 
 //-----------------------------------------------------------------------------
 // To calculate depth for use with rasterized material

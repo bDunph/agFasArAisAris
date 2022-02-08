@@ -478,19 +478,19 @@ endin
   					;	granular swishing type texture.
 ;**************************************************************************************
 
-kFreq		chnget		"noteFreq"
-kNoteLen	chnget		"noteLength"
-kWSize		chnget		"winSize"
-kWSize = floor(kWSize)
+;kFreq		chnget		"noteFreq"
+;kNoteLen	chnget		"noteLength"
+;kWSize		chnget		"winSize"
+;kWSize = floor(kWSize)
 
 
-;kFreq     	random  	2, 	25 
+kFreq     	random  	2, 	25 
 kMetVal		metro   	0.2,	0.00000001		
 kTrigVal	samphold	kFreq,	kMetVal	
 
 kTrigger	metro		kTrigVal
-;kNoteLen	random		0.05,		0.2
-;kWSize		random		80,		85
+kNoteLen	random		0.05,		0.2
+kWSize		random		80,		85
 
 schedkwhen kTrigger,0,0,8,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
 
@@ -691,37 +691,37 @@ schedkwhen kTrigger,0,0,15,0,0.5
   endin
 
 ;********************************************************************************
-instr KickDrum, 15 ; Drum Synth
+;instr KickDrum, 15 ; Drum Synth
 ;********************************************************************************
 
-iFn		init	giSquare
-kAmp		init	1	
-kFreq		init	30	
-
-aOscSig		oscil	kAmp, kFreq, iFn
-
-kBeta		init	2	
-aNoiseSig	fractalnoise	kAmp, kBeta
-
-kCutOff		init	47	
-kRes		init	1.75
-
-aFiltSig	moogvcf	aOscSig + aNoiseSig, kCutOff, kRes
-
-kRvt		init	0.25	
-aRevOut		reverb	aFiltSig, kRvt
-
-iNoteLen	init	p3
-iAtt		init	0.000001
-iDec		init	0.1
-iSus		init	0.01	
-iRel		init	iNoteLen * 0.1
-
-aEnv		adsr	iAtt, iDec, iSus, iRel
-
-	outs	aRevOut * aEnv, aRevOut * aEnv
-
-endin
+;iFn		init	giSquare
+;kAmp		init	1	
+;kFreq		init	30	
+;
+;aOscSig		oscil	kAmp, kFreq, iFn
+;
+;kBeta		init	2	
+;aNoiseSig	fractalnoise	kAmp, kBeta
+;
+;kCutOff		init	47	
+;kRes		init	1.75
+;
+;aFiltSig	moogvcf	aOscSig + aNoiseSig, kCutOff, kRes
+;
+;kRvt		init	0.25	
+;aRevOut		reverb	aFiltSig, kRvt
+;
+;iNoteLen	init	p3
+;iAtt		init	0.000001
+;iDec		init	0.1
+;iSus		init	0.01	
+;iRel		init	iNoteLen * 0.1
+;
+;aEnv		adsr	iAtt, iDec, iSus, iRel
+;
+;	outs	aRevOut * aEnv, aRevOut * aEnv
+;
+;endin
 
 
 ;**************************************************************************************
