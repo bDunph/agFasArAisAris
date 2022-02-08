@@ -135,6 +135,7 @@ private:
 	bool m_bViveSaveModel;
 	bool m_bViveLoadModel;
 	bool m_bCurrentDeviceState;
+	bool m_bPrevDeviceState;
 
 	//movement controls
 	glm::vec2 m_vMoveCam;

@@ -96,7 +96,7 @@
          "/actions/immersAV/in/triggerhaptic" : "Trigger Haptic Pulse",
          "/actions/immersAV/out/haptic_left" : "Left Haptic Feedback",
          "/actions/immersAV/out/haptic_right" : "Right Haptic Feedback",
-         "/actions/machineLearning/in/AnalogInput" : "Movement Controls",
+         "/actions/machineLearning/in/MovementControls" : "Movement Controls",
          "/actions/machineLearning/in/LoadModel" : "Load Model",
          "/actions/machineLearning/in/RandomiseParameters" : "Randomise Audio and Visual Paramters",
          "/actions/machineLearning/in/RecordTrainingExample" : "Record A Training Example",

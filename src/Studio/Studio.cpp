@@ -235,27 +235,27 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//m_fSineControlVal = sin(glfwGetTime() * 0.33f);
 	//*m_vSendVals[0] = (MYFLT)m_fSineControlVal;
 
-	//m_fTime = glfwGetTime();
-	//m_vDisplayRes = displayRes;
+	m_fTime = glfwGetTime();
+	m_vDisplayRes = displayRes;
 
 	//run machine learning
-	MLAudioParameter paramData;
-	paramData.distributionLow = 400.0f;
-	paramData.distributionHigh = 1000.0f;
-	paramData.sendVecPosition = 1;
-	std::vector<MLAudioParameter> paramVec;
-	paramVec.push_back(paramData);
+	//MLAudioParameter paramData;
+	//paramData.distributionLow = 400.0f;
+	//paramData.distributionHigh = 1000.0f;
+	//paramData.sendVecPosition = 1;
+	//std::vector<MLAudioParameter> paramVec;
+	//paramVec.push_back(paramData);
 	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
 
 	//********** RegressionModel Class********************
-	bool currentRandomState = m_bPrevRandomState;
-	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
+	bool currentRandomState = machineLearning.bRandomParams;
+	if(machineLearning.bRandomParams != m_bPrevRandomState && machineLearning.bRandomParams == true){
 
 		regMod.randomiseData(outParamVec);
 		std::cout << "RANDOMISED WIN SIZE: " << outParamVec[2]->value << std::endl;
 			
 	}
-	m_bPrevRandomState = machineLearning.bRandomParams;
+	m_bPrevRandomState = currentRandomState;
 
 
 	if(machineLearning.bRecord){
@@ -266,6 +266,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		inParamVec[3]->value = controllerWorldPos_1.x;
 		inParamVec[4]->value = controllerWorldPos_1.y;
 		inParamVec[5]->value = controllerWorldPos_1.z;
+		
 		//inParamVec[0]->value = 2.43;
 		//inParamVec[1]->value = 5.32;
 		//inParamVec[2]->value = 4.53;
@@ -276,19 +277,24 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		regMod.normaliseData(inParamVec);
 		regMod.normaliseData(outParamVec);
 		regMod.collectData(inParamVec, outParamVec);
+		std::cout << "RECORDING" << std::endl;
 	}
 	machineLearning.bRecord = false;
 
-	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
+	//bool currentTrainState = m_bPrevTrainState;
+	bool currentTrainState = machineLearning.bTrainModel;
+	//if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
+	if(machineLearning.bTrainModel != m_bPrevTrainState && machineLearning.bTrainModel == true){
 		m_bModelTrained = regMod.trainModel();
 		std::cout << "MODEL TRAINED: " << m_bModelTrained << std::endl;
 	}
-	m_bPrevTrainState = machineLearning.bTrainModel;
+	//m_bPrevTrainState = machineLearning.bTrainModel;
+	m_bPrevTrainState = currentTrainState;
 
 	bool currentRunState = machineLearning.bRunModel;
 	if(machineLearning.bRunModel && m_bModelTrained)
 	{
+		std::cout << "MODEL RUNNING" << std::endl;
 		inParamVec[0]->value = controllerWorldPos_0.x;
 		inParamVec[1]->value = controllerWorldPos_0.y;
 		inParamVec[2]->value = controllerWorldPos_0.z;
@@ -375,6 +381,7 @@ void Studio::MLRegressionSetup()
 	m_bPrevSaveState = false;
 	m_bPrevRandomState = false;
 	m_bPrevTrainState = false;
+	m_bPrevRunState = false;
 	m_bPrevHaltState = false;
 	m_bPrevLoadState = false;
 	m_bMsg = true;

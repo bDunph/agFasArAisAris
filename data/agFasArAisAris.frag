@@ -2,8 +2,8 @@
 // raymarch basic setup adapted from dila's tutorial
 // https://www.youtube.com/watch?v=yxNnRSefK94
 
-#define ITERATIONS 8 
-#define MAX_ITERATIONS 20 
+#define ITERATIONS 10 
+#define MAX_ITERATIONS 35 
 #define FOLD_CUTOFF 50
 #define SCALE 2.0
 #define OFFSET 2.0
@@ -83,8 +83,7 @@ float planeSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	//mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), 0.65);
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     

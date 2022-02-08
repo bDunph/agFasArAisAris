@@ -33,7 +33,8 @@ VR_Manager::VR_Manager(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	m_bViveRunModel(false),
 	m_bViveSaveModel(false),
 	m_bViveLoadModel(false),
-	m_bCurrentDeviceState(false){
+	m_bCurrentDeviceState(false),
+	m_bPrevDeviceState(false){
 
 	helper = std::make_unique<VR_Helper>();
 
@@ -202,14 +203,13 @@ bool VR_Manager::HandleInput()
 	//controls and just have a true/false switch here.
 	vr::VRInputValueHandle_t ulRunDevice;
 	bool deviceCall = helper->GetDigitalActionState(m_actionRunModel, &ulRunDevice);
-	bool prevDeviceState;
 	m_bCurrentDeviceState = deviceCall;
-	if(deviceCall && m_bCurrentDeviceState != prevDeviceState){
+	if(deviceCall && m_bCurrentDeviceState != m_bPrevDeviceState){
 		if(ulRunDevice == m_rHand[Left].m_source || ulRunDevice == m_rHand[Right].m_source){
 			m_bViveRunModel = !m_bViveRunModel;
 		}
 	}
-	prevDeviceState = m_bCurrentDeviceState;
+	m_bPrevDeviceState = m_bCurrentDeviceState;
 
 	vr::VRInputValueHandle_t ulSaveDevice;
 	if(helper->GetDigitalActionState(m_actionSaveModel, &ulSaveDevice)){

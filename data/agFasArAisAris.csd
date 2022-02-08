@@ -853,9 +853,9 @@ f0	86400 ;keep csound running for a day
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-i "GranulatedRainTrigger"	0	-1
+i "GranulatedRainTrigger"	2	-1
 
-i "SoundLocaliser"		0	-1
+i "SoundLocaliser"		1	-1
 
 ;i9	0	-1
 
