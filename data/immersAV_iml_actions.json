@@ -75,7 +75,13 @@
          "name" : "/actions/machineLearning/in/LoadModel",
          "requirement" : "suggested",
          "type" : "boolean"
-      }
+      },
+        {
+	      "name" : "/actions/machineLearning/in/SetControlArea",
+	      "requirement" : "suggested",
+	      "type" : "boolean"
+	}
+
    ],
    "action_sets" : [
       {
@@ -103,6 +109,7 @@
          "/actions/machineLearning/in/RunModel" : "Run Model",
          "/actions/machineLearning/in/SaveModel" : "Save Model",
          "/actions/machineLearning/in/TrainModel" : "Train Model",
+	 "/actions/machineLearning/in/SetControlArea" : "Set Control Area",
          "language_tag" : "en_US"
       }
    ]

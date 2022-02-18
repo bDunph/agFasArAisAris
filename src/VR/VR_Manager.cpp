@@ -34,7 +34,8 @@ VR_Manager::VR_Manager(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	m_bViveSaveModel(false),
 	m_bViveLoadModel(false),
 	m_bCurrentDeviceState(false),
-	m_bPrevDeviceState(false){
+	m_bPrevDeviceState(false),
+	m_bViveSetControlArea(false){
 
 	helper = std::make_unique<VR_Helper>();
 
@@ -104,6 +105,7 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionHandle("/actions/machinelearning/in/Savemodel", &m_actionSaveModel);
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/LoadModel", &m_actionLoadModel);
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/MovementControls", &m_actionMoveCam);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/SetControlArea", &m_actionSetControlArea);
 
 	vr::VRInput()->GetActionSetHandle("/actions/machineLearning", &m_actionSetMachineLearning);
 
@@ -171,6 +173,15 @@ bool VR_Manager::HandleInput()
 	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
 
 	//machine learning controls
+	vr::VRInputValueHandle_t ulControlAreaDevice;
+	if(helper->GetDigitalActionState(m_actionSetControlArea, &ulControlAreaDevice)){
+		if(ulControlAreaDevice == m_rHand[Left].m_source || ulControlAreaDevice == m_rHand[Right].m_source){
+			m_bViveSetControlArea = true;
+		}
+	} else {
+		m_bViveSetControlArea = false;
+	}
+
 	vr::VRInputValueHandle_t ulRandomDevice;
 	if(helper->GetDigitalActionState(m_actionRandomParameters, &ulRandomDevice)){
 		if(ulRandomDevice == m_rHand[Left].m_source || ulRandomDevice == m_rHand[Right].m_source){

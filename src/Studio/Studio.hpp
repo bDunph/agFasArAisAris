@@ -34,6 +34,7 @@ public:
 		bool bSaveModel;
 		bool bLoadModel;
 		bool bDevMode;
+		bool bSetControlArea;
 	};
 
 	struct MLAudioParameter 
