@@ -14,6 +14,7 @@
 #define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
 #define SPHERE_RAD 10.0
 #define FACTOR 5.0
+#define MARKER_RAD 1.0
 
 uniform mat4 MVEPMat;
 //uniform float specCentVal;
@@ -24,6 +25,8 @@ uniform vec2 dispRes;
 uniform float time;
 uniform float fbmAmp;
 uniform float fbmSpeed;
+uniform int controlAreaSphereNum;
+uniform vec3 controllerPos;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -36,6 +39,7 @@ int index;
 vec4 orbit;
 
 float fbmVal;
+float markerDists[10];
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -54,6 +58,11 @@ mat3 rotationMatrix(vec3 axis, float angle)
 // Sphere SDF from https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 //----------------------------------------------------------------------------------------
 float sphereSDF(vec3 p, float radius)
+{
+	return abs(length(p) - radius);
+}
+
+float controlAreaSphere(vec3 p, float radius)
 {
 	return abs(length(p) - radius);
 }
@@ -138,7 +147,16 @@ float DE(vec3 p)
 	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
-	return min(kifDist, min(sphereDist, planeDist));
+	int ind = 0;
+	float minMarkerDist = 10000.0;
+	while(ind < controlAreaSphereNum)
+	{
+		markerDists[ind] = controlAreaSphere(p + controllerPos, MARKER_RAD); 	
+		if(markerDists[ind] < minMarkerDist) minMarkerDist = markerDists[ind];
+		ind++;
+	}
+	
+	return min(kifDist, min(sphereDist, min(planeDist, minMarkerDist)));
 }
 
 float march(vec3 o, vec3 r)
@@ -261,7 +279,6 @@ void main()
 	
 	//************* ray setup code from **************************//
 	//https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html*/
-	
 	
 	//******* Perform raymarch *********************//
 	vec3 rayOrigin = nearPos.xyz / nearPos.w;

@@ -104,6 +104,7 @@ private:
 	bool m_bCurrentRunMsgState;
 	float sizeVal;
 	bool m_bModelTrained;
+	bool m_bPrevControlAreaMarkerState;
 
 	//machine learning 
 	regression staticRegression;

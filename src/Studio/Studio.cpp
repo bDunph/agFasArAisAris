@@ -247,6 +247,16 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//paramVec.push_back(paramData);
 	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
 
+	//************** Control Area Marker ********************
+	bool currentControlAreaMarkerState = machineLearning.bSetControlArea;	
+	if(currentControlAreaMarkerState == true && currentControlAreaMarkerState != m_bPrevControlAreaMarkerState){
+		std::cout << "SET CONTROL AREA MARKER" << std::endl;
+		// I need to send the following uniforms to the frag:
+		// - controlAreaSphereNum
+		// - controllerPos
+	}
+	m_bPrevControlAreaMarkerState = currentControlAreaMarkerState;
+
 	//********** RegressionModel Class********************
 	bool currentRandomState = machineLearning.bRandomParams;
 	if(machineLearning.bRandomParams != m_bPrevRandomState && machineLearning.bRandomParams == true){
@@ -390,6 +400,7 @@ void Studio::MLRegressionSetup()
 	m_bCurrentRunMsgState = false;
 	sizeVal = 0.0f;
 	m_bModelTrained = false;
+	m_bPrevControlAreaMarkerState = false;
 }
 
 void Studio::MLRegressionUpdate(MachineLearning& machineLearning, PBOInfo& pboInfo, std::vector<MLAudioParameter>& params)
