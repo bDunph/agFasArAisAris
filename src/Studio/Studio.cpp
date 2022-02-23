@@ -21,6 +21,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_fTargetVal = 0.0f;
 	m_fCurrentVal = 0.0f;
 
+	m_iSphereNum = 0;
+
 	m_pStTools = new StudioTools();
 
 	//setup quad to use for raymarching
@@ -34,7 +36,9 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliTime = glGetUniformLocation(shaderProg, "time");
 	m_gliFbmAmp = glGetUniformLocation(shaderProg, "fbmAmp");
 	m_gliFbmSpeed = glGetUniformLocation(shaderProg, "fbmSpeed");
-	
+	m_gliSphereNum = glGetUniformLocation(shaderProg, "controlAreaSphereNum");
+	m_gliControllerPos = glGetUniformLocation(shaderProg, "controllerPos");
+
 	//machine learning setup
 	MLRegressionSetup();
 
@@ -193,7 +197,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 //*******************************************************************************************
 // Update 
 //*******************************************************************************************
-void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes){
+void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes, glm::vec3 translationVec){
 
 	// For return values from shader.
 	// vec4 for each fragment is returned in the order RGBA. 
@@ -254,6 +258,11 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		// I need to send the following uniforms to the frag:
 		// - controlAreaSphereNum
 		// - controllerPos
+		m_iSphereNum++;
+		std::cout << "SPHERE NUMBER: " << m_iSphereNum << std::endl;
+		//m_vec3ControllerPos = translationVec - controllerWorldPos_1;
+		m_vec3ControllerPos = translationVec;
+		std::cout << "Controller Position: " << m_vec3ControllerPos.x << ": " << m_vec3ControllerPos.y << ": " << m_vec3ControllerPos.z << std::endl;
 	}
 	m_bPrevControlAreaMarkerState = currentControlAreaMarkerState;
 
@@ -371,6 +380,8 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1f(m_gliTime, m_fTime);
 	glUniform1f(m_gliFbmAmp, m_dFbmAmp);
 	glUniform1f(m_gliFbmSpeed, m_dFbmSpeed);
+	glUniform1i(m_gliSphereNum, m_iSphereNum);
+	glUniform3f(m_gliControllerPos, m_vec3ControllerPos.x, m_vec3ControllerPos.y, m_vec3ControllerPos.z);
 
 	m_pStTools->DrawEnd();
 

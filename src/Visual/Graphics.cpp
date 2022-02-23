@@ -978,7 +978,7 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 
 	glm::vec2 displayRes = glm::vec2(m_nRenderWidth, m_nRenderHeight);
 	//update variables for studio
-	studio.Update(m_mat4CurrentViewMatrix, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, displayRes);
+	studio.Update(m_mat4CurrentViewMatrix, machineLearning, m_vec3ControllerWorldPos[0], m_vec3ControllerWorldPos[1], m_quatController[0], m_quatController[1], m_structPboInfo, displayRes, m_vec3TranslationVal);
 
 	//delete[] m_pDataSize;
 	delete[] m_structPboInfo.pboPtr;

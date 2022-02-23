@@ -14,7 +14,7 @@
 #define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
 #define SPHERE_RAD 10.0
 #define FACTOR 5.0
-#define MARKER_RAD 1.0
+#define MARKER_RAD 0.25
 
 uniform mat4 MVEPMat;
 //uniform float specCentVal;
@@ -39,7 +39,7 @@ int index;
 vec4 orbit;
 
 float fbmVal;
-float markerDists[10];
+float markerDists[3];
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -149,14 +149,16 @@ float DE(vec3 p)
 
 	int ind = 0;
 	float minMarkerDist = 10000.0;
+	markerDists[0] = 10000.0;
+	markerDists[1] = 10000.0;
+	markerDists[2] = 10000.0;
 	while(ind < controlAreaSphereNum)
 	{
 		markerDists[ind] = controlAreaSphere(p + controllerPos, MARKER_RAD); 	
-		if(markerDists[ind] < minMarkerDist) minMarkerDist = markerDists[ind];
 		ind++;
 	}
 	
-	return min(kifDist, min(sphereDist, min(planeDist, minMarkerDist)));
+	return min(kifDist, min(markerDists[2], min(sphereDist, min( markerDists[1], min(planeDist, markerDists[0])))));
 }
 
 float march(vec3 o, vec3 r)

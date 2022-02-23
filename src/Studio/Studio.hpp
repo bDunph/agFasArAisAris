@@ -45,7 +45,7 @@ public:
 	};
 
 	bool Setup(std::string csd, GLuint shaderProg);
-	void Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes);
+	void Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes, glm::vec3 translationVec);
 	void Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint mengerProg, glm::vec3 translateVec);
 	bool BCsoundReturn(CsoundSession* _session, std::vector<const char*>& returnName, std::vector<MYFLT*>& returnVal);
 	void MLRegressionSetup();
@@ -74,6 +74,10 @@ private:
 	double m_dFbmSpeed;
 	glm::vec2 m_vDisplayRes;
 	float m_fTime;
+	GLint m_gliSphereNum;
+	int m_iSphereNum;
+	GLint m_gliControllerPos;
+	glm::vec3 m_vec3ControllerPos;
 	
 	//control variables
 	bool m_bFirstLoop; 
