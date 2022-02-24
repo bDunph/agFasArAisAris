@@ -15,6 +15,9 @@
 #define SPHERE_RAD 10.0
 #define FACTOR 5.0
 #define MARKER_RAD 0.25
+#define POS1 vec3(7.79998, -4.46797, 7.72899)
+#define POS2 vec3(-1.09494, -2.4807, 9.67536)
+#define POS3 vec3(8.31372, -1.6492, -9.66504)
 
 uniform mat4 MVEPMat;
 //uniform float specCentVal;
@@ -147,18 +150,11 @@ float DE(vec3 p)
 	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
-	int ind = 0;
-	float minMarkerDist = 10000.0;
-	markerDists[0] = 10000.0;
-	markerDists[1] = 10000.0;
-	markerDists[2] = 10000.0;
-	while(ind < controlAreaSphereNum)
-	{
-		markerDists[ind] = controlAreaSphere(p + controllerPos, MARKER_RAD); 	
-		ind++;
-	}
-	
-	return min(kifDist, min(markerDists[2], min(sphereDist, min( markerDists[1], min(planeDist, markerDists[0])))));
+	markerDists[0] = controlAreaSphere(p + POS1, MARKER_RAD);
+	markerDists[1] = controlAreaSphere(p + POS2, MARKER_RAD);
+	markerDists[2] = controlAreaSphere(p + POS3, MARKER_RAD);
+
+	return min(kifDist, min(sphereDist, min(planeDist, min(markerDists[0], min(markerDists[1], markerDists[2])))));
 }
 
 float march(vec3 o, vec3 r)
