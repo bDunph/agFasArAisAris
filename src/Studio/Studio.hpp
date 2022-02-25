@@ -8,6 +8,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
+#include <deque>
 
 #include "RapidLib/regression.h"
 #include "StudioTools.hpp"
@@ -78,6 +79,10 @@ private:
 	int m_iSphereNum;
 	GLint m_gliControllerPos;
 	glm::vec3 m_vec3ControllerPos;
+
+	std::deque<double> m_dFbmAmpBuf;
+	std::deque<double> m_dFbmSpeedBuf;
+	int m_iBufSize;
 	
 	//control variables
 	bool m_bFirstLoop; 

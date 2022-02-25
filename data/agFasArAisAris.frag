@@ -93,6 +93,24 @@ float planeSDF(vec3 p, vec4 normal)
 	return dot(p, normal.xyz) + normal.w;
 }
 
+float platformSDF(vec3 p, vec4 normal)
+{
+
+	p.y += 0.75;
+
+	float function1x = 0.09 * sin(p.x * 0.4) * p.x;
+	float function1z = 0.09 * sin(p.z * 0.4) * p.z;
+
+	float function2x = clamp(function1x, 0.0, 3.0);
+	float function2z = clamp(function1z, 0.0, 3.0);
+
+	p.y += function2x;
+	p.y += function2z;
+
+	return dot(p, normal.xyz) + normal.w;
+}
+
+
 float kifSDF(vec3 p)
 {
 	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
@@ -154,7 +172,9 @@ float DE(vec3 p)
 	markerDists[1] = controlAreaSphere(p + POS2, MARKER_RAD);
 	markerDists[2] = controlAreaSphere(p + POS3, MARKER_RAD);
 
-	return min(kifDist, min(sphereDist, min(planeDist, min(markerDists[0], min(markerDists[1], markerDists[2])))));
+	float platformDist = platformSDF(p, PLANE_NORMAL);
+
+	return min(kifDist, min(sphereDist, min(planeDist, min(markerDists[0], min(markerDists[1], min(markerDists[2], platformDist))))));
 }
 
 float march(vec3 o, vec3 r)

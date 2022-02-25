@@ -1416,7 +1416,8 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 			glUniformMatrix4fv(m_nRenderModelMatrixLocation, 1, GL_FALSE, &matMVP[0][0]);
 			vrm->m_rHand[i].m_pRenderModel->Draw();
 			glm::mat4 matModelViewController = vrm->GetCurrentViewMatrix() * matDeviceToTracking;
-			m_vec3ControllerWorldPos[i] = glm::vec3(matModelViewController[3][0], matModelViewController[3][1], matModelViewController[3][2]); 	
+			//m_vec3ControllerWorldPos[i] = glm::vec3(matModelViewController[3][0], matModelViewController[3][1], matModelViewController[3][2]); 	
+			m_vec3ControllerWorldPos[i] = glm::vec3(matDeviceToTracking[3][0], matDeviceToTracking[3][1], matDeviceToTracking[3][2]); 	
 
 			// convert controller modelView matrix to quaternion
 			m_quatController[i] = glm::quat_cast(matModelViewController);	

@@ -20,6 +20,12 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_fDeltaTime = 0.0f;
 	m_fTargetVal = 0.0f;
 	m_fCurrentVal = 0.0f;
+	m_iBufSize = 5;
+	for(int i = 0; i < m_iBufSize; i++)
+	{
+		m_dFbmAmpBuf.push_front(0.0);
+		m_dFbmSpeedBuf.push_front(0.0);
+	}
 
 	m_iSphereNum = 0;
 
@@ -58,7 +64,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pNoteLength->value = 0.1;
 	m_pNoteLength->normVal = 0.0;
 	m_pNoteLength->minVal = 0.05;
-	m_pNoteLength->maxVal = 0.2;
+	m_pNoteLength->maxVal = 0.9;
 	m_pNoteLength->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteLength));	
@@ -68,7 +74,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pWinSize->value = 81.0;
 	m_pWinSize->normVal = 0.0;
 	m_pWinSize->minVal = 80.0;
-	m_pWinSize->maxVal = 85.0;
+	m_pWinSize->maxVal = 800.0;
 	m_pWinSize->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pWinSize));
@@ -251,6 +257,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//paramVec.push_back(paramData);
 	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
 
+		//std::cout << "Controller Position: " << controllerWorldPos_1.x << ": " << controllerWorldPos_1.y << ": " << controllerWorldPos_1.z << std::endl;
 	//************** Control Area Marker ********************
 	bool currentControlAreaMarkerState = machineLearning.bSetControlArea;	
 	if(currentControlAreaMarkerState == true && currentControlAreaMarkerState != m_bPrevControlAreaMarkerState){
@@ -262,7 +269,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		std::cout << "SPHERE NUMBER: " << m_iSphereNum << std::endl;
 		//m_vec3ControllerPos = translationVec - controllerWorldPos_1;
 		m_vec3ControllerPos = translationVec;
-		std::cout << "Controller Position: " << m_vec3ControllerPos.x << ": " << m_vec3ControllerPos.y << ": " << m_vec3ControllerPos.z << std::endl;
+		//std::cout << "Controller Position: " << m_vec3ControllerPos.x << ": " << m_vec3ControllerPos.y << ": " << m_vec3ControllerPos.z << std::endl;
 	}
 	m_bPrevControlAreaMarkerState = currentControlAreaMarkerState;
 
@@ -337,13 +344,44 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
 		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
 		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
-		m_dFbmAmp = outParamVec[3]->value;
-		m_dFbmSpeed = outParamVec[4]->value;
+		//m_dFbmAmp = outParamVec[3]->value;
+		//m_dFbmSpeed = outParamVec[4]->value;
+
+		//create a running average value for the FBM to counteract jittery motion when model
+		//is running
+		m_dFbmAmpBuf.push_front(outParamVec[3]->value);
+		m_dFbmSpeedBuf.push_front(outParamVec[4]->value);
+		if(m_dFbmAmpBuf.size() > m_iBufSize) m_dFbmAmpBuf.pop_back();
+		if(m_dFbmSpeedBuf.size() > m_iBufSize) m_dFbmSpeedBuf.pop_back();
+		double ampSum = 0.0;
+		double speedSum = 0.0;
+		for(int i = 0; i < m_iBufSize; i++)
+		{
+			ampSum += m_dFbmAmpBuf[i];
+			speedSum += m_dFbmSpeedBuf[i];
+		}
+		m_dFbmAmp = ampSum / m_iBufSize;
+		m_dFbmSpeed = speedSum / m_iBufSize;
+
 	} 
-	else if(!machineLearning.bRunModel && currentRunState != m_bPrevRunState)
+	else if(!machineLearning.bRunModel && currentRunState != m_bPrevRunState && m_bModelTrained)
 	{
 		std::cout << "Model Stopped" << std::endl;
+		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+		m_dFbmAmp = outParamVec[3]->value;
+		m_dFbmSpeed = outParamVec[4]->value;
+
+	} else if(!machineLearning.bRunModel && !m_bModelTrained)
+	{
+		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+		m_dFbmAmp = outParamVec[3]->value;
+		m_dFbmSpeed = outParamVec[4]->value;
 	}
+
 	m_bPrevRunState = currentRunState;
 	
 	// save model
