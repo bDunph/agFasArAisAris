@@ -20,7 +20,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_fDeltaTime = 0.0f;
 	m_fTargetVal = 0.0f;
 	m_fCurrentVal = 0.0f;
-	m_iBufSize = 5;
+	m_iBufSize = 20;
 	for(int i = 0; i < m_iBufSize; i++)
 	{
 		m_dFbmAmpBuf.push_front(0.0);
@@ -84,17 +84,17 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmAmp->value = 0.5;
 	m_pFbmAmp->normVal = 0.0;
 	m_pFbmAmp->minVal = 0.0;
-	m_pFbmAmp->maxVal = 5.0;
+	m_pFbmAmp->maxVal = 1.0;
 	m_pFbmAmp->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmAmp));
 
 	m_pFbmSpeed = std::make_unique<RegressionModel::DataInfo>();
 	m_pFbmSpeed->name = "fbmSpeed";
-	m_pFbmSpeed->value = 1.0;
+	m_pFbmSpeed->value = 0.5;
 	m_pFbmSpeed->normVal = 0.0;
 	m_pFbmSpeed->minVal = 0.0;
-	m_pFbmSpeed->maxVal = 2.0;
+	m_pFbmSpeed->maxVal = 1.0;
 	m_pFbmSpeed->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmSpeed));
@@ -351,8 +351,8 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		//is running
 		m_dFbmAmpBuf.push_front(outParamVec[3]->value);
 		m_dFbmSpeedBuf.push_front(outParamVec[4]->value);
-		if(m_dFbmAmpBuf.size() > m_iBufSize) m_dFbmAmpBuf.pop_back();
-		if(m_dFbmSpeedBuf.size() > m_iBufSize) m_dFbmSpeedBuf.pop_back();
+		m_dFbmAmpBuf.pop_back();
+		m_dFbmSpeedBuf.pop_back();
 		double ampSum = 0.0;
 		double speedSum = 0.0;
 		for(int i = 0; i < m_iBufSize; i++)
@@ -381,6 +381,8 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		m_dFbmAmp = outParamVec[3]->value;
 		m_dFbmSpeed = outParamVec[4]->value;
 	}
+
+	//std::cout << m_dFbmAmp << "	:	" << m_dFbmSpeed << std::endl;
 
 	m_bPrevRunState = currentRunState;
 	
