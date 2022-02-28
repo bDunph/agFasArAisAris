@@ -512,7 +512,7 @@ ilen        =          	nsamp(ifn1)/sr
 iPtrStart   random     	1,ilen-1
 iPtrTrav    random     	-1,1
 ktimewarp   line       	iPtrStart,p3,iPtrStart+iPtrTrav
-kamp        linseg     	0,p3/2,0.2,p3/2,0
+kamp        linseg     	0,p3/2,0.5,p3/2,0
 iresample   random     	-24,24.99
 iresample   =          	semitone(int(iresample))
 ifn2        =          	giWFnGranRain
@@ -528,12 +528,12 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
                               iwsize,irandw,ioverlap,ifn2,itimemode
 
 ; envelope the signal with a lowpass filter
-kcf         expseg     50,p3/2,12000,p3/2,50
+kcf         expseg     50,p3/2,8000,p3/2,50
 gaGranulatedRainDrySig moogvcf2    aSig, kcf, 0.5
 
 ; add a little of our audio signals to the global send variables -
 ; - these will be sent to the reverb instrument (2)
-gaSend     =          gaSend+(gaGranulatedRainDrySig*0.4)
+gaSend     =          gaSend + gaGranulatedRainDrySig
 
             ;outs       gaGranulatedRainDrySig,gaGranulatedRainDrySig
   endin
@@ -542,9 +542,11 @@ gaSend     =          gaSend+(gaGranulatedRainDrySig*0.4)
   instr GranularRainReverb, 9 ;	Reverb for GranulatedRain 
 ;**************************************************************************************
 
-aRvbL,aRvbR reverbsc   gaSend,gaSend,0.85,8000
+aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
 
-            outs       aRvbL,aRvbR
+gaGranularRainReverbOut = aRvbL
+
+            ;outs       aRvbL,aRvbR
 
 ;clear variables to prevent out of control accumulation
             clear      gaSend
@@ -806,7 +808,7 @@ channelLoop:
 	loop_lt	kCount, 1, iNumAudioSources, channelLoop
 	
 aInstSigs[]	init	iNumAudioSources
-aInstSigs[0] =	gaGranulatedRainDrySig 
+aInstSigs[0] =	(gaGranulatedRainDrySig * 0.4) + (gaGranularRainReverbOut * 0.6) 
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -843,9 +845,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-;i1	0	6	1	0
+i "ModalSynth"		0	6	1	0
 
-;i2	7	-1
+i "ModalSamplerTrigger"	7	-1
 
 ;i1	8	6	2	300
 
@@ -856,9 +858,9 @@ f0	86400 ;keep csound running for a day
 
 i "GranulatedRainTrigger"	2	-1
 
-i "SoundLocaliser"		1	-1
+i "GranularRainReverb"		2	-1
 
-;i9	0	-1
+i "SoundLocaliser"		1	-1
 
 ;i "KarplusStrongTrigger"	0	-1
 ;i "KarplusStrongCompressor"	0	-1

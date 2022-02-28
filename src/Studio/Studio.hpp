@@ -79,6 +79,10 @@ private:
 	int m_iSphereNum;
 	GLint m_gliControllerPos;
 	glm::vec3 m_vec3ControllerPos;
+	GLint m_gliControllerPos1;
+	glm::vec3 m_vec3ControllerPos1;
+	GLint m_gliFractalAngle;
+	double m_dFractalAngle;
 
 	std::deque<double> m_dFbmAmpBuf;
 	std::deque<double> m_dFbmSpeedBuf;
@@ -130,6 +134,7 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pWinSize;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmAmp;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmSpeed;
+	std::unique_ptr<RegressionModel::DataInfo> m_pFractalAngle;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
 	
 	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;

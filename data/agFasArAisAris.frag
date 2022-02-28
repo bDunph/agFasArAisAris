@@ -30,6 +30,7 @@ uniform float fbmAmp;
 uniform float fbmSpeed;
 uniform int controlAreaSphereNum;
 uniform vec3 controllerPos;
+uniform float fractalAngle;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -113,7 +114,7 @@ float platformSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fbmVal);
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fractalAngle + (fbmVal * 0.5));
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     

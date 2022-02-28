@@ -9,6 +9,8 @@
 #include "glfw3.h"
 #endif
 
+#define PI 3.141592653589793
+
 //*******************************************************************************************
 // Setup 
 //*******************************************************************************************
@@ -44,6 +46,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliFbmSpeed = glGetUniformLocation(shaderProg, "fbmSpeed");
 	m_gliSphereNum = glGetUniformLocation(shaderProg, "controlAreaSphereNum");
 	m_gliControllerPos = glGetUniformLocation(shaderProg, "controllerPos");
+	m_gliFractalAngle = glGetUniformLocation(shaderProg, "fractalAngle");
 
 	//machine learning setup
 	MLRegressionSetup();
@@ -94,47 +97,57 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmSpeed->value = 0.5;
 	m_pFbmSpeed->normVal = 0.0;
 	m_pFbmSpeed->minVal = 0.0;
-	m_pFbmSpeed->maxVal = 1.0;
+	m_pFbmSpeed->maxVal = 2.0;
 	m_pFbmSpeed->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmSpeed));
 
-	m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
-	m_pLControllerX->name = "lControllerX";
-	m_pLControllerX->value = 0.0;
-	m_pLControllerX->normVal = 0.0;
-	m_pLControllerX->minVal = -21.0;
-	m_pLControllerX->maxVal = 21.0;
-	m_pLControllerX->paramType = RegressionModel::INPUT;
+	m_pFractalAngle = std::make_unique<RegressionModel::DataInfo>();
+	m_pFractalAngle->name = "fractalAngle";
+	m_pFractalAngle->value = 0.0;
+	m_pFractalAngle->normVal = 0.0;
+	m_pFractalAngle->minVal = 0.0;
+	m_pFractalAngle->maxVal = 360.0;
+	m_pFractalAngle->paramType = RegressionModel::OUTPUT;
 
-	inParamVec.push_back(std::move(m_pLControllerX));
+	outParamVec.push_back(std::move(m_pFractalAngle));
 
-	m_pLControllerY = std::make_unique<RegressionModel::DataInfo>();
-	m_pLControllerY->name = "lControllerY";
-	m_pLControllerY->value = 0.0;
-	m_pLControllerY->normVal = 0.0;
-	m_pLControllerY->minVal = -21.0;
-	m_pLControllerY->maxVal = 21.0;
-	m_pLControllerY->paramType = RegressionModel::INPUT;
+	//m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
+	//m_pLControllerX->name = "lControllerX";
+	//m_pLControllerX->value = 0.0;
+	//m_pLControllerX->normVal = 0.0;
+	//m_pLControllerX->minVal = -21.0;
+	//m_pLControllerX->maxVal = 21.0;
+	//m_pLControllerX->paramType = RegressionModel::INPUT;
 
-	inParamVec.push_back(std::move(m_pLControllerY));
+	//inParamVec.push_back(std::move(m_pLControllerX));
 
-	m_pLControllerZ = std::make_unique<RegressionModel::DataInfo>();
-	m_pLControllerZ->name = "lControllerZ";
-	m_pLControllerZ->value = 0.0;
-	m_pLControllerZ->normVal = 0.0;
-	m_pLControllerZ->minVal = -21.0;
-	m_pLControllerZ->maxVal = 21.0;
-	m_pLControllerZ->paramType = RegressionModel::INPUT;
+	//m_pLControllerY = std::make_unique<RegressionModel::DataInfo>();
+	//m_pLControllerY->name = "lControllerY";
+	//m_pLControllerY->value = 0.0;
+	//m_pLControllerY->normVal = 0.0;
+	//m_pLControllerY->minVal = -21.0;
+	//m_pLControllerY->maxVal = 21.0;
+	//m_pLControllerY->paramType = RegressionModel::INPUT;
 
-	inParamVec.push_back(std::move(m_pLControllerZ));
+	//inParamVec.push_back(std::move(m_pLControllerY));
+
+	//m_pLControllerZ = std::make_unique<RegressionModel::DataInfo>();
+	//m_pLControllerZ->name = "lControllerZ";
+	//m_pLControllerZ->value = 0.0;
+	//m_pLControllerZ->normVal = 0.0;
+	//m_pLControllerZ->minVal = -21.0;
+	//m_pLControllerZ->maxVal = 21.0;
+	//m_pLControllerZ->paramType = RegressionModel::INPUT;
+
+	//inParamVec.push_back(std::move(m_pLControllerZ));
 
 	m_pRControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pRControllerX->name = "rControllerX";
 	m_pRControllerX->value = 0.0;
 	m_pRControllerX->normVal = 0.0;
-	m_pRControllerX->minVal = -21.0;
-	m_pRControllerX->maxVal = 21.0;
+	m_pRControllerX->minVal = -2.0;
+	m_pRControllerX->maxVal = 2.0;
 	m_pRControllerX->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerX));
@@ -143,8 +156,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pRControllerY->name = "rControllerY";
 	m_pRControllerY->value = 0.0;
 	m_pRControllerY->normVal = 0.0;
-	m_pRControllerY->minVal = -21.0;
-	m_pRControllerY->maxVal = 21.0;
+	m_pRControllerY->minVal = -2.0;
+	m_pRControllerY->maxVal = 2.0;
 	m_pRControllerY->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerY));
@@ -153,8 +166,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pRControllerZ->name = "rControllerZ";
 	m_pRControllerZ->value = 0.0;
 	m_pRControllerZ->normVal = 0.0;
-	m_pRControllerZ->minVal = -21.0;
-	m_pRControllerZ->maxVal = 21.0;
+	m_pRControllerZ->minVal = -2.0;
+	m_pRControllerZ->maxVal = 2.0;
 	m_pRControllerZ->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerZ));
@@ -286,12 +299,12 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	if(machineLearning.bRecord){
 
-		inParamVec[0]->value = controllerWorldPos_0.x;
-		inParamVec[1]->value = controllerWorldPos_0.y;
-		inParamVec[2]->value = controllerWorldPos_0.z;
-		inParamVec[3]->value = controllerWorldPos_1.x;
-		inParamVec[4]->value = controllerWorldPos_1.y;
-		inParamVec[5]->value = controllerWorldPos_1.z;
+		inParamVec[0]->value = controllerWorldPos_1.x;
+		inParamVec[1]->value = controllerWorldPos_1.y;
+		inParamVec[2]->value = controllerWorldPos_1.z;
+		//inParamVec[3]->value = controllerWorldPos_0.x;
+		//inParamVec[4]->value = controllerWorldPos_0.y;
+		//inParamVec[5]->value = controllerWorldPos_0.z;
 		
 		//inParamVec[0]->value = 2.43;
 		//inParamVec[1]->value = 5.32;
@@ -320,13 +333,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	bool currentRunState = machineLearning.bRunModel;
 	if(machineLearning.bRunModel && m_bModelTrained)
 	{
-		std::cout << "MODEL RUNNING" << std::endl;
-		inParamVec[0]->value = controllerWorldPos_0.x;
-		inParamVec[1]->value = controllerWorldPos_0.y;
-		inParamVec[2]->value = controllerWorldPos_0.z;
-		inParamVec[3]->value = controllerWorldPos_1.x;
-		inParamVec[4]->value = controllerWorldPos_1.y;
-		inParamVec[5]->value = controllerWorldPos_1.z;
+		//std::cout << "MODEL RUNNING" << std::endl;
+		inParamVec[0]->value = controllerWorldPos_1.x;
+		inParamVec[1]->value = controllerWorldPos_1.y;
+		inParamVec[2]->value = controllerWorldPos_1.z;
+		//inParamVec[3]->value = controllerWorldPos_0.x;
+		//inParamVec[4]->value = controllerWorldPos_0.y;
+		//inParamVec[5]->value = controllerWorldPos_0.z;
 
 		//inParamVec[0]->value = 5.32;
 		//inParamVec[1]->value = 1.23;
@@ -363,6 +376,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		m_dFbmAmp = ampSum / m_iBufSize;
 		m_dFbmSpeed = speedSum / m_iBufSize;
 
+		double radianVal = (outParamVec[5]->value) * (PI / 180.0);
+		m_dFractalAngle = radianVal;
+
 	} 
 	else if(!machineLearning.bRunModel && currentRunState != m_bPrevRunState && m_bModelTrained)
 	{
@@ -372,6 +388,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
 		m_dFbmAmp = outParamVec[3]->value;
 		m_dFbmSpeed = outParamVec[4]->value;
+		m_dFractalAngle = outParamVec[5]->value;
 
 	} else if(!machineLearning.bRunModel && !m_bModelTrained)
 	{
@@ -380,6 +397,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
 		m_dFbmAmp = outParamVec[3]->value;
 		m_dFbmSpeed = outParamVec[4]->value;
+		m_dFractalAngle = outParamVec[5]->value;
 	}
 
 	//std::cout << m_dFbmAmp << "	:	" << m_dFbmSpeed << std::endl;
@@ -422,6 +440,7 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1f(m_gliFbmSpeed, m_dFbmSpeed);
 	glUniform1i(m_gliSphereNum, m_iSphereNum);
 	glUniform3f(m_gliControllerPos, m_vec3ControllerPos.x, m_vec3ControllerPos.y, m_vec3ControllerPos.z);
+	glUniform1f(m_gliFractalAngle, m_dFractalAngle);
 
 	m_pStTools->DrawEnd();
 
