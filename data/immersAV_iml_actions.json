@@ -77,11 +77,15 @@
          "type" : "boolean"
       },
         {
-	      "name" : "/actions/machineLearning/in/SetControlArea",
+	      "name" : "/actions/machineLearning/in/ActivateNNRight",
 	      "requirement" : "suggested",
 	      "type" : "boolean"
+	},
+	{
+		"name" : "/actions/machineLearning/in/ActivateNNLeft",
+		"requirement" : "suggested",
+		"type" : "boolean"
 	}
-
    ],
    "action_sets" : [
       {
@@ -109,7 +113,8 @@
          "/actions/machineLearning/in/RunModel" : "Run Model",
          "/actions/machineLearning/in/SaveModel" : "Save Model",
          "/actions/machineLearning/in/TrainModel" : "Train Model",
-	 "/actions/machineLearning/in/SetControlArea" : "Set Control Area",
+	 "/actions/machineLearning/in/ActivateNNRight" : "Activate Right Hand Neural Network",
+	 "/actions/machineLearning/in/ActivateNNLeft" : "Activate Left Hand Neural Network",
          "language_tag" : "en_US"
       }
    ]

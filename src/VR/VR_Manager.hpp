@@ -123,7 +123,8 @@ private:
 	vr::VRActionHandle_t m_actionSaveModel = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionLoadModel = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionMoveCam = vr::k_ulInvalidActionHandle;
-	vr::VRActionHandle_t m_actionSetControlArea = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionActivateNNRight = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionActivateNNLeft = vr::k_ulInvalidActionHandle;
 
 	vr::VRActionSetHandle_t m_actionSetMachineLearning = vr::k_ulInvalidActionSetHandle;
 #endif
@@ -137,7 +138,8 @@ private:
 	bool m_bViveLoadModel;
 	bool m_bCurrentDeviceState;
 	bool m_bPrevDeviceState;
-	bool m_bViveSetControlArea;
+	bool m_bViveActivateNNRight;
+	bool m_bViveActivateNNLeft;
 
 	//movement controls
 	glm::vec2 m_vMoveCam;

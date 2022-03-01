@@ -772,7 +772,8 @@ void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
 	machineLearning.bRunModel = vrm->m_bViveRunModel;
 	machineLearning.bSaveModel = vrm->m_bViveSaveModel;
 	machineLearning.bLoadModel = vrm->m_bViveLoadModel;
-	machineLearning.bSetControlArea = vrm->m_bViveSetControlArea;
+	machineLearning.bActivateNNRight = vrm->m_bViveActivateNNRight;
+	machineLearning.bActivateNNLeft = vrm->m_bViveActivateNNLeft;
 
 	m_vVRPos = vrm->m_vMoveCam;
 }

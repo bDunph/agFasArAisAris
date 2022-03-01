@@ -73,7 +73,32 @@ giWavAmp	ftgen	0, 0, 8, 2, 0, 4, 1, 1, 1, 1, 0
 giSquare	ftgen	0, 0, 16384, 10, 1, 0, 0.3, 0, 0.2, 0, 0.14, 0, 0.111	
 
 ;**************************************************************************************
-instr ModalSynth, 1 ; Modal Synth 
+;  instr ModalSynthTrigger, 1 	;	Triggers instr 8 which produces a 
+  					;	granular swishing type texture.
+;**************************************************************************************
+
+;kFreq		chnget		"noteFreq"
+;kNoteLen	chnget		"noteLength"
+;kWSize		chnget		"winSize"
+;kWSize = floor(kWSize)
+
+;kFreq     	random  	2, 	25 
+;kMetVal		metro   	0.2,	0.00000001		
+;kTrigVal	samphold	kFreq,	kMetVal	
+
+;kTrigger	metro		kTrigVal
+;kTrigger	metro		kFreq	
+
+;kNoteLen	random		0.05,		0.2
+;kWSize		random		80,		85
+
+;schedkwhen kTrigger,0,0,2,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
+
+;  endin
+
+
+;**************************************************************************************
+instr ModalSynth, 2 ; Modal Synth 
 ;**************************************************************************************
 
 ; get control value from application
@@ -200,44 +225,58 @@ tablew	gaOut1, aIndx, p4, 1, 0, 1
 endin
 
 ;**************************************************************************************
-instr ModalSamplerTrigger, 2	;	Triggers instr 3 which samples the modal synth 
+instr ModalSamplerTrigger, 3	;	Triggers instr 3 which samples the modal synth 
 				;	and sndwarps it	
 ;**************************************************************************************
 
+kFreq		chnget		"modSamp_noteFreq"
+kNoteLen	chnget		"modSamp_noteLength"
+kWSize		chnget		"modSamp_winSize"
+kWSize = floor(kWSize)
+kOverlap	chnget		"modSamp_overlap"
+
 kFn	init 1
-kPrevFn	init 0
-kIndex	init 0
-kIndex2	init 0
-kfreq     random  0.08, 2 
-ktrigger  metro   kfreq         ;metronome of triggers. One in the range of every 0.5 to 12.5 seconds
-if (ktrigger > 0) then
-kIndex	=	kIndex + 1
-endif
-kNoteLen  random  5, 40
+;kPrevFn	init 0
+;kIndex	init 0
+;kIndex2	init 0
+
+;kfreq     random  0.08, 2 
+kMetVal		metro   	1,	0.00000001		
+kTrigVal	samphold	kFreq,	kMetVal	
+
+kTrigger	metro		kTrigVal
+
+;if (ktrigger > 0) then
+;kIndex	=	kIndex + 1
+;endif
+;kNoteLen  random  5, 40
 ;iNoteLen = 40 
-kWSize    random	sr/9, sr/2
-kMod	=	kIndex % 27 
+;kWSize    random	sr/9, sr/2
+;kMod	=	kIndex % 27 
 
-if (kMod == 0) then
-kIndex2 = kIndex2 + 1
-endif
+;if (kMod == 0) then
+;kIndex2 = kIndex2 + 1
+;endif
 
-kMod2	=	kIndex2 % 2
+;kMod2	=	kIndex2 % 2
 
-if (kMod2 == 0) then
-kFn 	= 	1
-elseif (kMod2 == 1) then
-kFn	=	2
-endif
+;if (kMod2 == 0) then
+;kFn 	= 	1
+;elseif (kMod2 == 1) then
+;kFn	=	2
+;endif
 
-schedkwhen ktrigger,0,0,3,0,kNoteLen,kWSize,kFn ;trigger instr. 3 for kNoteLen 
-
+schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap 
   endin
 
 ;**************************************************************************************
-instr ModalSampler, 3	;	Reads audio recorded from Modal Synth and uses 
+instr ModalSampler, 4	;	Reads audio recorded from Modal Synth and uses 
 			;	sndwarp to stretch and granulate it
 ;**************************************************************************************
+
+kMoogCutoff	chnget	"modSamp_moogCutoff"
+kAmp		chnget	"modSamp_amp"
+kMoogRes	chnget	"modSamp_moogRes"
 
 ;define the input variables
 ifn1        =         p5 
@@ -249,7 +288,7 @@ iPtrStart	=	ilen * 0.5
 iPtrTrav	random	(ilen * 0.25) * -1.0, ilen * 0.25
 
 ktimewarp   line       iPtrStart,p3,iPtrStart+iPtrTrav
-kamp        linseg     0,p3/2,0.2,p3/2,0
+;kamp        linseg     0,p3/2,0.2,p3/2,0
 iresample   random     -24,24.99
 iresample   =          semitone(int(iresample))
 ifn2        =          giWFnSndWrp
@@ -257,20 +296,21 @@ ibeg        =          0
 ;iwsize      random     20,50000
 iwsize      =          p4
 irandw      =          iwsize/3
-ioverlap    =         20 
+ioverlap    =         p6 
 itimemode   =         1 
 ; create a granular synthesis texture using sndwarp
-aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
+aSig sndwarp  kAmp,ktimewarp,iresample,ifn1,ibeg,\
                               iwsize,irandw,ioverlap,ifn2,itimemode
 ; envelope the signal with a lowpass filter
-kcf         expseg     50,p3/2,12000,p3/2,50
-aSig       moogvcf2    aSig, kcf, 0.5
-aSig	= 	aSig * 0.5
+;kcf         expseg     50,p3/2,12000,p3/2,50
+;aSig       moogvcf2    aSig, kMoogCutoff, 0.5
+aSig       moogvcf2    aSig, kMoogCutoff, kMoogRes 
+aSig	= 	aSig * 0.25
             outs       aSig,aSig
   endin
 
 ;**************************************************************************************
-instr ClickPopStaticTrigger, 4	;	Triggers instr 5 which creates a click and pop
+instr ClickPopStaticTrigger, 5	;	Triggers instr 5 which creates a click and pop
 				;	texture using partikkel
 ;**************************************************************************************
 
@@ -291,7 +331,7 @@ kTrigger metro  kRand2
 
 kMinTim		= 0 
 kMaxNum 	= 1
-kInsNum 	= 5 
+kInsNum 	= 6 
 kWhen 		= 2
 gkDur 		= kRand 
 kSpeed 		= kFileSpeed + kGaussVal
@@ -311,7 +351,7 @@ endin
 ; uses the files "24cellRow.wav" "8cellRow.wav" & "5cellRow.wav" 
 ; original partikkel example by Joachim Heintz and Oeyvind Brandtsegg 2008
 ; **********************************************************************************************
-instr ClickPopStatic, 5	;	Synth that creates a textures that clicks, pops and sounds 
+instr ClickPopStatic, 6	;	Synth that creates a textures that clicks, pops and sounds 
 			;	like static. Uses partikkel.
 ; **********************************************************************************************
 
@@ -429,7 +469,7 @@ gaParticleOut = aOut * aOutEnv
 endin
 
 ;**************************************************************************************
-instr DenseGrain, 6	;	Synth that produces a dense grain cloud using grain3 
+instr DenseGrain, 7	;	Synth that produces a dense grain cloud using grain3 
 ;**************************************************************************************
 
 ;kCps	chnget	"grainFreq"
@@ -474,7 +514,7 @@ gaOut8 = aOut8 * 0.2; * aOutEnv
 endin
 
 ;**************************************************************************************
-  instr GranulatedRainTrigger, 7 	;	Triggers instr 8 which produces a 
+  instr GranulatedRainTrigger, 8 	;	Triggers instr 8 which produces a 
   					;	granular swishing type texture.
 ;**************************************************************************************
 
@@ -493,12 +533,12 @@ kTrigger	metro		kFreq
 ;kNoteLen	random		0.05,		0.2
 ;kWSize		random		80,		85
 
-schedkwhen kTrigger,0,0,8,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
+schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
 
   endin
 
 ;**************************************************************************************
-  instr GranulatedRain, 8 	;	Synth that produces a granular swishing type texture using
+  instr GranulatedRain, 9 	;	Synth that produces a granular swishing type texture using
   				;	sndwarpst.
 
   				;	adapted by Bryan Dunphy, from 
@@ -539,7 +579,7 @@ gaSend     =          gaSend + gaGranulatedRainDrySig
   endin
 
 ;**************************************************************************************
-  instr GranularRainReverb, 9 ;	Reverb for GranulatedRain 
+  instr GranularRainReverb, 10 ;	Reverb for GranulatedRain 
 ;**************************************************************************************
 
 aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
@@ -554,7 +594,7 @@ gaGranularRainReverbOut = aRvbL
   endin
 
 ;**************************************************************************************
-instr KarplusStrongTrigger, 10	;	Triggers instr 11 which is a bask Karplus-Strong synth. 
+instr KarplusStrongTrigger, 11	;	Triggers instr 11 which is a bask Karplus-Strong synth. 
 ;**************************************************************************************
 
 ;kElapsedTime	timeinsts
@@ -592,12 +632,12 @@ kDec = kNoteLen * 0.025
 kSus = 0.975
 kRel = kNoteLen * 0.75
 
-schedkwhen ktrigger,0,0,11,0,kNoteLen, kDelayTime, kFeedbackAmnt, kCutOffFreq, kRes, kAtt, kDec, kSus, kRel ;trigger instr. 2 for kNoteLen 
+schedkwhen ktrigger,0,0,12,0,kNoteLen, kDelayTime, kFeedbackAmnt, kCutOffFreq, kRes, kAtt, kDec, kSus, kRel ;trigger instr. 2 for kNoteLen 
 
   endin
 
 ;***********************************************************************************************
-instr KarplusStrong, 11	;	Karplus-Strong Synth (from Joachim Heintz and Martin Neukom - 04G08_Plucked.csd : 
+instr KarplusStrong, 12	;	Karplus-Strong Synth (from Joachim Heintz and Martin Neukom - 04G08_Plucked.csd : 
 			;	http://floss.booktype.pro/csound/g-physical-modelling/)
 ;***********************************************************************************************
 ;delay time
@@ -644,7 +684,7 @@ gaCompSend	=	gaCompSend + aLimOut
 endin
 
 ;********************************************************************************
-instr KarplusStrongCompressor, 12 ; Karplus-Strong Compressor
+instr KarplusStrongCompressor, 13 ; Karplus-Strong Compressor
 ;********************************************************************************
 
 kThresh	=	-90
@@ -666,7 +706,7 @@ gaReverbSend	=	gaReverbSend + (aCompSig * iRevSendAmnt)
 endin
 
 ;********************************************************************************
-instr KarplusStrongReverb, 13	; Karplus-Strong Reverb 
+instr KarplusStrongReverb, 14	; Karplus-Strong Reverb 
 ;********************************************************************************
 
 kRoomSize	init	0.25
@@ -679,7 +719,7 @@ aRevL, aRevR	freeverb	gaReverbSend, gaReverbSend, kRoomSize, kHFDamping
 endin
 
 ;**************************************************************************************
-  instr KickDrumTrigger, 14 	;	Triggers instr 15 which produces a 
+  instr KickDrumTrigger, 15 	;	Triggers instr 15 which produces a 
   				;	synthesised kick drum sound.
 ;**************************************************************************************
 
@@ -689,12 +729,12 @@ kTrigVal	samphold	kFreq,	kMetVal
 
 kTrigger	metro		kTrigVal
 
-schedkwhen kTrigger,0,0,15,0,0.5
+schedkwhen kTrigger,0,0,16,0,0.5
 
   endin
 
 ;********************************************************************************
-;instr KickDrum, 15 ; Drum Synth
+;instr KickDrum, 16 ; Drum Synth
 ;********************************************************************************
 
 ;iFn		init	giSquare
@@ -728,7 +768,7 @@ schedkwhen kTrigger,0,0,15,0,0.5
 
 
 ;**************************************************************************************
-instr SpectralAnalysis, 16	; Spectral Analysis 
+instr SpectralAnalysis, 17	; Spectral Analysis 
 ;**************************************************************************************
 
 ifftsize = 1024 
@@ -782,7 +822,7 @@ contin:
 endin
 
 ;**************************************************************************************
-instr SoundLocaliser, 17	; Sound Localisation using hrtf2
+instr SoundLocaliser, 18	; Sound Localisation using hrtf2
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
@@ -845,9 +885,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-i "ModalSynth"		0	6	1	0
+i "ModalSynth"			0	6	1	0
 
-i "ModalSamplerTrigger"	7	-1
+i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 

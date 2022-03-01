@@ -35,7 +35,8 @@ public:
 		bool bSaveModel;
 		bool bLoadModel;
 		bool bDevMode;
-		bool bSetControlArea;
+		bool bActivateNNRight;
+		bool bActivateNNLeft;
 	};
 
 	struct MLAudioParameter 
@@ -106,18 +107,28 @@ private:
 
 	//machine learning controls
 	bool m_bPrevSaveState;
+	bool m_bCurrentSaveState;
 	bool m_bPrevRandomState;
+	bool m_bCurrentRandomState;
 	bool m_bPrevTrainState;
+	bool m_bCurrentTrainState;
 	bool m_bPrevHaltState;
 	bool m_bPrevRunState;
+	bool m_bCurrentRunState;
 	bool m_bPrevLoadState;
+	bool m_bCurrentLoadState;
 	bool m_bCurrentMsgState;
 	bool m_bMsg;
 	bool m_bRunMsg;
 	bool m_bCurrentRunMsgState;
 	float sizeVal;
 	bool m_bModelTrained;
+	bool m_bLeftNN_modelTrained;
 	bool m_bPrevControlAreaMarkerState;
+	bool m_bPrevRightNNState;
+	bool m_bPrevLeftNNState;
+	bool m_bRightNNToggle;
+	bool m_bLeftNNToggle;
 
 	//machine learning 
 	regression staticRegression;
@@ -127,8 +138,9 @@ private:
 	std::vector<double> outputData;	
 	
 	RegressionModel regMod;
+	RegressionModel regModLeft;
 	
-	//parameter setup
+	//Right NN parameter setup
 	std::unique_ptr<RegressionModel::DataInfo> m_pNoteFreq;
 	std::unique_ptr<RegressionModel::DataInfo> m_pNoteLength;
 	std::unique_ptr<RegressionModel::DataInfo> m_pWinSize;
@@ -137,18 +149,38 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pFractalAngle;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
 	
-	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
-	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerY;
-	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerZ;
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerX;
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerY;
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerZ;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> inParamVec;
+	
+	//Left NN parameter setup
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_noteFreq;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_noteLength;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_winSize;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_moogCutoff;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_overlap;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_amp;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_moogRes;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> leftNN_outParamVec;
+
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerY;
+	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerZ;
+	std::vector<std::unique_ptr<RegressionModel::DataInfo>> leftNN_inParamVec;
 
 	MYFLT* m_cspNoteFreq;
 	MYFLT* m_cspNoteLength;
 	MYFLT* m_cspWinSize;
+	MYFLT* m_cspModSamp_noteFreq;
+	MYFLT* m_cspModSamp_noteLength;
+	MYFLT* m_cspModSamp_winSize;
+	MYFLT* m_cspModSamp_moogCutoff;
+	MYFLT* m_cspModSamp_overlap;
+	MYFLT* m_cspModSamp_amp;
+	MYFLT* m_cspModSamp_moogRes;
 
 	std::string mySavedModel;
+	std::string mySavedModel_left;
 };
 #endif

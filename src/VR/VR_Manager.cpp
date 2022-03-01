@@ -35,7 +35,8 @@ VR_Manager::VR_Manager(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	m_bViveLoadModel(false),
 	m_bCurrentDeviceState(false),
 	m_bPrevDeviceState(false),
-	m_bViveSetControlArea(false){
+	m_bViveActivateNNRight(false),
+	m_bViveActivateNNLeft(false){
 
 	helper = std::make_unique<VR_Helper>();
 
@@ -74,7 +75,7 @@ bool VR_Manager::BInit(){
 	//	return false;
 	//}
 
-//*********** removing pathtools from osx build *************//
+//*********** removing pathtools from osx build ************
 #ifdef __APPLE__
 	std::string manifestPath = "../../data/immersAV_iml_actions.json";
 	vr::VRInput()->SetActionManifestPath(manifestPath.c_str()); 
@@ -105,7 +106,8 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionHandle("/actions/machinelearning/in/Savemodel", &m_actionSaveModel);
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/LoadModel", &m_actionLoadModel);
 	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/MovementControls", &m_actionMoveCam);
-	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/SetControlArea", &m_actionSetControlArea);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/ActivateNNRight", &m_actionActivateNNRight);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/ActivateNNLeft", &m_actionActivateNNLeft);
 
 	vr::VRInput()->GetActionSetHandle("/actions/machineLearning", &m_actionSetMachineLearning);
 
@@ -173,13 +175,22 @@ bool VR_Manager::HandleInput()
 	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
 
 	//machine learning controls
-	vr::VRInputValueHandle_t ulControlAreaDevice;
-	if(helper->GetDigitalActionState(m_actionSetControlArea, &ulControlAreaDevice)){
-		if(ulControlAreaDevice == m_rHand[Left].m_source || ulControlAreaDevice == m_rHand[Right].m_source){
-			m_bViveSetControlArea = true;
+	vr::VRInputValueHandle_t ulActivateNNRightDevice;
+	if(helper->GetDigitalActionState(m_actionActivateNNRight, &ulActivateNNRightDevice)){
+		if(ulActivateNNRightDevice == m_rHand[Left].m_source || ulActivateNNRightDevice == m_rHand[Right].m_source){
+			m_bViveActivateNNRight = true;
 		}
 	} else {
-		m_bViveSetControlArea = false;
+		m_bViveActivateNNRight = false;
+	}
+
+	vr::VRInputValueHandle_t ulActivateNNLeftDevice;
+	if(helper->GetDigitalActionState(m_actionActivateNNLeft, &ulActivateNNLeftDevice)){
+		if(ulActivateNNLeftDevice == m_rHand[Left].m_source || ulActivateNNLeftDevice == m_rHand[Right].m_source){
+			m_bViveActivateNNLeft = !m_bViveActivateNNLeft;
+		}
+	} else {
+		m_bViveActivateNNLeft = false;
 	}
 
 	vr::VRInputValueHandle_t ulRandomDevice;

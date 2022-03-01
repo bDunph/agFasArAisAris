@@ -30,6 +30,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	}
 
 	m_iSphereNum = 0;
+	m_bPrevRightNNState = false;
+	m_bPrevLeftNNState = false;
+	m_bRightNNToggle = false;
+	m_bLeftNNToggle = false;
 
 	m_pStTools = new StudioTools();
 
@@ -51,7 +55,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//machine learning setup
 	MLRegressionSetup();
 
-	//parameter setup
+	//Right NN parameter setup
 	m_pNoteFreq = std::make_unique<RegressionModel::DataInfo>();
 	m_pNoteFreq->name = "noteFreq";
 	m_pNoteFreq->value = 12.0;
@@ -112,36 +116,6 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	outParamVec.push_back(std::move(m_pFractalAngle));
 
-	//m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
-	//m_pLControllerX->name = "lControllerX";
-	//m_pLControllerX->value = 0.0;
-	//m_pLControllerX->normVal = 0.0;
-	//m_pLControllerX->minVal = -21.0;
-	//m_pLControllerX->maxVal = 21.0;
-	//m_pLControllerX->paramType = RegressionModel::INPUT;
-
-	//inParamVec.push_back(std::move(m_pLControllerX));
-
-	//m_pLControllerY = std::make_unique<RegressionModel::DataInfo>();
-	//m_pLControllerY->name = "lControllerY";
-	//m_pLControllerY->value = 0.0;
-	//m_pLControllerY->normVal = 0.0;
-	//m_pLControllerY->minVal = -21.0;
-	//m_pLControllerY->maxVal = 21.0;
-	//m_pLControllerY->paramType = RegressionModel::INPUT;
-
-	//inParamVec.push_back(std::move(m_pLControllerY));
-
-	//m_pLControllerZ = std::make_unique<RegressionModel::DataInfo>();
-	//m_pLControllerZ->name = "lControllerZ";
-	//m_pLControllerZ->value = 0.0;
-	//m_pLControllerZ->normVal = 0.0;
-	//m_pLControllerZ->minVal = -21.0;
-	//m_pLControllerZ->maxVal = 21.0;
-	//m_pLControllerZ->paramType = RegressionModel::INPUT;
-
-	//inParamVec.push_back(std::move(m_pLControllerZ));
-
 	m_pRControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pRControllerX->name = "rControllerX";
 	m_pRControllerX->value = 0.0;
@@ -174,6 +148,109 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	mySavedModel = "agFasModel.json";
 
+	//Left NN parameter setup
+	m_pModSamp_noteFreq = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_noteFreq->name = "modSamp_noteFreq";
+	m_pModSamp_noteFreq->value = 0.8;
+	m_pModSamp_noteFreq->normVal = 0.0;
+	m_pModSamp_noteFreq->minVal = 0.08;
+	m_pModSamp_noteFreq->maxVal = 2.0;
+	m_pModSamp_noteFreq->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteFreq));
+
+	m_pModSamp_noteLength = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_noteLength->name = "modSamp_noteLength";
+	m_pModSamp_noteLength->value = 15.0;
+	m_pModSamp_noteLength->normVal = 0.0;
+	m_pModSamp_noteLength->minVal = 5.0;
+	m_pModSamp_noteLength->maxVal = 40.0;
+	m_pModSamp_noteLength->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteLength));
+
+	m_pModSamp_winSize = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_winSize->name = "modSamp_winSize";
+	m_pModSamp_winSize->value = 15000.0;
+	m_pModSamp_winSize->normVal = 0.0;
+	m_pModSamp_winSize->minVal = 4800.0;
+	m_pModSamp_winSize->maxVal = 24000.0;
+	m_pModSamp_winSize->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_winSize));
+
+	m_pModSamp_moogCutoff = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_moogCutoff->name = "modSamp_moogCutoff";
+	m_pModSamp_moogCutoff->value = 6000.0;
+	m_pModSamp_moogCutoff->normVal = 0.0;
+	m_pModSamp_moogCutoff->minVal = 50.0;
+	m_pModSamp_moogCutoff->maxVal = 12000.0;
+	m_pModSamp_moogCutoff->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_moogCutoff));
+
+	m_pModSamp_overlap = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_overlap->name = "modSamp_overlap";
+	m_pModSamp_overlap->value = 20.0;
+	m_pModSamp_overlap->normVal = 0.0;
+	m_pModSamp_overlap->minVal = 5.0;
+	m_pModSamp_overlap->maxVal = 50.0;
+	m_pModSamp_overlap->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_overlap));
+
+	m_pModSamp_amp = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_amp->name = "modSamp_amp";
+	m_pModSamp_amp->value = 0.2;
+	m_pModSamp_amp->normVal = 0.0;
+	m_pModSamp_amp->minVal = 0.1;
+	m_pModSamp_amp->maxVal = 0.8;
+	m_pModSamp_amp->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_amp));
+
+	m_pModSamp_moogRes = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_moogRes->name = "modSamp_moogRes";
+	m_pModSamp_moogRes->value = 0.5;
+	m_pModSamp_moogRes->normVal = 0.0;
+	m_pModSamp_moogRes->minVal = 0.1;
+	m_pModSamp_moogRes->maxVal = 0.99;
+	m_pModSamp_moogRes->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_moogRes));
+
+	m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerX->name = "lControllerX";
+	m_pLControllerX->value = 0.0;
+	m_pLControllerX->normVal = 0.0;
+	m_pLControllerX->minVal = -2.0;
+	m_pLControllerX->maxVal = 2.0;
+	m_pLControllerX->paramType = RegressionModel::INPUT;
+
+	leftNN_inParamVec.push_back(std::move(m_pLControllerX));
+
+	m_pLControllerY = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerY->name = "lControllerY";
+	m_pLControllerY->value = 0.0;
+	m_pLControllerY->normVal = 0.0;
+	m_pLControllerY->minVal = -2.0;
+	m_pLControllerY->maxVal = 2.0;
+	m_pLControllerY->paramType = RegressionModel::INPUT;
+
+	leftNN_inParamVec.push_back(std::move(m_pLControllerY));
+
+	m_pLControllerZ = std::make_unique<RegressionModel::DataInfo>();
+	m_pLControllerZ->name = "lControllerZ";
+	m_pLControllerZ->value = 0.0;
+	m_pLControllerZ->normVal = 0.0;
+	m_pLControllerZ->minVal = -2.0;
+	m_pLControllerZ->maxVal = 2.0;
+	m_pLControllerZ->paramType = RegressionModel::INPUT;
+
+	leftNN_inParamVec.push_back(std::move(m_pLControllerZ));
+
+	mySavedModel_left = "agFasModel_left.json";
+
 	//audio setup
 	CsoundSession* csSession = m_pStTools->PCsoundSetup(csd);
 	
@@ -186,14 +263,36 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//setup sends to csound
 	std::vector<const char*> sendNames;
 
+	// Pos 0
 	sendNames.push_back("noteFreq");
 	m_vSendVals.push_back(m_cspNoteFreq);	
-
+	// Pos 1
 	sendNames.push_back("noteLength");
 	m_vSendVals.push_back(m_cspNoteLength);
-
+	// Pos 2
 	sendNames.push_back("winSize");
 	m_vSendVals.push_back(m_cspWinSize);
+	// Pos 3
+	sendNames.push_back("modSamp_noteFreq");
+	m_vSendVals.push_back(m_cspModSamp_noteFreq);
+	// Pos 4
+	sendNames.push_back("modSamp_noteLength");
+	m_vSendVals.push_back(m_cspModSamp_noteLength);
+	// Pos 5
+	sendNames.push_back("modSamp_winSize");
+	m_vSendVals.push_back(m_cspModSamp_winSize);
+	// Pos 6
+	sendNames.push_back("modSamp_moogCutoff");
+	m_vSendVals.push_back(m_cspModSamp_moogCutoff);
+	// Pos 7 
+	sendNames.push_back("modSamp_overlap");
+	m_vSendVals.push_back(m_cspModSamp_overlap);
+	// Pos 8 
+	sendNames.push_back("modSamp_amp");
+	m_vSendVals.push_back(m_cspModSamp_amp);
+	// Pos 9 
+	sendNames.push_back("modSamp_moogRes");
+	m_vSendVals.push_back(m_cspModSamp_moogRes);
 
 	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
 
@@ -269,156 +368,248 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//std::vector<MLAudioParameter> paramVec;
 	//paramVec.push_back(paramData);
 	//MLRegressionUpdate(machineLearning, pboInfo, paramVec);	
-
-		//std::cout << "Controller Position: " << controllerWorldPos_1.x << ": " << controllerWorldPos_1.y << ": " << controllerWorldPos_1.z << std::endl;
-	//************** Control Area Marker ********************
-	bool currentControlAreaMarkerState = machineLearning.bSetControlArea;	
-	if(currentControlAreaMarkerState == true && currentControlAreaMarkerState != m_bPrevControlAreaMarkerState){
-		std::cout << "SET CONTROL AREA MARKER" << std::endl;
-		// I need to send the following uniforms to the frag:
-		// - controlAreaSphereNum
-		// - controllerPos
-		m_iSphereNum++;
-		std::cout << "SPHERE NUMBER: " << m_iSphereNum << std::endl;
-		//m_vec3ControllerPos = translationVec - controllerWorldPos_1;
-		m_vec3ControllerPos = translationVec;
-		//std::cout << "Controller Position: " << m_vec3ControllerPos.x << ": " << m_vec3ControllerPos.y << ": " << m_vec3ControllerPos.z << std::endl;
-	}
-	m_bPrevControlAreaMarkerState = currentControlAreaMarkerState;
-
-	//********** RegressionModel Class********************
-	bool currentRandomState = machineLearning.bRandomParams;
-	if(machineLearning.bRandomParams != m_bPrevRandomState && machineLearning.bRandomParams == true){
-
-		regMod.randomiseData(outParamVec);
-		std::cout << "RANDOMISED WIN SIZE: " << outParamVec[2]->value << std::endl;
-			
-	}
-	m_bPrevRandomState = currentRandomState;
-
-
-	if(machineLearning.bRecord){
-
-		inParamVec[0]->value = controllerWorldPos_1.x;
-		inParamVec[1]->value = controllerWorldPos_1.y;
-		inParamVec[2]->value = controllerWorldPos_1.z;
-		//inParamVec[3]->value = controllerWorldPos_0.x;
-		//inParamVec[4]->value = controllerWorldPos_0.y;
-		//inParamVec[5]->value = controllerWorldPos_0.z;
-		
-		//inParamVec[0]->value = 2.43;
-		//inParamVec[1]->value = 5.32;
-		//inParamVec[2]->value = 4.53;
-		//inParamVec[3]->value = 3.21;
-		//inParamVec[4]->value = 4.23;
-		//inParamVec[5]->value = 4.56;
-
-		regMod.normaliseData(inParamVec);
-		regMod.normaliseData(outParamVec);
-		regMod.collectData(inParamVec, outParamVec);
-		std::cout << "RECORDING" << std::endl;
-	}
-	machineLearning.bRecord = false;
-
-	//bool currentTrainState = m_bPrevTrainState;
-	bool currentTrainState = machineLearning.bTrainModel;
-	//if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
-	if(machineLearning.bTrainModel != m_bPrevTrainState && machineLearning.bTrainModel == true){
-		m_bModelTrained = regMod.trainModel();
-		std::cout << "MODEL TRAINED: " << m_bModelTrained << std::endl;
-	}
-	//m_bPrevTrainState = machineLearning.bTrainModel;
-	m_bPrevTrainState = currentTrainState;
-
-	bool currentRunState = machineLearning.bRunModel;
-	if(machineLearning.bRunModel && m_bModelTrained)
-	{
-		//std::cout << "MODEL RUNNING" << std::endl;
-		inParamVec[0]->value = controllerWorldPos_1.x;
-		inParamVec[1]->value = controllerWorldPos_1.y;
-		inParamVec[2]->value = controllerWorldPos_1.z;
-		//inParamVec[3]->value = controllerWorldPos_0.x;
-		//inParamVec[4]->value = controllerWorldPos_0.y;
-		//inParamVec[5]->value = controllerWorldPos_0.z;
-
-		//inParamVec[0]->value = 5.32;
-		//inParamVec[1]->value = 1.23;
-		//inParamVec[2]->value = 2.53;
-		//inParamVec[3]->value = 5.23;
-		//inParamVec[4]->value = 3.26;
-		//inParamVec[5]->value = 3.05;
-
-		regMod.normaliseData(inParamVec);
-
-		regMod.run(inParamVec, outParamVec);
-
-		regMod.remapData(outParamVec);
-
-		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
-		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
-		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
-		//m_dFbmAmp = outParamVec[3]->value;
-		//m_dFbmSpeed = outParamVec[4]->value;
-
-		//create a running average value for the FBM to counteract jittery motion when model
-		//is running
-		m_dFbmAmpBuf.push_front(outParamVec[3]->value);
-		m_dFbmSpeedBuf.push_front(outParamVec[4]->value);
-		m_dFbmAmpBuf.pop_back();
-		m_dFbmSpeedBuf.pop_back();
-		double ampSum = 0.0;
-		double speedSum = 0.0;
-		for(int i = 0; i < m_iBufSize; i++)
-		{
-			ampSum += m_dFbmAmpBuf[i];
-			speedSum += m_dFbmSpeedBuf[i];
-		}
-		m_dFbmAmp = ampSum / m_iBufSize;
-		m_dFbmSpeed = speedSum / m_iBufSize;
-
-		double radianVal = (outParamVec[5]->value) * (PI / 180.0);
-		m_dFractalAngle = radianVal;
-
-	} 
-	else if(!machineLearning.bRunModel && currentRunState != m_bPrevRunState && m_bModelTrained)
-	{
-		std::cout << "Model Stopped" << std::endl;
-		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
-		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
-		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
-		m_dFbmAmp = outParamVec[3]->value;
-		m_dFbmSpeed = outParamVec[4]->value;
-		m_dFractalAngle = outParamVec[5]->value;
-
-	} else if(!machineLearning.bRunModel && !m_bModelTrained)
-	{
-		*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
-		*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
-		*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
-		m_dFbmAmp = outParamVec[3]->value;
-		m_dFbmSpeed = outParamVec[4]->value;
-		m_dFractalAngle = outParamVec[5]->value;
-	}
-
-	//std::cout << m_dFbmAmp << "	:	" << m_dFbmSpeed << std::endl;
-
-	m_bPrevRunState = currentRunState;
 	
-	// save model
-	bool currentSaveState = m_bPrevSaveState;
-	if(machineLearning.bSaveModel!= currentSaveState && machineLearning.bSaveModel == true)
-	{
-		regMod.saveModel(mySavedModel);
-	}
-	m_bPrevSaveState = machineLearning.bSaveModel;
+	//********************* Activate NN Left and Right **************************
+	bool currentRightNNState = machineLearning.bActivateNNRight;
+	bool currentLeftNNState = machineLearning.bActivateNNLeft;
 
-	// load model
-	bool currentLoadState = m_bPrevLoadState;
-	if(machineLearning.bLoadModel != currentLoadState && machineLearning.bLoadModel == true)
-	{
-		m_bModelTrained = regMod.loadModel(mySavedModel);	
+	if(currentRightNNState == true && currentRightNNState != m_bPrevRightNNState) m_bRightNNToggle = !m_bRightNNToggle;
+
+	if(currentLeftNNState == true && currentLeftNNState != m_bPrevLeftNNState) m_bLeftNNToggle = !m_bLeftNNToggle;
+
+	//if(m_bRightNNToggle) std::cout << "Right Hand NN Is Active" << std::endl;
+
+	//if(m_bLeftNNToggle) std::cout << "Left Hand NN Is Active" << std::endl;
+
+	m_bPrevRightNNState = currentRightNNState;
+	m_bPrevLeftNNState = currentLeftNNState;
+
+	//********** Right Hand Neural Network ********************
+	if(m_bRightNNToggle){
+		m_bCurrentRandomState = machineLearning.bRandomParams;
+		if(machineLearning.bRandomParams != m_bPrevRandomState && machineLearning.bRandomParams == true){
+
+			regMod.randomiseData(outParamVec);
+			std::cout << "RANDOMISED WIN SIZE: " << outParamVec[2]->value << std::endl;
+				
+		}
+		m_bPrevRandomState = m_bCurrentRandomState;
+
+
+		if(machineLearning.bRecord){
+
+			inParamVec[0]->value = controllerWorldPos_1.x;
+			inParamVec[1]->value = controllerWorldPos_1.y;
+			inParamVec[2]->value = controllerWorldPos_1.z;
+			//inParamVec[3]->value = controllerWorldPos_0.x;
+			//inParamVec[4]->value = controllerWorldPos_0.y;
+			//inParamVec[5]->value = controllerWorldPos_0.z;
+			
+			//inParamVec[0]->value = 2.43;
+			//inParamVec[1]->value = 5.32;
+			//inParamVec[2]->value = 4.53;
+			//inParamVec[3]->value = 3.21;
+			//inParamVec[4]->value = 4.23;
+			//inParamVec[5]->value = 4.56;
+
+			regMod.normaliseData(inParamVec);
+			regMod.normaliseData(outParamVec);
+			regMod.collectData(inParamVec, outParamVec);
+			std::cout << "RECORDING" << std::endl;
+		}
+		machineLearning.bRecord = false;
+
+		m_bCurrentTrainState = machineLearning.bTrainModel;
+		if(machineLearning.bTrainModel != m_bPrevTrainState && machineLearning.bTrainModel == true){
+			m_bModelTrained = regMod.trainModel();
+			std::cout << "MODEL TRAINED: " << m_bModelTrained << std::endl;
+		}
+		m_bPrevTrainState = m_bCurrentTrainState;
+
+		m_bCurrentRunState = machineLearning.bRunModel;
+		if(machineLearning.bRunModel && m_bModelTrained)
+		{
+			//std::cout << "MODEL RUNNING" << std::endl;
+			inParamVec[0]->value = controllerWorldPos_1.x;
+			inParamVec[1]->value = controllerWorldPos_1.y;
+			inParamVec[2]->value = controllerWorldPos_1.z;
+			//inParamVec[3]->value = controllerWorldPos_0.x;
+			//inParamVec[4]->value = controllerWorldPos_0.y;
+			//inParamVec[5]->value = controllerWorldPos_0.z;
+
+			//inParamVec[0]->value = 5.32;
+			//inParamVec[1]->value = 1.23;
+			//inParamVec[2]->value = 2.53;
+			//inParamVec[3]->value = 5.23;
+			//inParamVec[4]->value = 3.26;
+			//inParamVec[5]->value = 3.05;
+
+			regMod.normaliseData(inParamVec);
+
+			regMod.run(inParamVec, outParamVec);
+
+			regMod.remapData(outParamVec);
+
+			*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+			*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+			*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+			//m_dFbmAmp = outParamVec[3]->value;
+			//m_dFbmSpeed = outParamVec[4]->value;
+
+			//create a running average value for the FBM to counteract jittery motion when model
+			//is running
+			m_dFbmAmpBuf.push_front(outParamVec[3]->value);
+			m_dFbmSpeedBuf.push_front(outParamVec[4]->value);
+			m_dFbmAmpBuf.pop_back();
+			m_dFbmSpeedBuf.pop_back();
+			double ampSum = 0.0;
+			double speedSum = 0.0;
+			for(int i = 0; i < m_iBufSize; i++)
+			{
+				ampSum += m_dFbmAmpBuf[i];
+				speedSum += m_dFbmSpeedBuf[i];
+			}
+			m_dFbmAmp = ampSum / m_iBufSize;
+			m_dFbmSpeed = speedSum / m_iBufSize;
+
+			double radianVal = (outParamVec[5]->value) * (PI / 180.0);
+			m_dFractalAngle = radianVal;
+
+		} 
+		else if(!machineLearning.bRunModel && m_bCurrentRunState != m_bPrevRunState && m_bModelTrained)
+		{
+			std::cout << "Model Stopped" << std::endl;
+			*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+			*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+			*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+			m_dFbmAmp = outParamVec[3]->value;
+			m_dFbmSpeed = outParamVec[4]->value;
+			m_dFractalAngle = outParamVec[5]->value;
+
+		} else if(!machineLearning.bRunModel && !m_bModelTrained)
+		{
+			*m_vSendVals[0] = (MYFLT)outParamVec[0]->value;		
+			*m_vSendVals[1] = (MYFLT)outParamVec[1]->value;
+			*m_vSendVals[2] = (MYFLT)outParamVec[2]->value;
+			m_dFbmAmp = outParamVec[3]->value;
+			m_dFbmSpeed = outParamVec[4]->value;
+			m_dFractalAngle = outParamVec[5]->value;
+		}
+
+		//std::cout << m_dFbmAmp << "	:	" << m_dFbmSpeed << std::endl;
+
+		m_bPrevRunState = m_bCurrentRunState;
+		
+		// save model
+		m_bCurrentSaveState = m_bPrevSaveState;
+		if(machineLearning.bSaveModel!= m_bCurrentSaveState && machineLearning.bSaveModel == true)
+		{
+			regMod.saveModel(mySavedModel);
+		}
+		m_bPrevSaveState = machineLearning.bSaveModel;
+
+		// load model
+		m_bCurrentLoadState = m_bPrevLoadState;
+		if(machineLearning.bLoadModel != m_bCurrentLoadState && machineLearning.bLoadModel == true)
+		{
+			m_bModelTrained = regMod.loadModel(mySavedModel);	
+		}
+		m_bPrevLoadState = machineLearning.bLoadModel;
 	}
-	m_bPrevLoadState = machineLearning.bLoadModel;
+
+	if(m_bLeftNNToggle){
+
+		m_bCurrentRandomState = machineLearning.bRandomParams;
+		if(machineLearning.bRandomParams != m_bPrevRandomState && machineLearning.bRandomParams == true){
+
+			regModLeft.randomiseData(leftNN_outParamVec);
+			std::cout << "RANDOMISED LEFT NN PARAMS" << std::endl;
+				
+		}
+		m_bPrevRandomState = m_bCurrentRandomState;
+
+
+		if(machineLearning.bRecord){
+
+			leftNN_inParamVec[0]->value = controllerWorldPos_0.x;
+			leftNN_inParamVec[1]->value = controllerWorldPos_0.y;
+			leftNN_inParamVec[2]->value = controllerWorldPos_0.z;
+			
+			regModLeft.normaliseData(leftNN_inParamVec);
+			regModLeft.normaliseData(leftNN_outParamVec);
+			regModLeft.collectData(leftNN_inParamVec, leftNN_outParamVec);
+			std::cout << "RECORDING LEFT NN" << std::endl;
+		}
+		machineLearning.bRecord = false;
+
+		m_bCurrentTrainState = machineLearning.bTrainModel;
+		if(machineLearning.bTrainModel != m_bPrevTrainState && machineLearning.bTrainModel == true){
+			m_bLeftNN_modelTrained = regModLeft.trainModel();
+			std::cout << "LEFT NN MODEL TRAINED: " << m_bLeftNN_modelTrained << std::endl;
+		}
+		m_bPrevTrainState = m_bCurrentTrainState;
+
+		m_bCurrentRunState = machineLearning.bRunModel;
+		if(machineLearning.bRunModel && m_bModelTrained)
+		{
+			//std::cout << "LEFT MODEL RUNNING" << std::endl;
+			leftNN_inParamVec[0]->value = controllerWorldPos_0.x;
+			leftNN_inParamVec[1]->value = controllerWorldPos_0.y;
+			leftNN_inParamVec[2]->value = controllerWorldPos_0.z;
+
+			regModLeft.normaliseData(leftNN_inParamVec);
+
+			regModLeft.run(leftNN_inParamVec, leftNN_outParamVec);
+
+			regModLeft.remapData(leftNN_outParamVec);
+
+			*m_vSendVals[3] = (MYFLT)leftNN_outParamVec[0]->value;		
+			*m_vSendVals[4] = (MYFLT)leftNN_outParamVec[1]->value;
+			*m_vSendVals[5] = (MYFLT)leftNN_outParamVec[2]->value;
+			*m_vSendVals[6] = (MYFLT)leftNN_outParamVec[3]->value;
+			*m_vSendVals[7] = (MYFLT)leftNN_outParamVec[4]->value;
+			*m_vSendVals[8] = (MYFLT)leftNN_outParamVec[5]->value;
+			*m_vSendVals[9] = (MYFLT)leftNN_outParamVec[6]->value;
+
+		} 
+		else if(!machineLearning.bRunModel && m_bCurrentRunState != m_bPrevRunState && m_bModelTrained)
+		{
+			std::cout << "Left Model Stopped" << std::endl;
+			*m_vSendVals[3] = (MYFLT)leftNN_outParamVec[0]->value;		
+			*m_vSendVals[4] = (MYFLT)leftNN_outParamVec[1]->value;
+			*m_vSendVals[5] = (MYFLT)leftNN_outParamVec[2]->value;
+			*m_vSendVals[6] = (MYFLT)leftNN_outParamVec[3]->value;
+			*m_vSendVals[7] = (MYFLT)leftNN_outParamVec[4]->value;
+			*m_vSendVals[8] = (MYFLT)leftNN_outParamVec[5]->value;
+			*m_vSendVals[9] = (MYFLT)leftNN_outParamVec[6]->value;
+		} else if(!machineLearning.bRunModel && !m_bModelTrained)
+		{
+			*m_vSendVals[3] = (MYFLT)leftNN_outParamVec[0]->value;		
+			*m_vSendVals[4] = (MYFLT)leftNN_outParamVec[1]->value;
+			*m_vSendVals[5] = (MYFLT)leftNN_outParamVec[2]->value;
+			*m_vSendVals[6] = (MYFLT)leftNN_outParamVec[3]->value;
+			*m_vSendVals[7] = (MYFLT)leftNN_outParamVec[4]->value;
+			*m_vSendVals[8] = (MYFLT)leftNN_outParamVec[5]->value;
+		}
+		m_bPrevRunState = m_bCurrentRunState;
+		
+		// save model
+		m_bCurrentSaveState = m_bPrevSaveState;
+		if(machineLearning.bSaveModel!= m_bCurrentSaveState && machineLearning.bSaveModel == true)
+		{
+			regModLeft.saveModel(mySavedModel_left);
+		}
+		m_bPrevSaveState = machineLearning.bSaveModel;
+
+		// load model
+		m_bCurrentLoadState = m_bPrevLoadState;
+		if(machineLearning.bLoadModel != m_bCurrentLoadState && machineLearning.bLoadModel == true)
+		{
+			m_bLeftNN_modelTrained = regModLeft.loadModel(mySavedModel_left);	
+		}
+		m_bPrevLoadState = machineLearning.bLoadModel;
+
+	}
 
 }
 //*********************************************************************************************
@@ -459,27 +650,33 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 void Studio::MLRegressionSetup()
 {
 	m_bPrevSaveState = false;
+	m_bCurrentSaveState = false;
 	m_bPrevRandomState = false;
+	m_bCurrentRandomState = false;
 	m_bPrevTrainState = false;
+	m_bCurrentTrainState = false;
 	m_bPrevRunState = false;
+	m_bCurrentRunState = false;
 	m_bPrevHaltState = false;
 	m_bPrevLoadState = false;
+	m_bCurrentLoadState = false;
 	m_bMsg = true;
 	m_bCurrentMsgState = false;
 	m_bRunMsg = true;
 	m_bCurrentRunMsgState = false;
 	sizeVal = 0.0f;
 	m_bModelTrained = false;
+	m_bLeftNN_modelTrained = false;
 	m_bPrevControlAreaMarkerState = false;
 }
 
 void Studio::MLRegressionUpdate(MachineLearning& machineLearning, PBOInfo& pboInfo, std::vector<MLAudioParameter>& params)
 {
 
-	bool currentRandomState = m_bPrevRandomState;
+	m_bCurrentRandomState = m_bPrevRandomState;
 
 	// randomise parameters
-	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true)
+	if(machineLearning.bRandomParams != m_bCurrentRandomState && machineLearning.bRandomParams == true)
 	{
 		//random device
 		std::random_device rd;
@@ -523,15 +720,15 @@ void Studio::MLRegressionUpdate(MachineLearning& machineLearning, PBOInfo& pboIn
 	machineLearning.bRecord = false;
 
 	// train model
-	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() > 0)
+	m_bCurrentTrainState = m_bPrevTrainState;
+	if(machineLearning.bTrainModel != m_bCurrentTrainState && machineLearning.bTrainModel == true && trainingSet.size() > 0)
 	{
 
 		staticRegression.train(trainingSet);
 		m_bModelTrained = true;
 		std::cout << "Model Trained" << std::endl;
 	}	
-	else if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true && trainingSet.size() == 0)
+	else if(machineLearning.bTrainModel != m_bCurrentTrainState && machineLearning.bTrainModel == true && trainingSet.size() == 0)
 	{
 		std::cout << "Can't train model. No training data." << std::endl;
 	}
@@ -618,21 +815,21 @@ void Studio::MLRegressionUpdate(MachineLearning& machineLearning, PBOInfo& pboIn
 	}
 		
 	// save model
-	std::string mySavedModel = "mySavedModel_cyclicalEx.json";
-	bool currentSaveState = m_bPrevSaveState;
-	if(machineLearning.bSaveModel!= currentSaveState && machineLearning.bSaveModel == true)
+	std::string mySavedModel_old = "mySavedModel_cyclicalEx.json";
+	m_bCurrentSaveState = m_bPrevSaveState;
+	if(machineLearning.bSaveModel!= m_bCurrentSaveState && machineLearning.bSaveModel == true)
 	{
-		staticRegression.writeJSON(mySavedModel);
+		staticRegression.writeJSON(mySavedModel_old);
 		std::cout << "Saving Training Data" << std::endl;
 	}
 	m_bPrevSaveState = machineLearning.bSaveModel;
 
 	// load model
-	bool currentLoadState = m_bPrevLoadState;
-	if(machineLearning.bLoadModel != currentLoadState && machineLearning.bLoadModel == true)
+	m_bCurrentLoadState = m_bPrevLoadState;
+	if(machineLearning.bLoadModel != m_bCurrentLoadState && machineLearning.bLoadModel == true)
 	{
 		staticRegression.reset();
-		staticRegression.readJSON(mySavedModel);	
+		staticRegression.readJSON(mySavedModel_old);	
 		m_bModelTrained = true;
 		std::cout << "Loading Data and Training Model" << std::endl;
 	}
