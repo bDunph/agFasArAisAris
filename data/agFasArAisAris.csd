@@ -234,6 +234,7 @@ kNoteLen	chnget		"modSamp_noteLength"
 kWSize		chnget		"modSamp_winSize"
 kWSize = floor(kWSize)
 kOverlap	chnget		"modSamp_overlap"
+kAmp		chnget		"modSamp_amp"
 
 kFn	init 1
 ;kPrevFn	init 0
@@ -241,10 +242,11 @@ kFn	init 1
 ;kIndex2	init 0
 
 ;kfreq     random  0.08, 2 
-kMetVal		metro   	1,	0.00000001		
-kTrigVal	samphold	kFreq,	kMetVal	
+;kMetVal		metro   	1,	0.00000001		
+;kTrigVal	samphold	kFreq,	kMetVal	
 
-kTrigger	metro		kTrigVal
+;kTrigger	metro		kTrigVal
+kTrigger	metro		kFreq	
 
 ;if (ktrigger > 0) then
 ;kIndex	=	kIndex + 1
@@ -266,7 +268,7 @@ kTrigger	metro		kTrigVal
 ;kFn	=	2
 ;endif
 
-schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap 
+schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp 
   endin
 
 ;**************************************************************************************
@@ -275,7 +277,6 @@ instr ModalSampler, 4	;	Reads audio recorded from Modal Synth and uses
 ;**************************************************************************************
 
 kMoogCutoff	chnget	"modSamp_moogCutoff"
-kAmp		chnget	"modSamp_amp"
 kMoogRes	chnget	"modSamp_moogRes"
 
 ;define the input variables
@@ -288,7 +289,7 @@ iPtrStart	=	ilen * 0.5
 iPtrTrav	random	(ilen * 0.25) * -1.0, ilen * 0.25
 
 ktimewarp   line       iPtrStart,p3,iPtrStart+iPtrTrav
-;kamp        linseg     0,p3/2,0.2,p3/2,0
+kamp        linseg     0,p3/2,p7,p3/2,0
 iresample   random     -24,24.99
 iresample   =          semitone(int(iresample))
 ifn2        =          giWFnSndWrp
@@ -299,13 +300,13 @@ irandw      =          iwsize/3
 ioverlap    =         p6 
 itimemode   =         1 
 ; create a granular synthesis texture using sndwarp
-aSig sndwarp  kAmp,ktimewarp,iresample,ifn1,ibeg,\
+aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
                               iwsize,irandw,ioverlap,ifn2,itimemode
 ; envelope the signal with a lowpass filter
 ;kcf         expseg     50,p3/2,12000,p3/2,50
 ;aSig       moogvcf2    aSig, kMoogCutoff, 0.5
 aSig       moogvcf2    aSig, kMoogCutoff, kMoogRes 
-aSig	= 	aSig * 0.25
+aSig	= 	aSig * 0.05
             outs       aSig,aSig
   endin
 

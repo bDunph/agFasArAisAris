@@ -74,6 +74,10 @@ private:
 	double m_dFbmAmp;
 	GLint m_gliFbmSpeed;
 	double m_dFbmSpeed;
+	GLint m_gliFbmAmp_left;
+	double m_dFbmAmp_left;
+	GLint m_gliFbmSpeed_left;
+	double m_dFbmSpeed_left;
 	glm::vec2 m_vDisplayRes;
 	float m_fTime;
 	GLint m_gliSphereNum;
@@ -162,6 +166,8 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_overlap;
 	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_amp;
 	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_moogRes;
+	std::unique_ptr<RegressionModel::DataInfo> m_pFbmSpeed_left;
+	std::unique_ptr<RegressionModel::DataInfo> m_pFbmAmp_left;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> leftNN_outParamVec;
 
 	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;

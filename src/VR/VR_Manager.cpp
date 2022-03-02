@@ -177,7 +177,8 @@ bool VR_Manager::HandleInput()
 	//machine learning controls
 	vr::VRInputValueHandle_t ulActivateNNRightDevice;
 	if(helper->GetDigitalActionState(m_actionActivateNNRight, &ulActivateNNRightDevice)){
-		if(ulActivateNNRightDevice == m_rHand[Left].m_source || ulActivateNNRightDevice == m_rHand[Right].m_source){
+		//if(ulActivateNNRightDevice == m_rHand[Left].m_source || ulActivateNNRightDevice == m_rHand[Right].m_source){
+		if(ulActivateNNRightDevice == m_rHand[Right].m_source){
 			m_bViveActivateNNRight = true;
 		}
 	} else {
@@ -186,8 +187,9 @@ bool VR_Manager::HandleInput()
 
 	vr::VRInputValueHandle_t ulActivateNNLeftDevice;
 	if(helper->GetDigitalActionState(m_actionActivateNNLeft, &ulActivateNNLeftDevice)){
-		if(ulActivateNNLeftDevice == m_rHand[Left].m_source || ulActivateNNLeftDevice == m_rHand[Right].m_source){
-			m_bViveActivateNNLeft = !m_bViveActivateNNLeft;
+		//if(ulActivateNNLeftDevice == m_rHand[Left].m_source || ulActivateNNLeftDevice == m_rHand[Right].m_source){
+		if(ulActivateNNLeftDevice == m_rHand[Left].m_source){
+			m_bViveActivateNNLeft = true;
 		}
 	} else {
 		m_bViveActivateNNLeft = false;

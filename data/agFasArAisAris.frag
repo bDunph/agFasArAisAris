@@ -28,6 +28,8 @@ uniform vec2 dispRes;
 uniform float time;
 uniform float fbmAmp;
 uniform float fbmSpeed;
+uniform float fbmAmp_left;
+uniform float fbmSpeed_left;
 uniform int controlAreaSphereNum;
 uniform vec3 controllerPos;
 uniform float fractalAngle;
@@ -43,6 +45,7 @@ int index;
 vec4 orbit;
 
 float fbmVal;
+float fbmVal_left;
 float markerDists[3];
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
@@ -114,7 +117,7 @@ float platformSDF(vec3 p, vec4 normal)
 
 float kifSDF(vec3 p)
 {
-	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fractalAngle + (fbmVal * 0.5));
+	mat3 rot = rotationMatrix(vec3(0.5, 1.0, 0.0), fractalAngle + (fbmVal * 0.25));
 
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
@@ -157,7 +160,8 @@ float DE(vec3 p)
 	//float ampDisp = sin(rmsModVal * 5.0);
 	float ampDisp = sin(5.0);
 	
-	float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
+	//float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
+	float sphereDist = sphereSDF(p + fbmVal_left, rad);
 
 	if(length(p) > rad) 
 	{
@@ -282,6 +286,18 @@ float fbm(vec3 x) {
 	return v;
 }
 
+float fbm_left(vec3 x) {
+	float v = 0.0;
+	float a = fbmAmp_left;
+	vec3 shift = vec3(100);
+	for (int i = 0; i < NUM_NOISE_OCTAVES; ++i) {
+		v += a * noise(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
+
 void main()
 {
 
@@ -296,6 +312,9 @@ void main()
 	vec3 animFBM = vec3(st.x, st.y, time * fbmSpeed);
 	fbmVal = fbm(animFBM);
 	
+	vec3 animFBM_left = vec3(st.x, st.y, time * fbmSpeed_left);
+	fbmVal_left = fbm_left(animFBM_left);
+
 	//************* ray setup code from **************************//
 	//https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html*/
 	
