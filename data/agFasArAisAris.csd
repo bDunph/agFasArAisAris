@@ -324,17 +324,18 @@ kGaussVal 	gauss 	6.0
 kGaussVal2	gauss	100
 
 seed 0
-kRand random 0.2, 10.8
-kRand2 random 1, 20  
+kRand random 2.2, 10.8
+kRand2 random 3, 20  
 
-kTrigger metro  kRand2 
-	 chnset kTrigger, "metroOut"
+kMetVal		metro   	0.5,	0.00000001		
+kTrigVal	samphold	kRand,	kMetVal	
+kTrigger 	metro		kTrigVal 
 
 kMinTim		= 0 
 kMaxNum 	= 1
 kInsNum 	= 6 
 kWhen 		= 2
-gkDur 		= kRand 
+gkDur 		= kRand2 
 kSpeed 		= kFileSpeed + kGaussVal
 kGrainFreq 	= p4 + kGaussVal
 kGrainDurFactor = kGrainDurFactor + kGaussVal2
@@ -465,7 +466,7 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
 gaParticleOut = aOut * aOutEnv
-	outs	gaParticleOut, gaParticleOut
+	;outs	gaParticleOut, gaParticleOut
 
 endin
 
@@ -827,45 +828,62 @@ instr SoundLocaliser, 18	; Sound Localisation using hrtf2
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init	1 
+iNumAudioSources init	2 
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
 kDistances[]	init	iNumAudioSources
 
-kCount = 0
+kAzimuths[0]	chnget	"azimuth0"
+kAzimuths[1]	chnget	"azimuth1"
+kElevations[0]	chnget	"elevation0"
+kElevations[1]	chnget	"elevation1"
+kDistances[0]	chnget	"distance0"
+kDistances[1]	chnget	"distance1"
 
-channelLoop:
+;iCount init 0
 
-	S_azimuth sprintfk "azimuth%d", kCount
-	kAzimuths[kCount] 	chnget S_azimuth
+;channelLoop:
 
-	S_elevation sprintfk "elevation%d", kCount 
-	kElevations[kCount] 	chnget S_elevation 
+	;S_azimuth sprintfk "azimuth%d", iCount 
+	;kAzimuths[iCount] 	chnget "S_azimuth"
+	;prints "%s\n", S_azimuth
 
-	S_distance sprintfk "distance%d", kCount
-	kDistances[kCount]	chnget S_distance 
+	;S_elevation sprintfk "elevation%d", iCount 
+	;;kElevations[kInd] 	chnget S_elevation 
 
-	loop_lt	kCount, 1, iNumAudioSources, channelLoop
+	;S_distance sprintfk "distance%d", iCount 
+	;;kDistances[kInd]	chnget S_distance 
+
+	;loop_lt	iCount, 1, iNumAudioSources, channelLoop
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] =	(gaGranulatedRainDrySig * 0.4) + (gaGranularRainReverbOut * 0.6) 
+aInstSigs[1] =	gaParticleOut + gaParticleOut
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
 kDistVals[]	init	iNumAudioSources
 
 kDistVals[0] portk kDistances[0], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
+kDistVals[1] portk kDistances[1], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
 	
 aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 aLeftSigs[0] = aLeftSigs[0] / (kDistVals[0] + 0.00001)
 aRightSigs[0] = aRightSigs[0] / (kDistVals[0] + 0.00001)
 
+aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
+aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
+
 aL init 0
 aR init 0
 
-aL =	aLeftSigs[0]
-aR =	aRightSigs[0]
+aL sum	aLeftSigs[0], aLeftSigs[1]
+aR sum	aRightSigs[0], aRightSigs[1]
+
+;aL = aL / iNumAudioSources
+;aR = aR / iNumAudioSources
 
 outs	aL,	aR
 endin
@@ -886,9 +904,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-i "ModalSynth"			0	6	1	0
+;i "ModalSynth"			0	6	1	0
 
-i "ModalSamplerTrigger"		7	-1
+;i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -897,11 +915,15 @@ i "ModalSamplerTrigger"		7	-1
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-i "GranulatedRainTrigger"	2	-1
+;i "GranulatedRainTrigger"	2	-1
 
-i "GranularRainReverb"		2	-1
+;i "GranularRainReverb"		2	-1
 
-i "SoundLocaliser"		1	-1
+i "ClickPopStaticTrigger"	2	-1	8
+
+i "SpectralAnalysis"		2	-1
+
+i "SoundLocaliser"		2	-1
 
 ;i "KarplusStrongTrigger"	0	-1
 ;i "KarplusStrongCompressor"	0	-1

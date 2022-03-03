@@ -15,12 +15,12 @@
 #define SPHERE_RAD 10.0
 #define FACTOR 5.0
 #define MARKER_RAD 0.25
-#define POS1 vec3(7.79998, -4.46797, 7.72899)
+//#define POS1 vec3(7.79998, -4.46797, 7.72899)
 #define POS2 vec3(-1.09494, -2.4807, 9.67536)
 #define POS3 vec3(8.31372, -1.6492, -9.66504)
 
 uniform mat4 MVEPMat;
-//uniform float specCentVal;
+uniform float specCentVal;
 //uniform float timeVal;
 //uniform float rmsModVal;
 
@@ -33,6 +33,8 @@ uniform float fbmSpeed_left;
 uniform int controlAreaSphereNum;
 uniform vec3 controllerPos;
 uniform float fractalAngle;
+uniform vec3 spherePos1;
+uniform float crackleVal;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -83,9 +85,9 @@ float planeSDF(vec3 p, vec4 normal)
 	int n = 0;
 	while(n < ITERATIONS)
     {
-	if(p.x + p.y < 0.0) p.xy = -p.yx; // fold 1
-        if(p.x + p.z < 0.0) p.xz = -p.zx; // fold 2
-        if(p.y + p.z < 0.0) p.zy = -p.yz; // fold 3
+	if(p.x + p.y < 0.0) p.xy = -p.yx + (fbmVal_left * 0.25); // fold 1
+        if(p.x + p.z < 0.0) p.xz = -p.zx + (fbmVal_left * 0.25); // fold 2
+        if(p.y + p.z < 0.0) p.zy = -p.yz + (fbmVal_left * 0.25); // fold 3
 
         p = p * SCALE - OFFSET * (SCALE - 1.0);
         
@@ -149,6 +151,12 @@ float kifSDF(vec3 p)
 
 float recVal = 0.0;
 
+float sineDisplacement(vec3 p)
+{
+	return sin((specCentVal * 0.001) * p.x) * sin((specCentVal * 0.001) * p.y) * sin((specCentVal * 0.001) * p.z);
+	//return sin(2.0 * p.x) * sin(2.0 * p.y) * sin(2.0 * p.z);
+}
+
 float DE(vec3 p)
 {
 	float rad = SPHERE_RAD + recVal;
@@ -160,8 +168,7 @@ float DE(vec3 p)
 	//float ampDisp = sin(rmsModVal * 5.0);
 	float ampDisp = sin(5.0);
 	
-	//float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
-	float sphereDist = sphereSDF(p + fbmVal_left, rad);
+	float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
 
 	if(length(p) > rad) 
 	{
@@ -173,7 +180,9 @@ float DE(vec3 p)
 	float kifDist = kifSDF(p);
 	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
 
-	markerDists[0] = controlAreaSphere(p + POS1, MARKER_RAD);
+	float markerDist1 = controlAreaSphere(p + spherePos1, MARKER_RAD);
+	float sinDisp = sineDisplacement(p);
+	markerDists[0] = markerDist1 + sinDisp;
 	markerDists[1] = controlAreaSphere(p + POS2, MARKER_RAD);
 	markerDists[2] = controlAreaSphere(p + POS3, MARKER_RAD);
 

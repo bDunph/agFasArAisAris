@@ -188,5 +188,17 @@ private:
 
 	std::string mySavedModel;
 	std::string mySavedModel_left;
+
+	//Sound sources
+	GLint m_gliSpherePos1;
+	glm::vec3 m_vec3SpherePos1;
+	glm::vec3 m_vec3RotatedSpherePos1;
+	glm::mat3 rotY;
+	GLint m_gliSpecCentVal;
+	float m_fSpecCentVal;
+	MYFLT* m_pSpecCentOut;
+	float m_fPrevSpecVal;
+	
+	
 };
 #endif

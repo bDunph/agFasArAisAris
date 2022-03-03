@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <random>
+#include <math.h>
 
 #ifdef __APPLE__ 
 #include "GLFW/glfw3.h"
@@ -35,6 +36,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_bRightNNToggle = false;
 	m_bLeftNNToggle = false;
 
+	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
+	m_vec3SpherePos1 = glm::vec3(1.5f, -1.0f, 1.0f); 
+	m_fPrevSpecVal = 0.0;
+
 	m_pStTools = new StudioTools();
 
 	//setup quad to use for raymarching
@@ -44,6 +49,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
 	//m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
 	//m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
+	m_gliSpecCentVal = glGetUniformLocation(shaderProg, "specCentVal");
 	m_gliDisplayRes = glGetUniformLocation(shaderProg, "dispRes");
 	m_gliTime = glGetUniformLocation(shaderProg, "time");
 	m_gliFbmAmp = glGetUniformLocation(shaderProg, "fbmAmp");
@@ -53,6 +59,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliSphereNum = glGetUniformLocation(shaderProg, "controlAreaSphereNum");
 	m_gliControllerPos = glGetUniformLocation(shaderProg, "controllerPos");
 	m_gliFractalAngle = glGetUniformLocation(shaderProg, "fractalAngle");
+	m_gliSpherePos1 = glGetUniformLocation(shaderProg, "spherePos1");
 
 	//machine learning setup
 	MLRegressionSetup();
@@ -103,7 +110,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmSpeed->value = 0.5;
 	m_pFbmSpeed->normVal = 0.0;
 	m_pFbmSpeed->minVal = 0.0;
-	m_pFbmSpeed->maxVal = 2.0;
+	m_pFbmSpeed->maxVal = 3.0;
 	m_pFbmSpeed->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmSpeed));
@@ -226,17 +233,17 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmAmp_left->value = 0.5;
 	m_pFbmAmp_left->normVal = 0.0;
 	m_pFbmAmp_left->minVal = 0.0;
-	m_pFbmAmp_left->maxVal = 1.0;
+	m_pFbmAmp_left->maxVal = 10.0;
 	m_pFbmAmp_left->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pFbmAmp_left));
 
 	m_pFbmSpeed_left = std::make_unique<RegressionModel::DataInfo>();
 	m_pFbmSpeed_left->name = "fbmSpeed_left";
-	m_pFbmSpeed_left->value = 0.5;
+	m_pFbmSpeed_left->value = 0.15;
 	m_pFbmSpeed_left->normVal = 0.0;
 	m_pFbmSpeed_left->minVal = 0.0;
-	m_pFbmSpeed_left->maxVal = 2.0;
+	m_pFbmSpeed_left->maxVal = 0.5;
 	m_pFbmSpeed_left->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pFbmSpeed_left));
@@ -321,11 +328,11 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//setup returns from csound 
 	std::vector<const char*> returnNames;
 
-	returnNames.push_back("pitchOut");
-	m_vReturnVals.push_back(m_pPitchOut);
+	returnNames.push_back("specCentOut");
+	m_vReturnVals.push_back(m_pSpecCentOut);
 
-	returnNames.push_back("freqOut");
-	m_vReturnVals.push_back(m_pFreqOut);
+	//returnNames.push_back("freqOut");
+	//m_vReturnVals.push_back(m_pFreqOut);
 
 	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
 
@@ -365,12 +372,35 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//if(m_fCurrentVal < 0.0f) m_fCurrentVal = 0.0f;
 	//m_fPitch = m_fCurrentVal;
 	
-	// example sound source at origin
+	// granulated rain sound source at origin
 	StudioTools::SoundSourceData soundSource1;
 	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	soundSource1.position = sourcePosWorldSpace;
+
+	// clickPopStatic sound source mapped to moving sphere
+	
+	float currentSpecVal = *m_vReturnVals[0];
+	if(currentSpecVal > 0.0 && currentSpecVal != m_fPrevSpecVal)
+	{
+		m_fSpecCentVal = currentSpecVal;
+	}
+	m_fPrevSpecVal = currentSpecVal;
+
+	//std::cout << "SpecCentVal: " << m_fSpecCentVal << std::endl;
+
+	rotY = glm::mat3(
+			cos(glfwGetTime() * 0.08f), 	0, 	sin(glfwGetTime() * 0.08f),
+			0,				1,	0,
+			-sin(glfwGetTime() * 0.08f),	0,	cos(glfwGetTime() * 0.08f));
+	m_vec3RotatedSpherePos1 = rotY * m_vec3SpherePos1;
+
+	StudioTools::SoundSourceData soundSource2;
+	glm::vec4 sourcePosWorldSpace2 = glm::vec4(m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z, 1.0f); 
+	soundSource2.position = sourcePosWorldSpace2;
+	
 	std::vector<StudioTools::SoundSourceData> soundSources;
 	soundSources.push_back(soundSource1);
+	soundSources.push_back(soundSource2);
 
 	m_pStTools->SoundSourceUpdate(soundSources, viewMat);
 
@@ -660,6 +690,8 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1i(m_gliSphereNum, m_iSphereNum);
 	glUniform3f(m_gliControllerPos, m_vec3ControllerPos.x, m_vec3ControllerPos.y, m_vec3ControllerPos.z);
 	glUniform1f(m_gliFractalAngle, m_dFractalAngle);
+	glUniform3f(m_gliSpherePos1, m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z);
+	glUniform1f(m_gliSpecCentVal, m_fSpecCentVal);
 
 	m_pStTools->DrawEnd();
 

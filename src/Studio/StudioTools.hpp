@@ -8,6 +8,8 @@
 
 #include "CsoundSession.hpp"
 
+#define NUM_SOUND_SOURCES 2
+
 class StudioTools {
 
 public:
@@ -35,9 +37,13 @@ private:
 
 	CsoundSession* m_pSession;
 
-	MYFLT** m_pAzimuthVals;
-	MYFLT** m_pElevationVals;
-	MYFLT** m_pDistanceVals;
+	//MYFLT** m_pAzimuthVals;
+	//std::vector<MYFLT*> m_vecAzimuthVals;
+	MYFLT* m_pAzimuthVals[NUM_SOUND_SOURCES];
+	//MYFLT** m_pelevationvals;
+	MYFLT* m_pElevationVals[NUM_SOUND_SOURCES];
+	//MYFLT** m_pDistanceVals;
+	MYFLT* m_pDistanceVals[NUM_SOUND_SOURCES];
 
 	unsigned int m_uiNumSceneIndices;
 	GLuint m_gluiSceneVAO;
@@ -45,5 +51,7 @@ private:
 
 	GLint m_gliMVEPMatrixLocation;
 	GLint m_gliInverseMVEPLocation;
+
+	int m_iNumSoundSources;
 };
 #endif

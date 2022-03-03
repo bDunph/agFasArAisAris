@@ -27,9 +27,9 @@ CsoundSession* StudioTools::PCsoundSetup(std::string _csdName)
 bool StudioTools::BSoundSourceSetup(CsoundSession* _session, int numSources)
 {
 
-	m_pAzimuthVals = new MYFLT*[numSources];
-	m_pElevationVals = new MYFLT*[numSources];
-	m_pDistanceVals = new MYFLT*[numSources];
+	//m_pAzimuthVals = new MYFLT*[numSources];
+	//m_pElevationVals = new MYFLT*[numSources];
+	//m_pDistanceVals = new MYFLT*[numSources];
 	
 	for(int i = 0; i < numSources; i++)
 	{
@@ -213,8 +213,11 @@ void StudioTools::Exit(){
 	m_pSession->StopPerformance();
 	delete m_pSession;
 	
-	//delete dynamic memory
-	delete m_pAzimuthVals;
-	delete m_pElevationVals;
-	delete m_pDistanceVals;
+	//for(int i = 0; i < m_iNumSoundSources; i++)
+	//{
+	//	//delete dynamic memory
+	//	delete m_pAzimuthVals[i];
+	//	delete m_pElevationVals[i];
+	//	delete m_pDistanceVals[i];
+	//}
 }
