@@ -62,12 +62,14 @@ private:
 	
 	MYFLT* m_pPitchOut;
 	MYFLT* m_pFreqOut;
+	MYFLT* m_pAmpOut;
 	MYFLT* m_cspSineControlVal;
 	MYFLT* m_cspRandVal;
 
 	GLint m_gliSineControlValLoc;
 	GLint m_gliPitchOutLoc;
 	GLint m_gliFreqOutLoc;
+	GLint m_gliAmpOutLoc;
 	GLint m_gliDisplayRes;
 	GLint m_gliTime;
 	GLint m_gliFbmAmp;
@@ -198,6 +200,9 @@ private:
 	float m_fSpecCentVal;
 	MYFLT* m_pSpecCentOut;
 	float m_fPrevSpecVal;
+	float m_fPrevTargetVal;
+	float m_fAmpOut;
+	std::deque<float> m_dAmpOutVals;
 	
 	
 };

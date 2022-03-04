@@ -307,6 +307,7 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
 ;aSig       moogvcf2    aSig, kMoogCutoff, 0.5
 aSig       moogvcf2    aSig, kMoogCutoff, kMoogRes 
 aSig	= 	aSig * 0.05
+;gaModalSamplerOut = aSig
             outs       aSig,aSig
   endin
 
@@ -416,10 +417,10 @@ kchroma			= 1		; balance of partials in trainlet
 imid			= .5; center
 ileftmost		= imid - ipan/2
 irightmost		= imid + ipan/2
-giPanthis		ftgen	0, 0, 32768, -24, giPan, ileftmost, irightmost	; rescales giPan according to ipan
-			tableiw		0, 0, giPanthis				; change index 0 ...
-			tableiw		32766, 1, giPanthis			; ... and 1 for ichannelmasks
-ichannelmasks		= giPanthis		; ftable for panning
+;giPanthis		ftgen	0, 0, 32768, -24, giPan, ileftmost, irightmost	; rescales giPan according to ipan
+			;tableiw		0, 0, giPanthis				; change index 0 ...
+			;tableiw		32766, 1, giPanthis			; ... and 1 for ichannelmasks
+ichannelmasks		= -1 ;giPanthis		; ftable for panning
 
 /*random gain masking*/
 krandommask		= 0.2	
@@ -791,35 +792,35 @@ kFreq,	kAmp	pvspitch	fsig,	0.01
 	chnset	kAmp,	"ampOut"
 
 ; get info from pvsanal and print
-ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
-print	ioverlap,	inbins,	iwindowsize,	iformat		
+;ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
+;print	ioverlap,	inbins,	iwindowsize,	iformat		
 
 ; create tables to write frequency data
-iFreqTable	ftgen	0,	0,	inbins,	2,	0
-iAmpTable	ftgen	0,	0,	inbins,	2,	0
-
-; write frequency data to function table
-kFlag	pvsftw	fsig,	iAmpTable,	iFreqTable	
-
- if kFlag == 0 goto contin 
-
-;************** Frequency Processing *****************
-
-; modify frequency data from fsig with mandelbulb escape values from application
-kCount = 0
-
-loop:
-
-	; read amplitude data from iAmpTable
-	kAmp	tablekt	kCount,	iAmpTable
-
-	; send val out to application
-	S_ChannelName	sprintfk	"fftAmpBin%d",	kCount
-	chnset	kAmp,	S_ChannelName
-	
-	loop_lt	kCount,	1,	inbins,	loop
-
-contin:
+;iFreqTable	ftgen	0,	0,	inbins,	2,	0
+;iAmpTable	ftgen	0,	0,	inbins,	2,	0
+;
+;; write frequency data to function table
+;kFlag	pvsftw	fsig,	iAmpTable,	iFreqTable	
+;
+; if kFlag == 0 goto contin 
+;
+;;************** Frequency Processing *****************
+;
+;; modify frequency data from fsig with mandelbulb escape values from application
+;kCount = 0
+;
+;loop:
+;
+;	; read amplitude data from iAmpTable
+;	kAmp	tablekt	kCount,	iAmpTable
+;
+;	; send val out to application
+;	S_ChannelName	sprintfk	"fftAmpBin%d",	kCount
+;	chnset	kAmp,	S_ChannelName
+;	
+;	loop_lt	kCount,	1,	inbins,	loop
+;
+;contin:
 
 endin
 
@@ -859,7 +860,7 @@ kDistances[1]	chnget	"distance1"
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] =	(gaGranulatedRainDrySig * 0.4) + (gaGranularRainReverbOut * 0.6) 
-aInstSigs[1] =	gaParticleOut + gaParticleOut
+aInstSigs[1] =	gaParticleOut
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -869,12 +870,14 @@ kDistVals[0] portk kDistances[0], kPortTime	;to filter out audio artifacts due t
 kDistVals[1] portk kDistances[1], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
 	
 aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[0] = aLeftSigs[0] / (kDistVals[0] + 0.00001)
-aRightSigs[0] = aRightSigs[0] / (kDistVals[0] + 0.00001)
+kDistSquared0	pow	kDistVals[0], 2
+aLeftSigs[0] = aLeftSigs[0] / kDistSquared0 ;(kDistVals[0] + 0.00001)
+aRightSigs[0] = aRightSigs[0] / kDistSquared0 ;(kDistVals[0] + 0.00001)
 
 aLeftSigs[1], aRightSigs[1]  hrtfmove2	aInstSigs[1], kAzimuths[1], kElevations[1], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[1] = aLeftSigs[1] / (kDistVals[1] + 0.00001)
-aRightSigs[1] = aRightSigs[1] / (kDistVals[1] + 0.00001)
+kDistSquared1	pow	kDistVals[1], 2
+aLeftSigs[1] = aLeftSigs[1] / kDistSquared1 
+aRightSigs[1] = aRightSigs[1] / kDistSquared1 ;(kDistVals[1] + 1);0.00001)
 
 aL init 0
 aR init 0
@@ -904,9 +907,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-;i "ModalSynth"			0	6	1	0
+i "ModalSynth"			0	6	1	0
 
-;i "ModalSamplerTrigger"		7	-1
+i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -915,11 +918,11 @@ f0	86400 ;keep csound running for a day
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-;i "GranulatedRainTrigger"	2	-1
+i "GranulatedRainTrigger"	2	-1
 
-;i "GranularRainReverb"		2	-1
+i "GranularRainReverb"		2	-1
 
-i "ClickPopStaticTrigger"	2	-1	8
+i "ClickPopStaticTrigger"	2	-1	20	
 
 i "SpectralAnalysis"		2	-1
 

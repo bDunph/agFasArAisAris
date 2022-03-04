@@ -61,37 +61,61 @@ bool StudioTools::BSoundSourceSetup(CsoundSession* _session, int numSources)
 	return true;
 }
 
-void StudioTools::SoundSourceUpdate(std::vector<SoundSourceData>& soundSources, glm::mat4 _viewMat)
+void StudioTools::SoundSourceUpdate(std::vector<SoundSourceData>& soundSources, glm::mat4 _viewMat, glm::vec3 camWorldPos)
 {
+	//glm::vec3 camWorldPos = glm::vec3(_viewMat[0][3], _viewMat[1][3], _viewMat[2][3]);
+	//glm::mat3 rotMat = glm::mat3(
+	//		_viewMat[0][0], _viewMat[1][0], _viewMat[2][0],
+	//		_viewMat[1][0], _viewMat[1][1], _viewMat[1][2],
+	//		_viewMat[2][0], _viewMat[2][1], _viewMat[2][2]);
+
+	//std::cout << "Cam World Pos: " << camWorldPos.x << ": " << camWorldPos.y << ": " << camWorldPos.z << std::endl;	
+
 	for(int i = 0; i < soundSources.size(); i++)
 	{
-		glm::mat4 soundSourceModelMatrix= glm::mat4(1.0f);
+		//glm::mat4 soundSourceModelMatrix= glm::mat4(1.0f);
 
 		// camera space positions
-		soundSources[i].posCamSpace = _viewMat * soundSourceModelMatrix * soundSources[i].position;
+		//glm::mat4 reInvViewMat = glm::inverse(_viewMat);
+		//soundSources[i].posCamSpace = _viewMat * soundSourceModelMatrix * soundSources[i].position;
+		soundSources[i].posCamSpace = _viewMat * soundSources[i].position;
 
-		// distance value
-		soundSources[i].distCamSpace = sqrt(pow(soundSources[i].posCamSpace.x, 2) + pow(soundSources[i].posCamSpace.y, 2) + pow(soundSources[i].posCamSpace.z, 2));
+		// distance value camera space
+		//soundSources[i].distCamSpace = sqrt(pow(soundSources[i].posCamSpace.x, 2) + pow(soundSources[i].posCamSpace.y, 2) + pow(soundSources[i].posCamSpace.z, 2));
 
+		// distance value in world space
+		float xVal = camWorldPos.x - soundSources[i].position.x; 
+		float yVal = camWorldPos.y - soundSources[i].position.y;
+		float zVal = camWorldPos.z - soundSources[i].position.z; 
+		float distWorldSpace = sqrt(pow(xVal, 2) + pow(yVal, 2) + pow(zVal, 2));
+		
 		//azimuth in camera space
-		float valX = soundSources[i].posCamSpace.x - soundSources[i].position.x;
-		float valZ = soundSources[i].posCamSpace.z - soundSources[i].position.z;
+		float valX = soundSources[i].posCamSpace.x;// - soundSources[i].position.x;
+		float valZ = soundSources[i].posCamSpace.z;// - soundSources[i].position.z;
 
 		soundSources[i].azimuth = atan2(valX, valZ);
+		//soundSources[i].azimuth = atan2(valZ, valX);
 		soundSources[i].azimuth *= (180.0f/PI); 	
 
 		//elevation in camera space
-		float oppSide = soundSources[i].posCamSpace.y - soundSources[i].position.y;
-		float sinVal = oppSide / soundSources[i].distCamSpace;
+		//float oppSide = soundSources[i].posCamSpace.y;// - soundSources[i].position.y;
+		//float sinVal = oppSide / soundSources[i].distCamSpace;
+		//soundSources[i].elevation = asin(sinVal);
+		//soundSources[i].elevation *= (180.0f/PI);		
+
+		//elevation in world space
+		float oppSide = yVal;
+		float sinVal = oppSide / distWorldSpace;
 		soundSources[i].elevation = asin(sinVal);
-		soundSources[i].elevation *= (180.0f/PI);		
+		soundSources[i].elevation *= (180.0f / PI);
 
 		//send values to Csound pointers
-		*m_pAzimuthVals[i] = (MYFLT)soundSources[i].azimuth;
+		*m_pAzimuthVals[i] = (MYFLT)-soundSources[i].azimuth;
 		*m_pElevationVals[i] = (MYFLT)soundSources[i].elevation;
-		*m_pDistanceVals[i] = (MYFLT)soundSources[i].distCamSpace;
+		//*m_pDistanceVals[i] = (MYFLT)soundSources[i].distCamSpace;
+		*m_pDistanceVals[i] = (MYFLT)distWorldSpace;
 	}
-	
+	//std::cout << "Distance Val: " << *m_pDistanceVals[1] << std::endl;	
 	soundSources.clear();
 
 }

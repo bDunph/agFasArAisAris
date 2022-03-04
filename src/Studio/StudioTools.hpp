@@ -25,7 +25,7 @@ public:
 
 	CsoundSession* PCsoundSetup(std::string _csdName);
 	bool BSoundSourceSetup(CsoundSession* _session, int numSources);
-	void SoundSourceUpdate(std::vector<SoundSourceData>& soundSources, glm::mat4 _viewMat);
+	void SoundSourceUpdate(std::vector<SoundSourceData>& soundSources, glm::mat4 _viewMat, glm::vec3 camWorldPos);
 	void RaymarchQuadSetup(GLuint _shaderProg);
 	void DrawStart(glm::mat4 _projMat, glm::mat4 _eyeMat, glm::mat4 _viewMat, GLuint _shaderProg, glm::vec3 translateVec);
 	void DrawEnd();

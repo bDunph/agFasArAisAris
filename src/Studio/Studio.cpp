@@ -22,12 +22,14 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_bFirstLoop = true;
 	m_fDeltaTime = 0.0f;
 	m_fTargetVal = 0.0f;
+	m_fPrevTargetVal = 0.0f;
 	m_fCurrentVal = 0.0f;
 	m_iBufSize = 20;
 	for(int i = 0; i < m_iBufSize; i++)
 	{
 		m_dFbmAmpBuf.push_front(0.0);
 		m_dFbmSpeedBuf.push_front(0.0);
+		m_dAmpOutVals.push_front(0.0);
 	}
 
 	m_iSphereNum = 0;
@@ -37,7 +39,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_bLeftNNToggle = false;
 
 	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
-	m_vec3SpherePos1 = glm::vec3(1.5f, -1.0f, 1.0f); 
+	m_vec3SpherePos1 = glm::vec3(6.0f, -1.0f, 6.0f); 
 	m_fPrevSpecVal = 0.0;
 
 	m_pStTools = new StudioTools();
@@ -48,6 +50,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//shader uniforms
 	//m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
 	//m_gliPitchOutLoc = glGetUniformLocation(shaderProg, "pitchOut");
+	m_gliAmpOutLoc = glGetUniformLocation(shaderProg, "ampOut");
 	//m_gliFreqOutLoc = glGetUniformLocation(shaderProg, "freqOut");
 	m_gliSpecCentVal = glGetUniformLocation(shaderProg, "specCentVal");
 	m_gliDisplayRes = glGetUniformLocation(shaderProg, "dispRes");
@@ -163,7 +166,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_noteFreq->value = 0.8;
 	m_pModSamp_noteFreq->normVal = 0.0;
 	m_pModSamp_noteFreq->minVal = 0.08;
-	m_pModSamp_noteFreq->maxVal = 4.0;
+	m_pModSamp_noteFreq->maxVal = 2.0;
 	m_pModSamp_noteFreq->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteFreq));
@@ -182,7 +185,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_winSize->name = "modSamp_winSize";
 	m_pModSamp_winSize->value = 5000.0;
 	m_pModSamp_winSize->normVal = 0.0;
-	m_pModSamp_winSize->minVal = 2400.0;
+	m_pModSamp_winSize->minVal = 4800.0;
 	m_pModSamp_winSize->maxVal = 24000.0;
 	m_pModSamp_winSize->paramType = RegressionModel::OUTPUT;
 
@@ -192,8 +195,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_moogCutoff->name = "modSamp_moogCutoff";
 	m_pModSamp_moogCutoff->value = 6000.0;
 	m_pModSamp_moogCutoff->normVal = 0.0;
-	m_pModSamp_moogCutoff->minVal = 100.0;
-	m_pModSamp_moogCutoff->maxVal = 8000.0;
+	m_pModSamp_moogCutoff->minVal = 20.0;
+	m_pModSamp_moogCutoff->maxVal = 80.0;
 	m_pModSamp_moogCutoff->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_moogCutoff));
@@ -202,8 +205,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_overlap->name = "modSamp_overlap";
 	m_pModSamp_overlap->value = 20.0;
 	m_pModSamp_overlap->normVal = 0.0;
-	m_pModSamp_overlap->minVal = 5.0;
-	m_pModSamp_overlap->maxVal = 50.0;
+	m_pModSamp_overlap->minVal = 100.0;
+	m_pModSamp_overlap->maxVal = 500.0;
 	m_pModSamp_overlap->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_overlap));
@@ -331,8 +334,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	returnNames.push_back("specCentOut");
 	m_vReturnVals.push_back(m_pSpecCentOut);
 
-	//returnNames.push_back("freqOut");
-	//m_vReturnVals.push_back(m_pFreqOut);
+	returnNames.push_back("ampOut");
+	m_vReturnVals.push_back(m_pAmpOut);
 
 	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
 
@@ -346,6 +349,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 //*******************************************************************************************
 void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::vec3 controllerWorldPos_0, glm::vec3 controllerWorldPos_1, glm::quat controllerQuat_0, glm::quat controllerQuat_1, PBOInfo& pboInfo, glm::vec2 displayRes, glm::vec3 translationVec){
 
+	//std::cout << "TRANSLATION VEC: " << translationVec.x << ": " << translationVec.y << ": " << translationVec.z << std::endl;
 	// For return values from shader.
 	// vec4 for each fragment is returned in the order RGBA. 
 	// You have to wait until the 2nd frame to read from the buffer. 
@@ -358,19 +362,38 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//m_fCurrentFrame = glfwGetTime();
 	//m_fDeltaTime = m_fCurrentFrame - m_fLastFrame;	
 	//m_fDeltaTime *= 1000.0f;
-	//if(*m_vReturnVals[0] > 0) m_fTargetVal = *m_vReturnVals[0];	
-	//if(m_fTargetVal > m_fCurrentVal)
+	//if(*m_vReturnVals[1] >= 0.0) m_fTargetVal = *m_vReturnVals[1];	
+	////if(m_fTargetVal > m_fCurrentVal)
+	//if(m_fTargetVal > m_fPrevTargetVal)
 	//{
-	//	m_fCurrentVal += m_fDeltaTime;
-	//} else if(m_fTargetVal <= m_fCurrentVal)
+	//	//m_fCurrentVal += m_fDeltaTime;
+	//	m_fCurrentVal += 0.2f;
+	////} else if(m_fTargetVal <= m_fCurrentVal)
+	//} else if(m_fTargetVal <= m_fPrevTargetVal)
 	//{
-	//	m_fCurrentVal -= m_fDeltaTime;
-	//} else if(m_fTargetVal == m_fCurrentVal)
+	//	//m_fCurrentVal -= m_fDeltaTime;
+	//	m_fCurrentVal -= 0.2f;
+	////} else if(m_fTargetVal == m_fCurrentVal)
+	//} else if(m_fTargetVal == m_fPrevTargetVal)
 	//{
 	//	m_fCurrentVal = m_fTargetVal;
 	//}
-	//if(m_fCurrentVal < 0.0f) m_fCurrentVal = 0.0f;
+	//if(m_fCurrentVal <= 0.0f) m_fCurrentVal = 0.0f;
 	//m_fPitch = m_fCurrentVal;
+	//m_fAmpOut = m_fCurrentVal;
+	
+	//m_fAmpOut = *m_vReturnVals[1] * 1000.0f;
+	//m_fPrevTargetVal = m_fTargetVal;
+	m_dAmpOutVals.push_front(*m_vReturnVals[1] * 5.0f);
+	m_dAmpOutVals.pop_back();
+	float ampOutSum = 0.0f;
+	for(int i = 0; i < m_iBufSize; i++)
+	{
+		ampOutSum += m_dAmpOutVals[i];
+	}
+	m_fAmpOut = ampOutSum / m_iBufSize;
+
+	//std::cout << "AmpOut : " << m_fAmpOut << std::endl;
 	
 	// granulated rain sound source at origin
 	StudioTools::SoundSourceData soundSource1;
@@ -379,14 +402,16 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 	// clickPopStatic sound source mapped to moving sphere
 	
-	float currentSpecVal = *m_vReturnVals[0];
-	if(currentSpecVal > 0.0 && currentSpecVal != m_fPrevSpecVal)
-	{
-		m_fSpecCentVal = currentSpecVal;
-	}
-	m_fPrevSpecVal = currentSpecVal;
+	//float currentSpecVal = *m_vReturnVals[0];
+	//if(currentSpecVal > 0.0 && currentSpecVal != m_fPrevSpecVal)
+	//{
+	//	m_fSpecCentVal = currentSpecVal;
+	//}
+	//m_fPrevSpecVal = currentSpecVal;
+	//m_fSpecCentVal = *m_vReturnVals[0];
+	
 
-	//std::cout << "SpecCentVal: " << m_fSpecCentVal << std::endl;
+	//std::cout << "SpecCentVal: " << *m_vReturnVals[0] << std::endl;
 
 	rotY = glm::mat3(
 			cos(glfwGetTime() * 0.08f), 	0, 	sin(glfwGetTime() * 0.08f),
@@ -402,7 +427,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	soundSources.push_back(soundSource1);
 	soundSources.push_back(soundSource2);
 
-	m_pStTools->SoundSourceUpdate(soundSources, viewMat);
+	m_pStTools->SoundSourceUpdate(soundSources, viewMat, translationVec);
 
 	//example control signal - sine function
 	//sent to shader and csound
@@ -680,6 +705,7 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	
 	//glUniform1f(m_gliSineControlValLoc, m_fSineControlVal);
 	//glUniform1f(m_gliPitchOutLoc, m_fPitch);
+	glUniform1f(m_gliAmpOutLoc, m_fAmpOut);
 	//glUniform1f(m_gliFreqOutLoc, *m_vReturnVals[1]);
 	glUniform2f(m_gliDisplayRes, m_vDisplayRes.x, m_vDisplayRes.y);
 	glUniform1f(m_gliTime, m_fTime);

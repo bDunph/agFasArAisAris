@@ -21,6 +21,8 @@
 
 uniform mat4 MVEPMat;
 uniform float specCentVal;
+uniform float pitchOut;
+uniform float ampOut;
 //uniform float timeVal;
 //uniform float rmsModVal;
 
@@ -153,8 +155,9 @@ float recVal = 0.0;
 
 float sineDisplacement(vec3 p)
 {
-	return sin((specCentVal * 0.001) * p.x) * sin((specCentVal * 0.001) * p.y) * sin((specCentVal * 0.001) * p.z);
-	//return sin(2.0 * p.x) * sin(2.0 * p.y) * sin(2.0 * p.z);
+	//return sin((specCentVal * 0.001) * p.x) * sin((specCentVal * 0.001) * p.y) * sin((specCentVal * 0.001) * p.z);
+	//return sin((pitchOut * 0.5) * (p.x + fbmVal_left)) * sin((pitchOut * 0.5) * (p.y * fbmVal_left)) * sin((pitchOut * 0.5) * (p.z * fbmVal_left));
+	return sin(ampOut * (p.x + fbmVal_left)) * sin(ampOut * (p.y + fbmVal_left)) * sin(ampOut * (p.z + fbmVal_left));
 }
 
 float DE(vec3 p)

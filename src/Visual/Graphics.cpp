@@ -906,7 +906,8 @@ void Graphics::UpdateSceneData(std::unique_ptr<VR_Manager>& vrm)
 	if(!m_bDevMode && !m_bPBOFirstFrame) //m_bPBOFirstFrame here because rightDirVec4 was nan on 1st frame
 	{
 		m_mat4CurrentViewMatrix = vrm->GetCurrentViewMatrix();
-		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
+		//cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[3][0], m_mat4CurrentViewMatrix[3][1], m_mat4CurrentViewMatrix[3][2]);
+		cameraPosition = glm::vec3(m_mat4CurrentViewMatrix[0][3], m_mat4CurrentViewMatrix[1][3], m_mat4CurrentViewMatrix[2][3]);
 
 		//*** VR MOVEMENT CONTROLS
 
