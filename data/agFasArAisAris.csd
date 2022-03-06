@@ -307,8 +307,14 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
 ;aSig       moogvcf2    aSig, kMoogCutoff, 0.5
 aSig       moogvcf2    aSig, kMoogCutoff, kMoogRes 
 aSig	= 	aSig * 0.05
+
+;--------------------- send route mean square value out------------------------------
+kRms	rms	aSig	
+	chnset	kRms,	"modSamp_rmsOut"
+
 ;gaModalSamplerOut = aSig
             outs       aSig,aSig
+
   endin
 
 ;**************************************************************************************
@@ -525,6 +531,7 @@ kFreq		chnget		"noteFreq"
 kNoteLen	chnget		"noteLength"
 kWSize		chnget		"winSize"
 kWSize = floor(kWSize)
+kResample	chnget		"resampleVal"
 
 ;kFreq     	random  	2, 	25 
 kMetVal		metro   	0.2,	0.00000001		
@@ -536,7 +543,7 @@ kTrigger	metro		kFreq
 ;kNoteLen	random		0.05,		0.2
 ;kWSize		random		80,		85
 
-schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize ;trigger instr. 2 for 40s
+schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize,kResample ;trigger instr. 2 for 40s
 
   endin
 
@@ -556,8 +563,9 @@ iPtrStart   random     	1,ilen-1
 iPtrTrav    random     	-1,1
 ktimewarp   line       	iPtrStart,p3,iPtrStart+iPtrTrav
 kamp        linseg     	0,p3/2,0.5,p3/2,0
-iresample   random     	-24,24.99
-iresample   =          	semitone(int(iresample))
+;iresample   random     	-24,24.99
+;iresample   =          	semitone(int(iresample))
+iresample   =          	semitone(int(p5))
 ifn2        =          	giWFnGranRain
 ibeg        =          	0
 ;iwsize     random     	20,50000
@@ -585,7 +593,11 @@ gaSend     =          gaSend + gaGranulatedRainDrySig
   instr GranularRainReverb, 10 ;	Reverb for GranulatedRain 
 ;**************************************************************************************
 
-aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
+kRevFeedback	chnget "reverbFeedback"
+kRevCutoff	chnget "reverbCutoff"
+
+;aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
+aRvbL,aRvbR reverbsc   gaSend,gaSend,kRevFeedback,kRevCutoff
 
 gaGranularRainReverbOut = aRvbL
 
@@ -780,9 +792,11 @@ iwinsize = ifftsize * 2
 iwinshape = 0
 
 aSig  = gaParticleOut 
+;aSig1 = gaModalSamplerOut
 
-; route output from instrument 2 above to pvsanal
+; route output from instruments above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
+;fsig1	pvsanal	aSig1,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
@@ -790,6 +804,10 @@ kcent	pvscent	fsig
 kFreq,	kAmp	pvspitch	fsig,	0.01
 	chnset	kFreq,	"freqOut"
 	chnset	kAmp,	"ampOut"
+
+;kFreq1,	kAmp1	pvspitch	fsig1,	0.01
+;	chnset	kFreq1,	"modSamp_specFreq"
+;	chnset	kAmp1,	"modSamp_ampOut"
 
 ; get info from pvsanal and print
 ;ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
@@ -860,7 +878,7 @@ kDistances[1]	chnget	"distance1"
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0] =	(gaGranulatedRainDrySig * 0.4) + (gaGranularRainReverbOut * 0.6) 
-aInstSigs[1] =	gaParticleOut
+aInstSigs[1] =	gaParticleOut * 5.5
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -928,9 +946,9 @@ i "SpectralAnalysis"		2	-1
 
 i "SoundLocaliser"		2	-1
 
-;i "KarplusStrongTrigger"	0	-1
-;i "KarplusStrongCompressor"	0	-1
-;i "KarplusStrongReverb"		0	-1
+;i "KarplusStrongTrigger"	2	-1
+;i "KarplusStrongCompressor"	2	-1
+;i "KarplusStrongReverb"		2	-1
 
 ;i "KickDrumTrigger"	0	-1
 e

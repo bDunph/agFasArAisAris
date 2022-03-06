@@ -9,7 +9,7 @@
 #define OFFSET 2.0
 //#define NUM_NOISE_OCTAVES 2
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
-#define EPSILON 0.01
+#define EPSILON 0.05
 #define NUM_FFT_BINS 512
 #define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
 #define SPHERE_RAD 10.0
@@ -37,6 +37,14 @@ uniform vec3 controllerPos;
 uniform float fractalAngle;
 uniform vec3 spherePos1;
 uniform float crackleVal;
+uniform float redVal;
+uniform float greenVal;
+uniform float blueVal;
+uniform float iterVal;
+uniform float scaleVal;
+uniform float offsetVal;
+uniform float modSamp_amp;
+uniform float modSamp_rmsOut;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -126,9 +134,11 @@ float kifSDF(vec3 p)
  	// sierpinski fractal from http://blog.hvidtfeldts.net/index.php/2011/08/distance-estimated-3d-fractals-iii-folding-space/
     
     orbit = vec4(10.0, 10.0, 10.0, 1.0);
+    //orbit = vec4(redVal, greenVal, blueVal, 1.0);
     
     int n = 0;
-    while(n < ITERATIONS)
+    //while(n < ITERATIONS)
+    while(n < iterVal)
     {
     
         p = rot * p;
@@ -139,7 +149,8 @@ float kifSDF(vec3 p)
         
         p = rot * p;
         
-        p = p * SCALE - OFFSET * (SCALE - 1.0);
+        //p = p * SCALE - OFFSET * (SCALE - 1.0);
+        p = p * scaleVal - offsetVal * (scaleVal - 1.0);
         
         orbit = min(orbit, vec4(abs(p), 1.0));
         
@@ -147,7 +158,8 @@ float kifSDF(vec3 p)
         
         n++;
     }
-    return length(p) * pow(SCALE, -float(n));
+    //return length(p) * pow(SCALE, -float(n));
+    return length(p) * pow(scaleVal, -float(n));
 }
 
 
@@ -181,9 +193,10 @@ float DE(vec3 p)
 	}	
 
 	float kifDist = kifSDF(p);
-	float planeDist = planeSDF(p + specDisp, PLANE_NORMAL);
+	vec3 planeTrans = vec3(redVal, greenVal, blueVal);
+	float planeDist = planeSDF(p + specDisp + planeTrans, PLANE_NORMAL);
 
-	float markerDist1 = controlAreaSphere(p + spherePos1, MARKER_RAD);
+	float markerDist1 = controlAreaSphere(p + spherePos1, 2.0);
 	float sinDisp = sineDisplacement(p);
 	markerDists[0] = markerDist1 + sinDisp;
 	markerDists[1] = controlAreaSphere(p + POS2, MARKER_RAD);
@@ -205,7 +218,7 @@ float march(vec3 o, vec3 r)
     	    	float d = DE(p);
 
     	    	if(d < EPSILON) break;
-    	    	t += d * 0.5;
+    	    	t += d;// * 0.5;
     	    	ind++;
     	}
     	
@@ -349,8 +362,9 @@ void main()
 		// material colour
 		float sq = float(ITERATIONS) * float(ITERATIONS);
 		float smootherVal = float(index) + log(log(sq)) / log(SCALE) - log(log(dot(pos, pos))) / log(SCALE);
-		vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
-		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.417, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
+		//vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
+		vec3 matCol1 = vec3(pow(redVal, log(smootherVal)), pow(greenVal, log(smootherVal)), pow(blueVal, log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.333 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)), pow(0.417 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)), pow(0.184 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 
 		// lighting
@@ -363,7 +377,8 @@ void main()
 		    
 		vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
 		lightRig += sky * vec3(0.32, 0.4, 0.56) * ambOcc;
-		lightRig += ind * vec3(0.4, 0.28, 0.2) * ambOcc;
+		//lightRig += ind * vec3(0.4, 0.28, 0.2) * ambOcc;
+		lightRig += ind * vec3(redVal, greenVal, blueVal) * ambOcc;
 		    
 		colour = totMatCol * lightRig;
 	}

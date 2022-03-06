@@ -72,6 +72,12 @@ private:
 	GLint m_gliAmpOutLoc;
 	GLint m_gliDisplayRes;
 	GLint m_gliTime;
+	GLint m_gliOffset;
+	float m_fOffset;
+	GLint m_gliScale;
+	float m_fScale;
+	GLint m_gliIterations;
+	float m_fIterations;
 	GLint m_gliFbmAmp;
 	double m_dFbmAmp;
 	GLint m_gliFbmSpeed;
@@ -90,6 +96,12 @@ private:
 	glm::vec3 m_vec3ControllerPos1;
 	GLint m_gliFractalAngle;
 	double m_dFractalAngle;
+	GLint m_gliRed;
+	GLint m_gliGreen;
+	GLint m_gliBlue;
+	float m_fRed;
+	float m_fGreen;
+	float m_fBlue;
 
 	std::deque<double> m_dFbmAmpBuf;
 	std::deque<double> m_dFbmSpeedBuf;
@@ -153,6 +165,12 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmAmp;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmSpeed;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFractalAngle;
+	std::unique_ptr<RegressionModel::DataInfo> m_pIterations;
+	std::unique_ptr<RegressionModel::DataInfo> m_pScale;
+	std::unique_ptr<RegressionModel::DataInfo> m_pOffset;
+	std::unique_ptr<RegressionModel::DataInfo> m_pReverbFeedback;
+	std::unique_ptr<RegressionModel::DataInfo> m_pReverbCutoff;
+	std::unique_ptr<RegressionModel::DataInfo> m_pResampleVal;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
 	
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerX;
@@ -170,6 +188,9 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_moogRes;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmSpeed_left;
 	std::unique_ptr<RegressionModel::DataInfo> m_pFbmAmp_left;
+	std::unique_ptr<RegressionModel::DataInfo> m_pRed;
+	std::unique_ptr<RegressionModel::DataInfo> m_pGreen;
+	std::unique_ptr<RegressionModel::DataInfo> m_pBlue;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> leftNN_outParamVec;
 
 	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
@@ -187,6 +208,9 @@ private:
 	MYFLT* m_cspModSamp_overlap;
 	MYFLT* m_cspModSamp_amp;
 	MYFLT* m_cspModSamp_moogRes;
+	MYFLT* m_cspReverbFeedback;
+	MYFLT* m_cspReverbCutoff;
+	MYFLT* m_cspResampleVal;
 
 	std::string mySavedModel;
 	std::string mySavedModel_left;
@@ -203,7 +227,13 @@ private:
 	float m_fPrevTargetVal;
 	float m_fAmpOut;
 	std::deque<float> m_dAmpOutVals;
-	
-	
+	GLint m_gliModSamp_amp;
+	float m_fModSamp_amp;
+	MYFLT* m_cspModSamp_specAmp;
+	MYFLT* m_cspModSamp_specFreq;
+	float m_fModSamp_specFreq;
+	MYFLT* m_cspModSamp_rmsOut;
+	float m_fModSamp_rmsOut;
+	GLint m_gliModSamp_rmsOut;
 };
 #endif

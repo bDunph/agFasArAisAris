@@ -39,7 +39,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_bLeftNNToggle = false;
 
 	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
-	m_vec3SpherePos1 = glm::vec3(6.0f, -1.0f, 6.0f); 
+	m_vec3SpherePos1 = glm::vec3(26.0f, -5.0f, 26.0f); 
 	m_fPrevSpecVal = 0.0;
 
 	m_pStTools = new StudioTools();
@@ -63,6 +63,14 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliControllerPos = glGetUniformLocation(shaderProg, "controllerPos");
 	m_gliFractalAngle = glGetUniformLocation(shaderProg, "fractalAngle");
 	m_gliSpherePos1 = glGetUniformLocation(shaderProg, "spherePos1");
+	m_gliRed = glGetUniformLocation(shaderProg, "redVal");
+	m_gliGreen = glGetUniformLocation(shaderProg, "greenVal");
+	m_gliBlue = glGetUniformLocation(shaderProg, "blueVal");
+	m_gliIterations = glGetUniformLocation(shaderProg, "iterVal");
+	m_gliScale = glGetUniformLocation(shaderProg, "scaleVal");
+	m_gliOffset = glGetUniformLocation(shaderProg, "offsetVal");
+	m_gliModSamp_amp = glGetUniformLocation(shaderProg, "modSamp_amp");
+	m_gliModSamp_rmsOut = glGetUniformLocation(shaderProg, "modSamp_rmsOut");
 
 	//machine learning setup
 	MLRegressionSetup();
@@ -70,10 +78,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	//Right NN parameter setup
 	m_pNoteFreq = std::make_unique<RegressionModel::DataInfo>();
 	m_pNoteFreq->name = "noteFreq";
-	m_pNoteFreq->value = 12.0;
+	m_pNoteFreq->value = 8.0;
 	m_pNoteFreq->normVal = 0.0;
 	m_pNoteFreq->minVal = 2.0;
-	m_pNoteFreq->maxVal = 25.0;
+	m_pNoteFreq->maxVal = 10.0;
 	m_pNoteFreq->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteFreq));
@@ -83,7 +91,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pNoteLength->value = 0.1;
 	m_pNoteLength->normVal = 0.0;
 	m_pNoteLength->minVal = 0.05;
-	m_pNoteLength->maxVal = 0.9;
+	m_pNoteLength->maxVal = 0.95;
 	m_pNoteLength->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteLength));	
@@ -103,7 +111,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmAmp->value = 0.5;
 	m_pFbmAmp->normVal = 0.0;
 	m_pFbmAmp->minVal = 0.0;
-	m_pFbmAmp->maxVal = 1.0;
+	m_pFbmAmp->maxVal = 1.5;
 	m_pFbmAmp->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmAmp));
@@ -113,7 +121,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmSpeed->value = 0.5;
 	m_pFbmSpeed->normVal = 0.0;
 	m_pFbmSpeed->minVal = 0.0;
-	m_pFbmSpeed->maxVal = 3.0;
+	m_pFbmSpeed->maxVal = 10.0;
 	m_pFbmSpeed->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFbmSpeed));
@@ -127,6 +135,66 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFractalAngle->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pFractalAngle));
+
+	m_pIterations = std::make_unique<RegressionModel::DataInfo>();
+	m_pIterations->name = "iterationsVal";
+	m_pIterations->value = 10.0;
+	m_pIterations->normVal = 0.0;
+	m_pIterations->minVal = 3.0;
+	m_pIterations->maxVal = 15.0;
+	m_pIterations->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pIterations));
+
+	m_pScale = std::make_unique<RegressionModel::DataInfo>();
+	m_pScale->name = "scaleVal";
+	m_pScale->value = 2.0;
+	m_pScale->normVal = 0.0;
+	m_pScale->minVal = 1.0;
+	m_pScale->maxVal = 4.0;
+	m_pScale->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pScale));
+
+	m_pOffset = std::make_unique<RegressionModel::DataInfo>();
+	m_pOffset->name = "offsetVal";
+	m_pOffset->value = 2.0;
+	m_pOffset->normVal = 0.0;
+	m_pOffset->minVal = 1.0;
+	m_pOffset->maxVal = 8.0;
+	m_pOffset->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pOffset));
+
+	m_pReverbFeedback = std::make_unique<RegressionModel::DataInfo>();
+	m_pReverbFeedback->name = "reverbFeedback";
+	m_pReverbFeedback->value = 0.6;
+	m_pReverbFeedback->normVal = 0.0;
+	m_pReverbFeedback->minVal = 0.1;
+	m_pReverbFeedback->maxVal = 0.7;
+	m_pReverbFeedback->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pReverbFeedback));
+
+	m_pReverbCutoff = std::make_unique<RegressionModel::DataInfo>();
+	m_pReverbCutoff->name = "reverbCutoff";
+	m_pReverbCutoff->value = 4000.0;
+	m_pReverbCutoff->normVal = 0.0;
+	m_pReverbCutoff->minVal = 220.0;
+	m_pReverbCutoff->maxVal = 8000.0;
+	m_pReverbCutoff->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pReverbCutoff));
+
+	m_pResampleVal = std::make_unique<RegressionModel::DataInfo>();
+	m_pResampleVal->name = "resampleVal";
+	m_pResampleVal->value = 0.0;
+	m_pResampleVal->normVal = 0.0;
+	m_pResampleVal->minVal = -48.0;
+	m_pResampleVal->maxVal = 48.0;
+	m_pResampleVal->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pResampleVal));
 
 	m_pRControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pRControllerX->name = "rControllerX";
@@ -166,7 +234,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_noteFreq->value = 0.8;
 	m_pModSamp_noteFreq->normVal = 0.0;
 	m_pModSamp_noteFreq->minVal = 0.08;
-	m_pModSamp_noteFreq->maxVal = 2.0;
+	m_pModSamp_noteFreq->maxVal = 4.0;
 	m_pModSamp_noteFreq->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteFreq));
@@ -176,7 +244,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_noteLength->value = 2.0;
 	m_pModSamp_noteLength->normVal = 0.0;
 	m_pModSamp_noteLength->minVal = 0.2;
-	m_pModSamp_noteLength->maxVal = 5.0;
+	m_pModSamp_noteLength->maxVal = 12.0;
 	m_pModSamp_noteLength->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteLength));
@@ -186,7 +254,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_winSize->value = 5000.0;
 	m_pModSamp_winSize->normVal = 0.0;
 	m_pModSamp_winSize->minVal = 4800.0;
-	m_pModSamp_winSize->maxVal = 24000.0;
+	m_pModSamp_winSize->maxVal = 9600.0;
 	m_pModSamp_winSize->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_winSize));
@@ -195,18 +263,18 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_moogCutoff->name = "modSamp_moogCutoff";
 	m_pModSamp_moogCutoff->value = 6000.0;
 	m_pModSamp_moogCutoff->normVal = 0.0;
-	m_pModSamp_moogCutoff->minVal = 20.0;
-	m_pModSamp_moogCutoff->maxVal = 80.0;
+	m_pModSamp_moogCutoff->minVal = 100.0;
+	m_pModSamp_moogCutoff->maxVal = 8000.0;
 	m_pModSamp_moogCutoff->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_moogCutoff));
 
 	m_pModSamp_overlap = std::make_unique<RegressionModel::DataInfo>();
 	m_pModSamp_overlap->name = "modSamp_overlap";
-	m_pModSamp_overlap->value = 20.0;
+	m_pModSamp_overlap->value = 15.0;
 	m_pModSamp_overlap->normVal = 0.0;
-	m_pModSamp_overlap->minVal = 100.0;
-	m_pModSamp_overlap->maxVal = 500.0;
+	m_pModSamp_overlap->minVal = 15.0;
+	m_pModSamp_overlap->maxVal = 15.0;
 	m_pModSamp_overlap->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_overlap));
@@ -215,8 +283,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_amp->name = "modSamp_amp";
 	m_pModSamp_amp->value = 0.1;
 	m_pModSamp_amp->normVal = 0.0;
-	m_pModSamp_amp->minVal = 0.05;
-	m_pModSamp_amp->maxVal = 0.2;
+	m_pModSamp_amp->minVal = 0.2;
+	m_pModSamp_amp->maxVal = 0.4;
 	m_pModSamp_amp->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_amp));
@@ -225,7 +293,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_moogRes->name = "modSamp_moogRes";
 	m_pModSamp_moogRes->value = 0.2;
 	m_pModSamp_moogRes->normVal = 0.0;
-	m_pModSamp_moogRes->minVal = 0.05;
+	m_pModSamp_moogRes->minVal = 0.1;
 	m_pModSamp_moogRes->maxVal = 0.4;
 	m_pModSamp_moogRes->paramType = RegressionModel::OUTPUT;
 
@@ -236,7 +304,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmAmp_left->value = 0.5;
 	m_pFbmAmp_left->normVal = 0.0;
 	m_pFbmAmp_left->minVal = 0.0;
-	m_pFbmAmp_left->maxVal = 10.0;
+	m_pFbmAmp_left->maxVal = 5.0;
 	m_pFbmAmp_left->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pFbmAmp_left));
@@ -245,11 +313,41 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pFbmSpeed_left->name = "fbmSpeed_left";
 	m_pFbmSpeed_left->value = 0.15;
 	m_pFbmSpeed_left->normVal = 0.0;
-	m_pFbmSpeed_left->minVal = 0.0;
-	m_pFbmSpeed_left->maxVal = 0.5;
+	m_pFbmSpeed_left->minVal = 0.01;
+	m_pFbmSpeed_left->maxVal = 0.2;
 	m_pFbmSpeed_left->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pFbmSpeed_left));
+
+	m_pRed = std::make_unique<RegressionModel::DataInfo>();
+	m_pRed->name = "redVal";
+	m_pRed->value = 0.4;
+	m_pRed->normVal = 0.0;
+	m_pRed->minVal = 0.3;
+	m_pRed->maxVal = 0.5;
+	m_pRed->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pRed));
+
+	m_pGreen = std::make_unique<RegressionModel::DataInfo>();
+	m_pGreen->name = "greenVal";
+	m_pGreen->value = 0.28;
+	m_pGreen->normVal = 0.0;
+	m_pGreen->minVal = 0.18;
+	m_pGreen->maxVal = 0.38;
+	m_pGreen->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pGreen));
+
+	m_pBlue = std::make_unique<RegressionModel::DataInfo>();
+	m_pBlue->name = "blueVal";
+	m_pBlue->value = 0.2;
+	m_pBlue->normVal = 0.0;
+	m_pBlue->minVal = 0.1;
+	m_pBlue->maxVal = 0.3;
+	m_pBlue->paramType = RegressionModel::OUTPUT;
+
+	leftNN_outParamVec.push_back(std::move(m_pBlue));
 
 	m_pLControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pLControllerX->name = "lControllerX";
@@ -325,17 +423,32 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	// Pos 9 
 	sendNames.push_back("modSamp_moogRes");
 	m_vSendVals.push_back(m_cspModSamp_moogRes);
+	// Pos 10 
+	sendNames.push_back("reverbFeedback");
+	m_vSendVals.push_back(m_cspReverbFeedback);
+	// Pos 11 
+	sendNames.push_back("reverbCutoff");
+	m_vSendVals.push_back(m_cspReverbCutoff);
+	// Pos 12 
+	sendNames.push_back("resampleVal");
+	m_vSendVals.push_back(m_cspResampleVal);
 
 	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
 
 	//setup returns from csound 
 	std::vector<const char*> returnNames;
 
-	returnNames.push_back("specCentOut");
-	m_vReturnVals.push_back(m_pSpecCentOut);
-
 	returnNames.push_back("ampOut");
 	m_vReturnVals.push_back(m_pAmpOut);
+
+	returnNames.push_back("modSamp_amp");
+	m_vReturnVals.push_back(m_cspModSamp_specAmp);
+
+	returnNames.push_back("modSamp_specFreq");
+	m_vReturnVals.push_back(m_cspModSamp_specFreq);
+
+	returnNames.push_back("modSamp_rmsOut");
+	m_vReturnVals.push_back(m_cspModSamp_rmsOut);
 
 	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
 
@@ -384,7 +497,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	
 	//m_fAmpOut = *m_vReturnVals[1] * 1000.0f;
 	//m_fPrevTargetVal = m_fTargetVal;
-	m_dAmpOutVals.push_front(*m_vReturnVals[1] * 5.0f);
+	m_dAmpOutVals.push_front(*m_vReturnVals[0] * 5.0f);
 	m_dAmpOutVals.pop_back();
 	float ampOutSum = 0.0f;
 	for(int i = 0; i < m_iBufSize; i++)
@@ -393,7 +506,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	}
 	m_fAmpOut = ampOutSum / m_iBufSize;
 
-	//std::cout << "AmpOut : " << m_fAmpOut << std::endl;
+	//m_fModSamp_amp = *m_vReturnVals[1];
+	//m_fModSamp_specFreq = *m_vReturnVals[2];
+	m_fModSamp_rmsOut = *m_vReturnVals[3];
+
+	//std::cout << "ModSamp Amp Out : " << m_fModSamp_amp << std::endl;
+	//std::cout << "ModSamp Freq Out : " << m_fModSamp_specFreq << std::endl;
+	//std::cout << "ModSamp RMS Out : " << m_fModSamp_rmsOut << std::endl;
 	
 	// granulated rain sound source at origin
 	StudioTools::SoundSourceData soundSource1;
@@ -410,9 +529,6 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	//m_fPrevSpecVal = currentSpecVal;
 	//m_fSpecCentVal = *m_vReturnVals[0];
 	
-
-	//std::cout << "SpecCentVal: " << *m_vReturnVals[0] << std::endl;
-
 	rotY = glm::mat3(
 			cos(glfwGetTime() * 0.08f), 	0, 	sin(glfwGetTime() * 0.08f),
 			0,				1,	0,
@@ -549,6 +665,12 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			m_dFbmAmp = ampSum / m_iBufSize;
 			m_dFbmSpeed = speedSum / m_iBufSize;
 			m_dFractalAngle = outParamVec[5]->value;
+			m_fIterations = outParamVec[6]->value;
+			m_fScale = outParamVec[7]->value;
+			m_fOffset = outParamVec[8]->value;
+			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
+			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
+			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
 
 		} 
 		else if(!m_bCurrentRunState && m_bModelTrained)
@@ -560,6 +682,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			m_dFbmAmp = outParamVec[3]->value;
 			m_dFbmSpeed = outParamVec[4]->value;
 			m_dFractalAngle = outParamVec[5]->value;
+			m_fIterations = outParamVec[6]->value;
+			m_fScale = outParamVec[7]->value;
+			m_fOffset = outParamVec[8]->value;
+			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
+			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
+			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
+
 
 		} else if(!m_bCurrentRunState && !m_bModelTrained)
 		{
@@ -569,6 +698,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			m_dFbmAmp = outParamVec[3]->value;
 			m_dFbmSpeed = outParamVec[4]->value;
 			m_dFractalAngle = outParamVec[5]->value;
+			m_fIterations = outParamVec[6]->value;
+			m_fScale = outParamVec[7]->value;
+			m_fOffset = outParamVec[8]->value;
+			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
+			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
+			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
+
 		}
 
 		//std::cout << m_dFbmAmp << "	:	" << m_dFbmSpeed << std::endl;
@@ -645,6 +781,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[9] = (MYFLT)leftNN_outParamVec[6]->value;
 			m_dFbmAmp_left = leftNN_outParamVec[7]->value;
 			m_dFbmSpeed_left = leftNN_outParamVec[8]->value;
+			m_fRed = leftNN_outParamVec[9]->value;
+			m_fGreen = leftNN_outParamVec[10]->value;
+			m_fBlue = leftNN_outParamVec[11]->value;
 
 
 		} 
@@ -660,6 +799,10 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[9] = (MYFLT)leftNN_outParamVec[6]->value;
 			m_dFbmAmp_left = leftNN_outParamVec[7]->value;
 			m_dFbmSpeed_left = leftNN_outParamVec[8]->value;
+			m_fRed = leftNN_outParamVec[9]->value;
+			m_fGreen = leftNN_outParamVec[10]->value;
+			m_fBlue = leftNN_outParamVec[11]->value;
+
 
 		} else if(!m_bCurrentRunState && !m_bLeftNN_modelTrained)
 		{
@@ -669,8 +812,13 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[6] = (MYFLT)leftNN_outParamVec[3]->value;
 			*m_vSendVals[7] = (MYFLT)leftNN_outParamVec[4]->value;
 			*m_vSendVals[8] = (MYFLT)leftNN_outParamVec[5]->value;
+			*m_vSendVals[9] = (MYFLT)leftNN_outParamVec[6]->value;
 			m_dFbmAmp_left = leftNN_outParamVec[7]->value;
 			m_dFbmSpeed_left = leftNN_outParamVec[8]->value;
+			m_fRed = leftNN_outParamVec[9]->value;
+			m_fGreen = leftNN_outParamVec[10]->value;
+			m_fBlue = leftNN_outParamVec[11]->value;
+
 
 		}
 		
@@ -718,6 +866,14 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1f(m_gliFractalAngle, m_dFractalAngle);
 	glUniform3f(m_gliSpherePos1, m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z);
 	glUniform1f(m_gliSpecCentVal, m_fSpecCentVal);
+	glUniform1f(m_gliRed, m_fRed);
+	glUniform1f(m_gliGreen, m_fGreen);
+	glUniform1f(m_gliBlue, m_fBlue);
+	glUniform1f(m_gliIterations, m_fIterations);
+	glUniform1f(m_gliScale, m_fScale);
+	glUniform1f(m_gliOffset, m_fOffset);
+	glUniform1f(m_gliModSamp_amp, m_fModSamp_amp);
+	glUniform1f(m_gliModSamp_rmsOut, m_fModSamp_rmsOut);
 
 	m_pStTools->DrawEnd();
 
