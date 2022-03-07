@@ -1,8 +1,8 @@
 #ifndef STUDIO_HPP
 #define STUDIO_HPP
 
-#define NUM_HRTF_VALS 3
-#define NUM_SOUND_SOURCES 1
+//#define NUM_HRTF_VALS 3
+#define NUM_SOUND_SOURCES 4 
 
 #include <string>
 #include <vector>
@@ -217,9 +217,16 @@ private:
 
 	//Sound sources
 	GLint m_gliSpherePos1;
+	GLint m_gliSpherePos2;
+	GLint m_gliSpherePos3;
 	glm::vec3 m_vec3SpherePos1;
+	glm::vec3 m_vec3SpherePos2;
+	glm::vec3 m_vec3SpherePos3;
 	glm::vec3 m_vec3RotatedSpherePos1;
+	glm::vec3 m_vec3RotatedSpherePos2;
+	glm::vec3 m_vec3RotatedSpherePos3;
 	glm::mat3 rotY;
+	glm::mat3 rotYAntiClock;
 	GLint m_gliSpecCentVal;
 	float m_fSpecCentVal;
 	MYFLT* m_pSpecCentOut;
@@ -235,5 +242,6 @@ private:
 	MYFLT* m_cspModSamp_rmsOut;
 	float m_fModSamp_rmsOut;
 	GLint m_gliModSamp_rmsOut;
+	std::deque<float> m_dRmsVals;
 };
 #endif

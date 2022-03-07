@@ -9,15 +9,15 @@
 #define OFFSET 2.0
 //#define NUM_NOISE_OCTAVES 2
 #define SUN_DIR vec3(0.5, 0.8, 0.0)
-#define EPSILON 0.05
+#define EPSILON 0.02
 #define NUM_FFT_BINS 512
 #define PLANE_NORMAL vec4(0.0, 1.0, 0.0, 0.0)
 #define SPHERE_RAD 10.0
 #define FACTOR 5.0
-#define MARKER_RAD 0.25
+#define MARKER_RAD 0.2
 //#define POS1 vec3(7.79998, -4.46797, 7.72899)
-#define POS2 vec3(-1.09494, -2.4807, 9.67536)
-#define POS3 vec3(8.31372, -1.6492, -9.66504)
+//#define POS2 vec3(-1.09494, -2.4807, 9.67536)
+//#define POS3 vec3(8.31372, -1.6492, -9.66504)
 
 uniform mat4 MVEPMat;
 uniform float specCentVal;
@@ -36,6 +36,8 @@ uniform int controlAreaSphereNum;
 uniform vec3 controllerPos;
 uniform float fractalAngle;
 uniform vec3 spherePos1;
+uniform vec3 spherePos2;
+uniform vec3 spherePos3;
 uniform float crackleVal;
 uniform float redVal;
 uniform float greenVal;
@@ -196,11 +198,11 @@ float DE(vec3 p)
 	vec3 planeTrans = vec3(redVal, greenVal, blueVal);
 	float planeDist = planeSDF(p + specDisp + planeTrans, PLANE_NORMAL);
 
-	float markerDist1 = controlAreaSphere(p + spherePos1, 2.0);
+	float markerDist1 = controlAreaSphere(p + spherePos1, 3.0);
 	float sinDisp = sineDisplacement(p);
 	markerDists[0] = markerDist1 + sinDisp;
-	markerDists[1] = controlAreaSphere(p + POS2, MARKER_RAD);
-	markerDists[2] = controlAreaSphere(p + POS3, MARKER_RAD);
+	markerDists[1] = controlAreaSphere(p + spherePos2, MARKER_RAD);
+	markerDists[2] = controlAreaSphere(p + spherePos3, MARKER_RAD);
 
 	float platformDist = platformSDF(p, PLANE_NORMAL);
 
@@ -218,7 +220,7 @@ float march(vec3 o, vec3 r)
     	    	float d = DE(p);
 
     	    	if(d < EPSILON) break;
-    	    	t += d;// * 0.5;
+    	    	t += d;// * 0.75;
     	    	ind++;
     	}
     	
@@ -255,19 +257,22 @@ float ao(vec3 p, vec3 n, float d, float i)
 //----------------------------------------------------------------------------------------
 vec3 fog(in vec3 col, in float dist, in vec3 rayDir, in vec3 lightDir)
 {
-	float fogAmount = 1.0 - exp(-dist * 0.1);
+	//float fogAmount = 1.0 - exp(-dist * 0.1);
+	float fogAmount = 0.85 - exp(-dist * 0.1);
 
 	vec3 normLightDir = normalize(lightDir);
 	float lightAmount = max(dot(rayDir, normLightDir), 0.0);
 	vec3 fogColour = mix(vec3(0.1, 0.12, 0.14), vec3(0.2, 0.18, 0.14), pow(lightAmount, 8.0));
 
-	vec3 bExt = vec3(0.05, 0.03, 0.06);
-	vec3 bIns = vec3(0.12, 0.05, 0.05);
+	//vec3 bExt = vec3(0.05, 0.03, 0.06);
+	//vec3 bIns = vec3(0.12, 0.05, 0.05);
 
-	vec3 extCol = vec3(exp(-dist * bExt.x), exp(-dist * bExt.y), exp(-dist * bExt.z));
-	vec3 insCol = vec3(exp(-dist * bIns.x), exp(-dist * bIns.y), exp(-dist * bIns.z));
+	//vec3 extCol = vec3(exp(-dist * bExt.x), exp(-dist * bExt.y), exp(-dist * bExt.z));
+	//vec3 insCol = vec3(exp(-dist * bIns.x), exp(-dist * bIns.y), exp(-dist * bIns.z));
 
-	col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	//col += vec3(col * (vec3(1.0) - extCol) + fogColour * (vec3(1.0) - insCol));
+	//col += vec3(col * (vec3(1.0) - extCol));
+	//fogColour += vec3(fogColour * (vec3(1.0) - insCol));
 
 	return mix(col, fogColour, fogAmount);
 }
@@ -360,11 +365,13 @@ void main()
 	if(index < MAX_ITERATIONS)
 	{
 		// material colour
-		float sq = float(ITERATIONS) * float(ITERATIONS);
+		//float sq = float(ITERATIONS) * float(ITERATIONS);
+		float sq = float(iterVal) * float(iterVal);
 		float smootherVal = float(index) + log(log(sq)) / log(SCALE) - log(log(dot(pos, pos))) / log(SCALE);
 		//vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
 		vec3 matCol1 = vec3(pow(redVal, log(smootherVal)), pow(greenVal, log(smootherVal)), pow(blueVal, log(smootherVal)));
-		vec3 matCol2 = vec3(pow(0.333 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)), pow(0.417 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)), pow(0.184 + (modSamp_rmsOut * 100.0), 1.0 / log(smootherVal)));
+		//vec3 matCol2 = vec3(pow(0.333 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.417 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.333 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.487 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 
 		// lighting
@@ -378,7 +385,7 @@ void main()
 		vec3 lightRig = sun * vec3(1.64, 1.27, 0.99);
 		lightRig += sky * vec3(0.32, 0.4, 0.56) * ambOcc;
 		//lightRig += ind * vec3(0.4, 0.28, 0.2) * ambOcc;
-		lightRig += ind * vec3(redVal, greenVal, blueVal) * ambOcc;
+		lightRig += ind * vec3(redVal * (1.0 + modSamp_rmsOut * 100.0), greenVal * (1.0 + modSamp_rmsOut * 100.0), blueVal * (1.0 + modSamp_rmsOut * 100.0)) * ambOcc;
 		    
 		colour = totMatCol * lightRig;
 	}

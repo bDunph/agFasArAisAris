@@ -599,7 +599,7 @@ kRevCutoff	chnget "reverbCutoff"
 ;aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
 aRvbL,aRvbR reverbsc   gaSend,gaSend,kRevFeedback,kRevCutoff
 
-gaGranularRainReverbOut = aRvbL
+gaGranularRainReverbOut = aRvbL + aRvbR
 
             ;outs       aRvbL,aRvbR
 
@@ -847,7 +847,7 @@ instr SoundLocaliser, 18	; Sound Localisation using hrtf2
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init	2 
+iNumAudioSources init	4 
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
@@ -855,10 +855,16 @@ kDistances[]	init	iNumAudioSources
 
 kAzimuths[0]	chnget	"azimuth0"
 kAzimuths[1]	chnget	"azimuth1"
+kAzimuths[2]	chnget	"azimuth2"
+kAzimuths[3]	chnget	"azimuth3"
 kElevations[0]	chnget	"elevation0"
 kElevations[1]	chnget	"elevation1"
+kElevations[2]	chnget	"elevation2"
+kElevations[3]	chnget	"elevation3"
 kDistances[0]	chnget	"distance0"
 kDistances[1]	chnget	"distance1"
+kDistances[2]	chnget	"distance2"
+kDistances[3]	chnget	"distance3"
 
 ;iCount init 0
 
@@ -877,16 +883,20 @@ kDistances[1]	chnget	"distance1"
 	;loop_lt	iCount, 1, iNumAudioSources, channelLoop
 	
 aInstSigs[]	init	iNumAudioSources
-aInstSigs[0] =	(gaGranulatedRainDrySig * 0.4) + (gaGranularRainReverbOut * 0.6) 
-aInstSigs[1] =	gaParticleOut * 5.5
+aInstSigs[0]	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5 
+aInstSigs[1] 	=	gaParticleOut * 9.5
+aInstSigs[2] 	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5
+aInstSigs[3] 	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
 kDistVals[]	init	iNumAudioSources
 
 kDistVals[0] portk kDistances[0], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
-kDistVals[1] portk kDistances[1], kPortTime	;to filter out audio artifacts due to the distance changing too quickly
-	
+kDistVals[1] portk kDistances[1], kPortTime	
+kDistVals[2] portk kDistances[2], kPortTime		
+kDistVals[3] portk kDistances[3], kPortTime		
+
 aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 kDistSquared0	pow	kDistVals[0], 2
 aLeftSigs[0] = aLeftSigs[0] / kDistSquared0 ;(kDistVals[0] + 0.00001)
@@ -897,11 +907,21 @@ kDistSquared1	pow	kDistVals[1], 2
 aLeftSigs[1] = aLeftSigs[1] / kDistSquared1 
 aRightSigs[1] = aRightSigs[1] / kDistSquared1 ;(kDistVals[1] + 1);0.00001)
 
+aLeftSigs[2], aRightSigs[2]  hrtfmove2	aInstSigs[2], kAzimuths[2], kElevations[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+kDistSquared2	pow	kDistVals[2], 2
+aLeftSigs[2] = aLeftSigs[2] / kDistSquared2 
+aRightSigs[2] = aRightSigs[2] / kDistSquared2 
+
+aLeftSigs[3], aRightSigs[3]  hrtfmove2	aInstSigs[3], kAzimuths[3], kElevations[3], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+kDistSquared3	pow	kDistVals[3], 2
+aLeftSigs[3] = aLeftSigs[3] / kDistSquared3 
+aRightSigs[3] = aRightSigs[3] / kDistSquared3 
+
 aL init 0
 aR init 0
 
-aL sum	aLeftSigs[0], aLeftSigs[1]
-aR sum	aRightSigs[0], aRightSigs[1]
+aL sum	aLeftSigs[0], aLeftSigs[1], aLeftSigs[2], aLeftSigs[3]
+aR sum	aRightSigs[0], aRightSigs[1], aRightSigs[2], aRightSigs[3]
 
 ;aL = aL / iNumAudioSources
 ;aR = aR / iNumAudioSources

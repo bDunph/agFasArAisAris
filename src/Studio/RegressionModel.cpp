@@ -83,6 +83,11 @@ void RegressionModel::run(std::vector<std::unique_ptr<DataInfo>> &inputDataVec, 
 	outputs = m_staticRegression.run(inputs);
 
 	for(int i = 0; i < outputDataVec.size(); i++){
+		if(outputs[i] > 1.0){
+			outputs[i] = 1.0;
+		} else if(outputs[i] < 0.0){
+			outputs[i] = 0.0;
+		}
 		outputDataVec[i]->normVal = outputs[i];
 	}
 

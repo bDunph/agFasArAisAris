@@ -29,7 +29,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	{
 		m_dFbmAmpBuf.push_front(0.0);
 		m_dFbmSpeedBuf.push_front(0.0);
-		m_dAmpOutVals.push_front(0.0);
+		m_dAmpOutVals.push_front(0.0f);
+		m_dRmsVals.push_front(0.0f);
 	}
 
 	m_iSphereNum = 0;
@@ -40,6 +41,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
 	m_vec3SpherePos1 = glm::vec3(26.0f, -5.0f, 26.0f); 
+	m_vec3SpherePos2 = glm::vec3(2.5f, -2.0f, 2.5f); 
+	m_vec3SpherePos3 = glm::vec3(-2.5f, -2.0f, -2.5f); 
 	m_fPrevSpecVal = 0.0;
 
 	m_pStTools = new StudioTools();
@@ -63,6 +66,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliControllerPos = glGetUniformLocation(shaderProg, "controllerPos");
 	m_gliFractalAngle = glGetUniformLocation(shaderProg, "fractalAngle");
 	m_gliSpherePos1 = glGetUniformLocation(shaderProg, "spherePos1");
+	m_gliSpherePos2 = glGetUniformLocation(shaderProg, "spherePos2");
+	m_gliSpherePos3 = glGetUniformLocation(shaderProg, "spherePos3");
 	m_gliRed = glGetUniformLocation(shaderProg, "redVal");
 	m_gliGreen = glGetUniformLocation(shaderProg, "greenVal");
 	m_gliBlue = glGetUniformLocation(shaderProg, "blueVal");
@@ -500,15 +505,20 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	m_dAmpOutVals.push_front(*m_vReturnVals[0] * 5.0f);
 	m_dAmpOutVals.pop_back();
 	float ampOutSum = 0.0f;
+	m_dRmsVals.push_front(*m_vReturnVals[3]);
+	m_dRmsVals.pop_back();
+	float rmsSum = 0.0f;
+
 	for(int i = 0; i < m_iBufSize; i++)
 	{
 		ampOutSum += m_dAmpOutVals[i];
+		rmsSum += m_dRmsVals[i];
 	}
 	m_fAmpOut = ampOutSum / m_iBufSize;
+	m_fModSamp_rmsOut = rmsSum / m_iBufSize;
 
 	//m_fModSamp_amp = *m_vReturnVals[1];
 	//m_fModSamp_specFreq = *m_vReturnVals[2];
-	m_fModSamp_rmsOut = *m_vReturnVals[3];
 
 	//std::cout << "ModSamp Amp Out : " << m_fModSamp_amp << std::endl;
 	//std::cout << "ModSamp Freq Out : " << m_fModSamp_specFreq << std::endl;
@@ -533,15 +543,32 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			cos(glfwGetTime() * 0.08f), 	0, 	sin(glfwGetTime() * 0.08f),
 			0,				1,	0,
 			-sin(glfwGetTime() * 0.08f),	0,	cos(glfwGetTime() * 0.08f));
+	rotYAntiClock = glm::mat3(
+			cos(-(glfwGetTime() * 0.08f)), 	0, 	sin(-(glfwGetTime() * 0.08f)),
+			0,				1,	0,
+			-sin(-(glfwGetTime() * 0.08f)),	0,	cos(-(glfwGetTime() * 0.08f)));
+
 	m_vec3RotatedSpherePos1 = rotY * m_vec3SpherePos1;
 
 	StudioTools::SoundSourceData soundSource2;
 	glm::vec4 sourcePosWorldSpace2 = glm::vec4(m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z, 1.0f); 
 	soundSource2.position = sourcePosWorldSpace2;
+
+	StudioTools::SoundSourceData soundSource3;
+	m_vec3RotatedSpherePos2 = rotYAntiClock * m_vec3SpherePos2;
+	glm::vec4 sourcePosWorldSpace3 = glm::vec4(m_vec3RotatedSpherePos2.x, m_vec3RotatedSpherePos2.y, m_vec3RotatedSpherePos2.z, 1.0f);
+	soundSource3.position = sourcePosWorldSpace3;
 	
+	StudioTools::SoundSourceData soundSource4;
+	m_vec3RotatedSpherePos3 = rotYAntiClock * m_vec3SpherePos3;
+	glm::vec4 sourcePosWorldSpace4 = glm::vec4(m_vec3RotatedSpherePos3.x, m_vec3RotatedSpherePos3.y, m_vec3RotatedSpherePos3.z, 1.0f);
+	soundSource4.position = sourcePosWorldSpace4;
+
 	std::vector<StudioTools::SoundSourceData> soundSources;
 	soundSources.push_back(soundSource1);
 	soundSources.push_back(soundSource2);
+	soundSources.push_back(soundSource3);
+	soundSources.push_back(soundSource4);
 
 	m_pStTools->SoundSourceUpdate(soundSources, viewMat, translationVec);
 
@@ -865,6 +892,8 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform3f(m_gliControllerPos, m_vec3ControllerPos.x, m_vec3ControllerPos.y, m_vec3ControllerPos.z);
 	glUniform1f(m_gliFractalAngle, m_dFractalAngle);
 	glUniform3f(m_gliSpherePos1, m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z);
+	glUniform3f(m_gliSpherePos2, m_vec3RotatedSpherePos2.x, m_vec3RotatedSpherePos2.y, m_vec3RotatedSpherePos2.z);
+	glUniform3f(m_gliSpherePos3, m_vec3RotatedSpherePos3.x, m_vec3RotatedSpherePos3.y, m_vec3RotatedSpherePos3.z);
 	glUniform1f(m_gliSpecCentVal, m_fSpecCentVal);
 	glUniform1f(m_gliRed, m_fRed);
 	glUniform1f(m_gliGreen, m_fGreen);
