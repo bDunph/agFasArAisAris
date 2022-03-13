@@ -2,7 +2,7 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--odac          ;;;RT audio I/O
+-odac ;-o c:/Users/Bryan/Documents/agFasArAisAris/data/clickPopTexCont.wav -W -3 ;-odac          ;;;RT audio I/O
 
 --nodisplays
 
@@ -229,31 +229,37 @@ instr ModalSamplerTrigger, 3	;	Triggers instr 3 which samples the modal synth
 				;	and sndwarps it	
 ;**************************************************************************************
 
-kFreq		chnget		"modSamp_noteFreq"
-kNoteLen	chnget		"modSamp_noteLength"
-kWSize		chnget		"modSamp_winSize"
-kWSize = floor(kWSize)
-kOverlap	chnget		"modSamp_overlap"
-kAmp		chnget		"modSamp_amp"
+;kFreq		chnget		"modSamp_noteFreq"
+;kNoteLen	chnget		"modSamp_noteLength"
+;kWSize		chnget		"modSamp_winSize"
+;kWSize = floor(kWSize)
+;kOverlap	chnget		"modSamp_overlap"
+kOverlap = 15	
+;kAmp		chnget		"modSamp_amp"
+kAmp		random		0.2, 0.4
 
 kFn	init 1
 ;kPrevFn	init 0
 ;kIndex	init 0
 ;kIndex2	init 0
 
-;kfreq     random  0.08, 2 
-;kMetVal		metro   	1,	0.00000001		
-;kTrigVal	samphold	kFreq,	kMetVal	
+kRandRate	random		0.33, 0.1
+kChangeTrig	metro		0.1, 0.00000001
+kRateChange	samphold	kRandRate, kChangeTrig
 
-;kTrigger	metro		kTrigVal
-kTrigger	metro		kFreq	
+kFreq		random  	0.08, 	2 
+kMetVal		metro   	kRateChange, 	0.00000001		
+kTrigVal	samphold	kFreq,	kMetVal	
+
+kTrigger	metro		kTrigVal
+;kTrigger	metro		kFreq	
 
 ;if (ktrigger > 0) then
 ;kIndex	=	kIndex + 1
 ;endif
-;kNoteLen  random  5, 40
+kNoteLen  random  5, 40
 ;iNoteLen = 40 
-;kWSize    random	sr/9, sr/2
+kWSize    random	sr/9, sr/2
 ;kMod	=	kIndex % 27 
 
 ;if (kMod == 0) then
@@ -267,8 +273,10 @@ kTrigger	metro		kFreq
 ;elseif (kMod2 == 1) then
 ;kFn	=	2
 ;endif
+kMoogCutoff	random	100, 8000	
+kMoogRes	random	0.1, 0.4	
 
-schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp 
+schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp, kMoogCutoff, kMoogRes 
   endin
 
 ;**************************************************************************************
@@ -276,8 +284,10 @@ instr ModalSampler, 4	;	Reads audio recorded from Modal Synth and uses
 			;	sndwarp to stretch and granulate it
 ;**************************************************************************************
 
-kMoogCutoff	chnget	"modSamp_moogCutoff"
-kMoogRes	chnget	"modSamp_moogRes"
+;kMoogCutoff	chnget	"modSamp_moogCutoff"
+kMoogCutoff = p8
+;kMoogRes	chnget	"modSamp_moogRes"
+kMoogRes = p9
 
 ;define the input variables
 ifn1        =         p5 
@@ -333,15 +343,20 @@ kGaussVal2	gauss	100
 seed 0
 kRand random 2.2, 10.8
 kRand2 random 3, 20  
+kRand3 random 1, 0.1
 
-kMetVal		metro   	0.5,	0.00000001		
+kMetVal0	metro		0.33, 0.00000001
+kTrigRateVal	samphold	kRand3, kMetVal0
+
+;kMetVal		metro   	0.5,	0.00000001		
+kMetVal		metro   	kTrigRateVal,	0.00000001		
 kTrigVal	samphold	kRand,	kMetVal	
 kTrigger 	metro		kTrigVal 
 
 kMinTim		= 0 
-kMaxNum 	= 1
+kMaxNum 	= 5 
 kInsNum 	= 6 
-kWhen 		= 2
+kWhen 		= 0
 gkDur 		= kRand2 
 kSpeed 		= kFileSpeed + kGaussVal
 kGrainFreq 	= p4 + kGaussVal
@@ -472,8 +487,9 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 
 aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
-gaParticleOut = aOut * aOutEnv
-	;outs	gaParticleOut, gaParticleOut
+gaParticleOut = (aOut * aOutEnv) * 0.25
+	outs	gaParticleOut, gaParticleOut
+	;fout	"chpt9_ex1.wav", 8, gaParticleOut
 
 endin
 
@@ -956,15 +972,15 @@ i "ModalSamplerTrigger"		7	-1
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-i "GranulatedRainTrigger"	2	-1
+;i "GranulatedRainTrigger"	2	-1
 
-i "GranularRainReverb"		2	-1
+;i "GranularRainReverb"		2	-1
 
-i "ClickPopStaticTrigger"	2	-1	20	
+;i "ClickPopStaticTrigger"	2	-1	20	
 
-i "SpectralAnalysis"		2	-1
+;i "SpectralAnalysis"		2	-1
 
-i "SoundLocaliser"		2	-1
+;i "SoundLocaliser"		2	-1
 
 ;i "KarplusStrongTrigger"	2	-1
 ;i "KarplusStrongCompressor"	2	-1

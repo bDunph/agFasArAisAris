@@ -286,7 +286,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	m_pModSamp_amp = std::make_unique<RegressionModel::DataInfo>();
 	m_pModSamp_amp->name = "modSamp_amp";
-	m_pModSamp_amp->value = 0.1;
+	m_pModSamp_amp->value = 0.2;
 	m_pModSamp_amp->normVal = 0.0;
 	m_pModSamp_amp->minVal = 0.2;
 	m_pModSamp_amp->maxVal = 0.4;
