@@ -7,6 +7,6 @@ lib/*
 out/*
 src/RapidLib/.vs/*
 src/RapidLib/out/*
-data/chpt9_ex1.wav
-data/clickPopTexCont.wav
-data/clikcPopStaticTrigTest.wav
+data/*.wav
+!data/24cellRow.wav
+!data/Rain_1.wav
