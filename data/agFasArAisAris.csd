@@ -2,7 +2,7 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--odac ;-o c:/Users/Bryan/Documents/agFasArAisAris/data/clickPopTexCont.wav -W -3 ;-odac          ;;;RT audio I/O
+-o c:/Users/Bryan/Documents/agFasArAisAris/data/modalSampler_quietTex1.wav -W -3 ;-odac          ;;;RT audio I/O
 
 --nodisplays
 
@@ -206,12 +206,13 @@ ares4	mode	aexc,	(247 + p5) + kGaussRange,	220 + kGaussRange; * 0.2
 
 ares5	mode	aexc,	467.9 + p5,	140 + kGaussRange * (kModeFreq1 * 0.1)	
 
-ares6	mode	aexc,	935.8 + p5, 	140 + kGaussRange * (kModeFreq2 * 0.1)	
+ares6	mode	aexc,	935.8 + p5, 	140; + kGaussRange * (kModeFreq2 * 0.1)	
 
 ares	sum	ares1,	ares2,	ares3,	ares4,	ares5, ares6
 
 ;gaOut1 = (aexc + ares) * kSineControlVal 
 gaOut1 = (aexc * 0.001) + (ares * 0.166)
+;gaOut1 = ((aexc * 0.001) + (ares * 0.166)) * 0.05 
 ;	outs	gaOut1,	gaOut1
 
 ;--------------------- write output to function table--------------------------------
@@ -248,6 +249,7 @@ kChangeTrig	metro		0.1, 0.00000001
 kRateChange	samphold	kRandRate, kChangeTrig
 
 kFreq		random  	0.08, 	2 
+;kFreq		random  	100, 150  
 kMetVal		metro   	kRateChange, 	0.00000001		
 kTrigVal	samphold	kFreq,	kMetVal	
 
@@ -258,6 +260,7 @@ kTrigger	metro		kTrigVal
 ;kIndex	=	kIndex + 1
 ;endif
 kNoteLen  random  5, 40
+;kNoteLen  random  0.5, 0.75 
 ;iNoteLen = 40 
 kWSize    random	sr/9, sr/2
 ;kMod	=	kIndex % 27 
@@ -276,7 +279,7 @@ kWSize    random	sr/9, sr/2
 kMoogCutoff	random	100, 8000	
 kMoogRes	random	0.1, 0.4	
 
-schedkwhen kTrigger, 0, 0, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp, kMoogCutoff, kMoogRes 
+schedkwhen kTrigger, 0, 2, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp, kMoogCutoff, kMoogRes 
   endin
 
 ;**************************************************************************************
@@ -317,6 +320,7 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
 ;aSig       moogvcf2    aSig, kMoogCutoff, 0.5
 aSig       moogvcf2    aSig, kMoogCutoff, kMoogRes 
 aSig	= 	aSig * 0.05
+;aSig	= 	aSig * 0.275
 
 ;--------------------- send route mean square value out------------------------------
 kRms	rms	aSig	
@@ -961,7 +965,7 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-i "ModalSynth"			0	6	1	0
+i "ModalSynth"			0	20	1	0
 
 i "ModalSamplerTrigger"		7	-1
 
