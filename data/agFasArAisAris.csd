@@ -2,7 +2,7 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--o c:/Users/Bryan/Documents/agFasArAisAris/data/modalSampler_quietTex1.wav -W -3 ;-odac          ;;;RT audio I/O
+-odac ;-o c:/Users/Bryan/Documents/agFasArAisAris/data/granRain_cloudHighDense.wav -W -3 ;-odac          ;;;RT audio I/O
 
 --nodisplays
 
@@ -492,8 +492,7 @@ aOut		partikkel igrainfreq, idist, giDisttab, async, kenv2amt, ienv2tab, \
 aOutEnv	linseg	0, p3 * 0.05, 1, p3 * 0.05, 0.85, p3 * 0.8, 0.85, p3 * 0.1, 0
 
 gaParticleOut = (aOut * aOutEnv) * 0.25
-	outs	gaParticleOut, gaParticleOut
-	;fout	"chpt9_ex1.wav", 8, gaParticleOut
+	;outs	gaParticleOut, gaParticleOut
 
 endin
 
@@ -553,15 +552,25 @@ kWSize		chnget		"winSize"
 kWSize = floor(kWSize)
 kResample	chnget		"resampleVal"
 
-;kFreq     	random  	2, 	25 
-kMetVal		metro   	0.2,	0.00000001		
-kTrigVal	samphold	kFreq,	kMetVal	
+;kRandChange	random		0.75, 0.2
+;kMetro		metro		0.2, 0.00000001
+;kChangeRate	samphold	kRandChange, kMetro
 
+;kFreq     	random  	2, 	10 
+;kFreq     	random  	50, 	100 
+;kMetVal		metro   	kChangeRate,	0.00000001		
+;kTrigVal	samphold	kFreq,	kMetVal	
 ;kTrigger	metro		kTrigVal
 kTrigger	metro		kFreq	
+;kTrigger	metro		10	
 
-;kNoteLen	random		0.05,		0.2
-;kWSize		random		80,		85
+;kNoteLen	random		0.05,		0.95
+;kNoteLen	=		0.95
+;kWSize		random		80,		800
+;kWSize		=		800
+;kResample	random		-48,		48	
+;kResample	random		0,		48	
+;kResample	=		48
 
 schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize,kResample ;trigger instr. 2 for 40s
 
@@ -582,7 +591,7 @@ ilen        =          	nsamp(ifn1)/sr
 iPtrStart   random     	1,ilen-1
 iPtrTrav    random     	-1,1
 ktimewarp   line       	iPtrStart,p3,iPtrStart+iPtrTrav
-kamp        linseg     	0,p3/2,0.5,p3/2,0
+kamp        linseg     	0,p3/2,0.75,p3/2,0
 ;iresample   random     	-24,24.99
 ;iresample   =          	semitone(int(iresample))
 iresample   =          	semitone(int(p5))
@@ -617,6 +626,7 @@ kRevFeedback	chnget "reverbFeedback"
 kRevCutoff	chnget "reverbCutoff"
 
 ;aRvbL,aRvbR reverbsc   gaSend,gaSend,0.6,4000
+;aRvbL,aRvbR reverbsc   gaSend,gaSend,0.2,800
 aRvbL,aRvbR reverbsc   gaSend,gaSend,kRevFeedback,kRevCutoff
 
 gaGranularRainReverbOut = aRvbL + aRvbR
@@ -904,7 +914,7 @@ kDistances[3]	chnget	"distance3"
 	
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0]	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5 
-aInstSigs[1] 	=	gaParticleOut * 9.5
+aInstSigs[1] 	=	gaParticleOut * 50 
 aInstSigs[2] 	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5
 aInstSigs[3] 	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5
 
@@ -965,9 +975,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-i "ModalSynth"			0	20	1	0
+;i "ModalSynth"			0	20	1	0
 
-i "ModalSamplerTrigger"		7	-1
+;i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -976,15 +986,15 @@ i "ModalSamplerTrigger"		7	-1
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-;i "GranulatedRainTrigger"	2	-1
+i "GranulatedRainTrigger"	2	-1
 
-;i "GranularRainReverb"		2	-1
+i "GranularRainReverb"		2	-1
 
 ;i "ClickPopStaticTrigger"	2	-1	20	
 
 ;i "SpectralAnalysis"		2	-1
 
-;i "SoundLocaliser"		2	-1
+i "SoundLocaliser"		2	-1
 
 ;i "KarplusStrongTrigger"	2	-1
 ;i "KarplusStrongCompressor"	2	-1

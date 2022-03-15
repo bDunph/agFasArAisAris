@@ -86,7 +86,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pNoteFreq->value = 8.0;
 	m_pNoteFreq->normVal = 0.0;
 	m_pNoteFreq->minVal = 2.0;
-	m_pNoteFreq->maxVal = 10.0;
+	m_pNoteFreq->maxVal = 100.0;
 	m_pNoteFreq->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteFreq));
@@ -106,7 +106,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pWinSize->value = 81.0;
 	m_pWinSize->normVal = 0.0;
 	m_pWinSize->minVal = 80.0;
-	m_pWinSize->maxVal = 800.0;
+	m_pWinSize->maxVal = 4800.0;
 	m_pWinSize->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pWinSize));
