@@ -185,7 +185,8 @@ float DE(vec3 p)
 	//float ampDisp = sin(rmsModVal * 5.0);
 	float ampDisp = sin(5.0);
 	
-	float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
+	//float sphereDist = sphereSDF(p + ampDisp + specDisp, rad);
+	float sphereDist = sphereSDF(p, rad);
 
 	if(length(p) > rad) 
 	{
