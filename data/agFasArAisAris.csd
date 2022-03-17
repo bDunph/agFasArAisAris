@@ -986,15 +986,15 @@ f0	86400 ;keep csound running for a day
 ;i6.01	1	-1	0
 ;i6.02	2	-1	50.0	
 
-i "GranulatedRainTrigger"	2	-1
+;i "GranulatedRainTrigger"	2	-1
 
-i "GranularRainReverb"		2	-1
+;i "GranularRainReverb"		2	-1
 
 ;i "ClickPopStaticTrigger"	2	-1	20	
 
 ;i "SpectralAnalysis"		2	-1
 
-i "SoundLocaliser"		2	-1
+;i "SoundLocaliser"		2	-1
 
 ;i "KarplusStrongTrigger"	2	-1
 ;i "KarplusStrongCompressor"	2	-1
