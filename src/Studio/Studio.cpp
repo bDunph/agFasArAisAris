@@ -41,8 +41,10 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
 	m_vec3SpherePos1 = glm::vec3(26.0f, -5.0f, 26.0f); 
-	m_vec3SpherePos2 = glm::vec3(2.5f, -2.0f, 2.5f); 
-	m_vec3SpherePos3 = glm::vec3(-2.5f, -2.0f, -2.5f); 
+	//m_vec3SpherePos2 = glm::vec3(2.5f, -2.0f, 2.5f); 
+	m_vec3SpherePos2 = glm::vec3(5.0f, -2.0f, 5.0f); 
+	//m_vec3SpherePos3 = glm::vec3(-2.5f, -2.0f, -2.5f); 
+	m_vec3SpherePos3 = glm::vec3(-5.0f, -2.0f, -5.0f); 
 	m_fPrevSpecVal = 0.0;
 
 	m_pStTools = new StudioTools();
@@ -146,7 +148,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pIterations->value = 10.0;
 	m_pIterations->normVal = 0.0;
 	m_pIterations->minVal = 3.0;
-	m_pIterations->maxVal = 15.0;
+	m_pIterations->maxVal = 30.0;
 	m_pIterations->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pIterations));
@@ -205,8 +207,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pRControllerX->name = "rControllerX";
 	m_pRControllerX->value = 0.0;
 	m_pRControllerX->normVal = 0.0;
-	m_pRControllerX->minVal = -2.0;
-	m_pRControllerX->maxVal = 2.0;
+	m_pRControllerX->minVal = -1.0;
+	m_pRControllerX->maxVal = 1.0;
 	m_pRControllerX->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerX));
@@ -215,8 +217,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pRControllerY->name = "rControllerY";
 	m_pRControllerY->value = 0.0;
 	m_pRControllerY->normVal = 0.0;
-	m_pRControllerY->minVal = -2.0;
-	m_pRControllerY->maxVal = 2.0;
+	m_pRControllerY->minVal = -1.0;
+	m_pRControllerY->maxVal = 1.0;
 	m_pRControllerY->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerY));
@@ -225,8 +227,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pRControllerZ->name = "rControllerZ";
 	m_pRControllerZ->value = 0.0;
 	m_pRControllerZ->normVal = 0.0;
-	m_pRControllerZ->minVal = -2.0;
-	m_pRControllerZ->maxVal = 2.0;
+	m_pRControllerZ->minVal = -1.0;
+	m_pRControllerZ->maxVal = 1.0;
 	m_pRControllerZ->paramType = RegressionModel::INPUT;
 
 	inParamVec.push_back(std::move(m_pRControllerZ));
@@ -358,8 +360,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pLControllerX->name = "lControllerX";
 	m_pLControllerX->value = 0.0;
 	m_pLControllerX->normVal = 0.0;
-	m_pLControllerX->minVal = -2.0;
-	m_pLControllerX->maxVal = 2.0;
+	m_pLControllerX->minVal = -1.0;
+	m_pLControllerX->maxVal = 1.0;
 	m_pLControllerX->paramType = RegressionModel::INPUT;
 
 	leftNN_inParamVec.push_back(std::move(m_pLControllerX));
@@ -368,8 +370,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pLControllerY->name = "lControllerY";
 	m_pLControllerY->value = 0.0;
 	m_pLControllerY->normVal = 0.0;
-	m_pLControllerY->minVal = -2.0;
-	m_pLControllerY->maxVal = 2.0;
+	m_pLControllerY->minVal = -1.0;
+	m_pLControllerY->maxVal = 1.0;
 	m_pLControllerY->paramType = RegressionModel::INPUT;
 
 	leftNN_inParamVec.push_back(std::move(m_pLControllerY));
@@ -378,8 +380,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pLControllerZ->name = "lControllerZ";
 	m_pLControllerZ->value = 0.0;
 	m_pLControllerZ->normVal = 0.0;
-	m_pLControllerZ->minVal = -2.0;
-	m_pLControllerZ->maxVal = 2.0;
+	m_pLControllerZ->minVal = -1.0;
+	m_pLControllerZ->maxVal = 1.0;
 	m_pLControllerZ->paramType = RegressionModel::INPUT;
 
 	leftNN_inParamVec.push_back(std::move(m_pLControllerZ));
@@ -604,6 +606,14 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	m_bPrevRightNNState = currentRightNNState;
 	m_bPrevLeftNNState = currentLeftNNState;
 
+	// convert controller coordinates from world space to camera space
+	glm::vec4 rContrVec4 = glm::vec4(controllerWorldPos_1.x, controllerWorldPos_1.y, controllerWorldPos_1.z, 1.0);
+	glm::vec4 lContrVec4 = glm::vec4(controllerWorldPos_0.x, controllerWorldPos_0.y, controllerWorldPos_0.z, 1.0);
+	glm::vec4 rContCamPos = viewMat * rContrVec4;
+	glm::vec4 lContCamPos = viewMat * lContrVec4;
+
+	//std::cout << "X:" << contrRelPos.x << "	Y:" << contrRelPos.y << "	:Z" << contrRelPos.z << std::endl;
+
 	//********** Right Hand Neural Network ********************
 	if(m_bRightNNToggle){
 		m_bCurrentRandomState = machineLearning.bRandomParams;
@@ -618,9 +628,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 		if(machineLearning.bRecord){
 
-			inParamVec[0]->value = controllerWorldPos_1.x;
-			inParamVec[1]->value = controllerWorldPos_1.y;
-			inParamVec[2]->value = controllerWorldPos_1.z;
+			inParamVec[0]->value = rContCamPos.x;
+			inParamVec[1]->value = rContCamPos.y;
+			inParamVec[2]->value = rContCamPos.z;
 			//inParamVec[3]->value = controllerWorldPos_0.x;
 			//inParamVec[4]->value = controllerWorldPos_0.y;
 			//inParamVec[5]->value = controllerWorldPos_0.z;
@@ -650,9 +660,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		if(m_bCurrentRunState && m_bModelTrained)
 		{
 			//std::cout << "MODEL RUNNING" << std::endl;
-			inParamVec[0]->value = controllerWorldPos_1.x;
-			inParamVec[1]->value = controllerWorldPos_1.y;
-			inParamVec[2]->value = controllerWorldPos_1.z;
+			inParamVec[0]->value = rContCamPos.x;
+			inParamVec[1]->value = rContCamPos.y;
+			inParamVec[2]->value = rContCamPos.z;
 			//inParamVec[3]->value = controllerWorldPos_0.x;
 			//inParamVec[4]->value = controllerWorldPos_0.y;
 			//inParamVec[5]->value = controllerWorldPos_0.z;
@@ -767,9 +777,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 
 		if(machineLearning.bRecord){
 
-			leftNN_inParamVec[0]->value = controllerWorldPos_0.x;
-			leftNN_inParamVec[1]->value = controllerWorldPos_0.y;
-			leftNN_inParamVec[2]->value = controllerWorldPos_0.z;
+			leftNN_inParamVec[0]->value = lContCamPos.x;
+			leftNN_inParamVec[1]->value = lContCamPos.y;
+			leftNN_inParamVec[2]->value = lContCamPos.z;
 			
 			regModLeft.normaliseData(leftNN_inParamVec);
 			regModLeft.normaliseData(leftNN_outParamVec);
@@ -789,9 +799,9 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 		if(m_bCurrentRunState && m_bLeftNN_modelTrained)
 		{
 			std::cout << "LEFT MODEL RUNNING" << std::endl;
-			leftNN_inParamVec[0]->value = controllerWorldPos_0.x;
-			leftNN_inParamVec[1]->value = controllerWorldPos_0.y;
-			leftNN_inParamVec[2]->value = controllerWorldPos_0.z;
+			leftNN_inParamVec[0]->value = lContCamPos.x;
+			leftNN_inParamVec[1]->value = lContCamPos.y;
+			leftNN_inParamVec[2]->value = lContCamPos.z;
 
 			regModLeft.normaliseData(leftNN_inParamVec);
 
