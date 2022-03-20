@@ -191,6 +191,7 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pRed;
 	std::unique_ptr<RegressionModel::DataInfo> m_pGreen;
 	std::unique_ptr<RegressionModel::DataInfo> m_pBlue;
+	std::unique_ptr<RegressionModel::DataInfo> m_pModSamp_maxInsts;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> leftNN_outParamVec;
 
 	std::unique_ptr<RegressionModel::DataInfo> m_pLControllerX;
@@ -208,6 +209,7 @@ private:
 	MYFLT* m_cspModSamp_overlap;
 	MYFLT* m_cspModSamp_amp;
 	MYFLT* m_cspModSamp_moogRes;
+	MYFLT* m_cspModSamp_maxInsts;
 	MYFLT* m_cspReverbFeedback;
 	MYFLT* m_cspReverbCutoff;
 	MYFLT* m_cspResampleVal;
@@ -243,5 +245,9 @@ private:
 	float m_fModSamp_rmsOut;
 	GLint m_gliModSamp_rmsOut;
 	std::deque<float> m_dRmsVals;
+	MYFLT* m_cspGranRain_specAmpOut;
+	float m_fGranRainSpecAmpOut;
+	std::deque<float> m_dGranRainAmpVals;
+	GLint m_gliGranRainAmp;
 };
 #endif

@@ -31,6 +31,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 		m_dFbmSpeedBuf.push_front(0.0);
 		m_dAmpOutVals.push_front(0.0f);
 		m_dRmsVals.push_front(0.0f);
+		m_dGranRainAmpVals.push_front(0.0f);
 	}
 
 	m_iSphereNum = 0;
@@ -78,6 +79,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliOffset = glGetUniformLocation(shaderProg, "offsetVal");
 	m_gliModSamp_amp = glGetUniformLocation(shaderProg, "modSamp_amp");
 	m_gliModSamp_rmsOut = glGetUniformLocation(shaderProg, "modSamp_rmsOut");
+	m_gliGranRainAmp = glGetUniformLocation(shaderProg, "granRainAmp");
 
 	//machine learning setup
 	MLRegressionSetup();
@@ -241,7 +243,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_noteFreq->value = 0.8;
 	m_pModSamp_noteFreq->normVal = 0.0;
 	m_pModSamp_noteFreq->minVal = 0.08;
-	m_pModSamp_noteFreq->maxVal = 4.0;
+	m_pModSamp_noteFreq->maxVal = 150.0;
 	m_pModSamp_noteFreq->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteFreq));
@@ -251,7 +253,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_noteLength->value = 2.0;
 	m_pModSamp_noteLength->normVal = 0.0;
 	m_pModSamp_noteLength->minVal = 0.2;
-	m_pModSamp_noteLength->maxVal = 12.0;
+	m_pModSamp_noteLength->maxVal = 40.0;
 	m_pModSamp_noteLength->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_noteLength));
@@ -260,8 +262,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_pModSamp_winSize->name = "modSamp_winSize";
 	m_pModSamp_winSize->value = 5000.0;
 	m_pModSamp_winSize->normVal = 0.0;
-	m_pModSamp_winSize->minVal = 4800.0;
-	m_pModSamp_winSize->maxVal = 9600.0;
+	m_pModSamp_winSize->minVal = 480.0;
+	m_pModSamp_winSize->maxVal = 48000.0;
 	m_pModSamp_winSize->paramType = RegressionModel::OUTPUT;
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_winSize));
@@ -276,15 +278,15 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	leftNN_outParamVec.push_back(std::move(m_pModSamp_moogCutoff));
 
-	m_pModSamp_overlap = std::make_unique<RegressionModel::DataInfo>();
-	m_pModSamp_overlap->name = "modSamp_overlap";
-	m_pModSamp_overlap->value = 15.0;
-	m_pModSamp_overlap->normVal = 0.0;
-	m_pModSamp_overlap->minVal = 15.0;
-	m_pModSamp_overlap->maxVal = 15.0;
-	m_pModSamp_overlap->paramType = RegressionModel::OUTPUT;
+	m_pModSamp_maxInsts = std::make_unique<RegressionModel::DataInfo>();
+	m_pModSamp_maxInsts->name = "modSamp_maxInsts";
+	m_pModSamp_maxInsts->value = 5.0;
+	m_pModSamp_maxInsts->normVal = 0.0;
+	m_pModSamp_maxInsts->minVal = 0.0;
+	m_pModSamp_maxInsts->maxVal = 10.0;
+	m_pModSamp_maxInsts->paramType = RegressionModel::OUTPUT;
 
-	leftNN_outParamVec.push_back(std::move(m_pModSamp_overlap));
+	leftNN_outParamVec.push_back(std::move(m_pModSamp_maxInsts));
 
 	m_pModSamp_amp = std::make_unique<RegressionModel::DataInfo>();
 	m_pModSamp_amp->name = "modSamp_amp";
@@ -422,8 +424,8 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	sendNames.push_back("modSamp_moogCutoff");
 	m_vSendVals.push_back(m_cspModSamp_moogCutoff);
 	// Pos 7 
-	sendNames.push_back("modSamp_overlap");
-	m_vSendVals.push_back(m_cspModSamp_overlap);
+	sendNames.push_back("modSamp_maxInsts");
+	m_vSendVals.push_back(m_cspModSamp_maxInsts);
 	// Pos 8 
 	sendNames.push_back("modSamp_amp");
 	m_vSendVals.push_back(m_cspModSamp_amp);
@@ -448,14 +450,11 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	returnNames.push_back("ampOut");
 	m_vReturnVals.push_back(m_pAmpOut);
 
-	returnNames.push_back("modSamp_amp");
-	m_vReturnVals.push_back(m_cspModSamp_specAmp);
-
-	returnNames.push_back("modSamp_specFreq");
-	m_vReturnVals.push_back(m_cspModSamp_specFreq);
-
 	returnNames.push_back("modSamp_rmsOut");
 	m_vReturnVals.push_back(m_cspModSamp_rmsOut);
+
+	returnNames.push_back("granRain_specAmpOut");
+	m_vReturnVals.push_back(m_cspGranRain_specAmpOut);
 
 	m_pStTools->BCsoundReturn(csSession, returnNames, m_vReturnVals);	
 
@@ -507,17 +506,23 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	m_dAmpOutVals.push_front(*m_vReturnVals[0] * 5.0f);
 	m_dAmpOutVals.pop_back();
 	float ampOutSum = 0.0f;
-	m_dRmsVals.push_front(*m_vReturnVals[3]);
+	m_dRmsVals.push_front(*m_vReturnVals[1]);
 	m_dRmsVals.pop_back();
 	float rmsSum = 0.0f;
+	m_dGranRainAmpVals.push_front(*m_vReturnVals[2] * 2.5f);
+	m_dGranRainAmpVals.pop_back();
+	float granRainAmpSum = 0.0f;
 
 	for(int i = 0; i < m_iBufSize; i++)
 	{
 		ampOutSum += m_dAmpOutVals[i];
 		rmsSum += m_dRmsVals[i];
+		granRainAmpSum += m_dGranRainAmpVals[i];
 	}
 	m_fAmpOut = ampOutSum / m_iBufSize;
 	m_fModSamp_rmsOut = rmsSum / m_iBufSize;
+	m_fGranRainSpecAmpOut = granRainAmpSum / m_iBufSize;
+	//std::cout << m_fGranRainSpecAmpOut << std::endl;
 
 	//m_fModSamp_amp = *m_vReturnVals[1];
 	//m_fModSamp_specFreq = *m_vReturnVals[2];
@@ -528,7 +533,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	
 	// granulated rain sound source at origin
 	StudioTools::SoundSourceData soundSource1;
-	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, -2.0f, 0.0f, 1.0f);
 	soundSource1.position = sourcePosWorldSpace;
 
 	// clickPopStatic sound source mapped to moving sphere
@@ -913,6 +918,7 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform1f(m_gliOffset, m_fOffset);
 	glUniform1f(m_gliModSamp_amp, m_fModSamp_amp);
 	glUniform1f(m_gliModSamp_rmsOut, m_fModSamp_rmsOut);
+	glUniform1f(m_gliGranRainAmp, m_fGranRainSpecAmpOut);
 
 	m_pStTools->DrawEnd();
 

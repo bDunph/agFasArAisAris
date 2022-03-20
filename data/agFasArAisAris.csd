@@ -230,39 +230,40 @@ instr ModalSamplerTrigger, 3	;	Triggers instr 3 which samples the modal synth
 				;	and sndwarps it	
 ;**************************************************************************************
 
-;kFreq		chnget		"modSamp_noteFreq"
-;kNoteLen	chnget		"modSamp_noteLength"
-;kWSize		chnget		"modSamp_winSize"
-;kWSize = floor(kWSize)
+kFreq		chnget		"modSamp_noteFreq"
+kNoteLen	chnget		"modSamp_noteLength"
+kWSize		chnget		"modSamp_winSize"
+kWSize = floor(kWSize)
 ;kOverlap	chnget		"modSamp_overlap"
 kOverlap = 15	
-;kAmp		chnget		"modSamp_amp"
-kAmp		random		0.2, 0.4
+kAmp		chnget		"modSamp_amp"
+;kAmp		random		0.2, 0.4
+kMaxInsts	chnget		"modSamp_maxInsts"
 
 kFn	init 1
 ;kPrevFn	init 0
 ;kIndex	init 0
 ;kIndex2	init 0
 
-kRandRate	random		0.33, 0.1
-kChangeTrig	metro		0.1, 0.00000001
-kRateChange	samphold	kRandRate, kChangeTrig
+;kRandRate	random		0.33, 0.1
+;kChangeTrig	metro		0.1, 0.00000001
+;kRateChange	samphold	kRandRate, kChangeTrig
 
-kFreq		random  	0.08, 	2 
+;kFreq		random  	0.08, 	2 
 ;kFreq		random  	100, 150  
-kMetVal		metro   	kRateChange, 	0.00000001		
-kTrigVal	samphold	kFreq,	kMetVal	
+;kMetVal		metro   	kRateChange, 	0.00000001		
+;kTrigVal	samphold	kFreq,	kMetVal	
 
-kTrigger	metro		kTrigVal
-;kTrigger	metro		kFreq	
+;kTrigger	metro		kTrigVal
+kTrigger	metro		kFreq	
 
 ;if (ktrigger > 0) then
 ;kIndex	=	kIndex + 1
 ;endif
-kNoteLen  random  5, 40
+;kNoteLen  random  5, 40
 ;kNoteLen  random  0.5, 0.75 
 ;iNoteLen = 40 
-kWSize    random	sr/9, sr/2
+;kWSize    random	sr/9, sr/2
 ;kMod	=	kIndex % 27 
 
 ;if (kMod == 0) then
@@ -276,10 +277,10 @@ kWSize    random	sr/9, sr/2
 ;elseif (kMod2 == 1) then
 ;kFn	=	2
 ;endif
-kMoogCutoff	random	100, 8000	
-kMoogRes	random	0.1, 0.4	
+;kMoogCutoff	random	100, 8000	
+;kMoogRes	random	0.1, 0.4	
 
-schedkwhen kTrigger, 0, 2, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp, kMoogCutoff, kMoogRes 
+schedkwhen kTrigger, 0, kMaxInsts, 4, 0, kNoteLen, kWSize, kFn, kOverlap, kAmp	;, kMoogCutoff, kMoogRes 
   endin
 
 ;**************************************************************************************
@@ -287,10 +288,10 @@ instr ModalSampler, 4	;	Reads audio recorded from Modal Synth and uses
 			;	sndwarp to stretch and granulate it
 ;**************************************************************************************
 
-;kMoogCutoff	chnget	"modSamp_moogCutoff"
-kMoogCutoff = p8
-;kMoogRes	chnget	"modSamp_moogRes"
-kMoogRes = p9
+kMoogCutoff	chnget	"modSamp_moogCutoff"
+;kMoogCutoff = p8
+kMoogRes	chnget	"modSamp_moogRes"
+;kMoogRes = p9
 
 ;define the input variables
 ifn1        =         p5 
@@ -822,11 +823,11 @@ iwinsize = ifftsize * 2
 iwinshape = 0
 
 aSig  = gaParticleOut 
-;aSig1 = gaModalSamplerOut
+aSig1 = gaGranulatedRainDrySig
 
 ; route output from instruments above to pvsanal
 fsig	pvsanal	aSig,	ifftsize,	ioverlap,	iwinsize,	iwinshape
-;fsig1	pvsanal	aSig1,	ifftsize,	ioverlap,	iwinsize,	iwinshape
+fsig1	pvsanal	aSig1,	ifftsize,	ioverlap,	iwinsize,	iwinshape
 
 kcent	pvscent	fsig
 	chnset	kcent,	"specCentOut"
@@ -835,9 +836,8 @@ kFreq,	kAmp	pvspitch	fsig,	0.01
 	chnset	kFreq,	"freqOut"
 	chnset	kAmp,	"ampOut"
 
-;kFreq1,	kAmp1	pvspitch	fsig1,	0.01
-;	chnset	kFreq1,	"modSamp_specFreq"
-;	chnset	kAmp1,	"modSamp_ampOut"
+kFreq1,	kAmp1	pvspitch	fsig1,	0.01
+	chnset	kAmp1,	"granRain_specAmpOut"
 
 ; get info from pvsanal and print
 ;ioverlap,	inbins,	iwindowsize,	iformat	pvsinfo	fsig
@@ -915,8 +915,8 @@ kDistances[3]	chnget	"distance3"
 aInstSigs[]	init	iNumAudioSources
 aInstSigs[0]	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5 
 aInstSigs[1] 	=	gaParticleOut * 50 
-aInstSigs[2] 	sum	gaGranulatedRainDrySig * 2, gaGranularRainReverbOut * 3 
-aInstSigs[3] 	sum	gaGranulatedRainDrySig * 2, gaGranularRainReverbOut * 3 
+aInstSigs[2] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
+aInstSigs[3] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -992,7 +992,7 @@ i "GranularRainReverb"		2	-1
 
 ;i "ClickPopStaticTrigger"	2	-1	20	
 
-;i "SpectralAnalysis"		2	-1
+i "SpectralAnalysis"		2	-1
 
 i "SoundLocaliser"		2	-1
 

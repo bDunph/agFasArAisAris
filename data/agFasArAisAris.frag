@@ -47,6 +47,7 @@ uniform float scaleVal;
 uniform float offsetVal;
 uniform float modSamp_amp;
 uniform float modSamp_rmsOut;
+uniform float granRainAmp;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -163,7 +164,8 @@ float kifSDF(vec3 p)
         n++;
     }
     //return length(p) * pow(SCALE, -float(n));
-    return length(p) * pow(scaleVal, -float(n));
+    //return length(p) * pow(scaleVal, -float(n) * (1 + granRainAmp));
+    return length(p) * pow(scaleVal * (1 + granRainAmp), -float(n));
 }
 
 
@@ -344,6 +346,7 @@ void main()
 
 	vec3 animFBM = vec3(st.x, st.y, time * fbmSpeed);
 	fbmVal = fbm(animFBM);
+	//fbmVal = fbmVal * (1.0 + granRainAmp);
 	
 	vec3 animFBM_left = vec3(st.x, st.y, time * fbmSpeed_left);
 	fbmVal_left = fbm_left(animFBM_left);
