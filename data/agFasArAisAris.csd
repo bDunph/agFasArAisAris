@@ -552,6 +552,7 @@ kNoteLen	chnget		"noteLength"
 kWSize		chnget		"winSize"
 kWSize = floor(kWSize)
 kResample	chnget		"resampleVal"
+kMaxInsts	chnget		"granRainMaxInsts"
 
 ;kRandChange	random		0.75, 0.2
 ;kMetro		metro		0.2, 0.00000001
@@ -573,7 +574,7 @@ kTrigger	metro		kFreq
 ;kResample	random		0,		48	
 ;kResample	=		48
 
-schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize,kResample ;trigger instr. 2 for 40s
+schedkwhen kTrigger,0,kMaxInsts,9,0,kNoteLen,kWSize,kResample ;trigger instr. 2 for 40s
 
   endin
 
@@ -585,14 +586,15 @@ schedkwhen kTrigger,0,0,9,0,kNoteLen,kWSize,kResample ;trigger instr. 2 for 40s
   				;	http://floss.booktype.pro/csound/g-granular-synthesis/, 
 				;	example 05G02_selfmade_grain.csd written by Iain McCurdy
 ;**************************************************************************************
-
 ;define the input variables
 ifn1        =          	giSound
-ilen        =          	nsamp(ifn1)/sr
-iPtrStart   random     	1,ilen-1
-iPtrTrav    random     	-1,1
+ilen        =          nsamp(ifn1)/sr
+;iPtrStart   random    	1,ilen-1
+iPtrStart   =		ilen * 0.5
+;iPtrTrav    random     -1,1
+iPtrTrav    random      (ilen * 0.25) * -1.0, ilen * 0.25	
 ktimewarp   line       	iPtrStart,p3,iPtrStart+iPtrTrav
-kamp        linseg     	0,p3/2,0.75,p3/2,0
+kamp        linseg     0,p3/2,0.75,p3/2,0
 ;iresample   random     	-24,24.99
 ;iresample   =          	semitone(int(iresample))
 iresample   =          	semitone(int(p5))
@@ -601,7 +603,7 @@ ibeg        =          	0
 ;iwsize     random     	20,50000
 iwsize      =          	p4
 irandw      =          	iwsize/3
-ioverlap    =		8 
+ioverlap    =		10 
 itimemode   =          	1
 
 ; create a stereo granular synthesis texture using sndwarp
@@ -609,7 +611,8 @@ aSig sndwarp  kamp,ktimewarp,iresample,ifn1,ibeg,\
                               iwsize,irandw,ioverlap,ifn2,itimemode
 
 ; envelope the signal with a lowpass filter
-kcf         expseg     50,p3/2,8000,p3/2,50
+;acf         expsega     200,p3/2,8000,p3/2,200
+kcf         linseg	50,p3/2,8000,p3/2,50
 gaGranulatedRainDrySig moogvcf2    aSig, kcf, 0.5
 
 ; add a little of our audio signals to the global send variables -
@@ -617,10 +620,11 @@ gaGranulatedRainDrySig moogvcf2    aSig, kcf, 0.5
 gaSend     =          gaSend + gaGranulatedRainDrySig
 
             ;outs       gaGranulatedRainDrySig,gaGranulatedRainDrySig
+            ;outs       aSig,aSig
   endin
 
 ;**************************************************************************************
-  instr GranularRainReverb, 10 ;	Reverb for GranulatedRain 
+  instr GranulatedRainReverb, 10 ;	Reverb for GranulatedRain 
 ;**************************************************************************************
 
 kRevFeedback	chnget "reverbFeedback"
@@ -877,7 +881,7 @@ instr SoundLocaliser, 18	; Sound Localisation using hrtf2
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
-iNumAudioSources init	4 
+iNumAudioSources init	5 
 
 kAzimuths[] 	init 	iNumAudioSources
 kElevations[] 	init	iNumAudioSources
@@ -887,14 +891,17 @@ kAzimuths[0]	chnget	"azimuth0"
 kAzimuths[1]	chnget	"azimuth1"
 kAzimuths[2]	chnget	"azimuth2"
 kAzimuths[3]	chnget	"azimuth3"
+kAzimuths[4]	chnget	"azimuth4"
 kElevations[0]	chnget	"elevation0"
 kElevations[1]	chnget	"elevation1"
 kElevations[2]	chnget	"elevation2"
 kElevations[3]	chnget	"elevation3"
+kElevations[4]	chnget	"elevation4"
 kDistances[0]	chnget	"distance0"
 kDistances[1]	chnget	"distance1"
 kDistances[2]	chnget	"distance2"
 kDistances[3]	chnget	"distance3"
+kDistances[4]	chnget	"distance4"
 
 ;iCount init 0
 
@@ -913,10 +920,15 @@ kDistances[3]	chnget	"distance3"
 	;loop_lt	iCount, 1, iNumAudioSources, channelLoop
 	
 aInstSigs[]	init	iNumAudioSources
-aInstSigs[0]	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5 
+;aInstSigs[0]	sum	gaGranulatedRainDrySig, gaGranularRainReverbOut * 1.5 
+aInstSigs[0]	sum	gaGranulatedRainDrySig * 0.25, gaGranularRainReverbOut * 0.75 
 aInstSigs[1] 	=	gaParticleOut * 50 
-aInstSigs[2] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
-aInstSigs[3] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
+;aInstSigs[2] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
+aInstSigs[2] 	sum	gaGranulatedRainDrySig * 0.25, gaGranularRainReverbOut * 0.75 
+;aInstSigs[3] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
+aInstSigs[3] 	sum	gaGranulatedRainDrySig * 0.25, gaGranularRainReverbOut * 0.75 
+;aInstSigs[4] 	sum	gaGranulatedRainDrySig * 4.0, gaGranularRainReverbOut * 6.0 
+aInstSigs[4] 	sum	gaGranulatedRainDrySig * 0.25, gaGranularRainReverbOut * 0.75 
 
 aLeftSigs[]	init	iNumAudioSources
 aRightSigs[]	init	iNumAudioSources
@@ -926,6 +938,7 @@ kDistVals[0] portk kDistances[0], kPortTime	;to filter out audio artifacts due t
 kDistVals[1] portk kDistances[1], kPortTime	
 kDistVals[2] portk kDistances[2], kPortTime		
 kDistVals[3] portk kDistances[3], kPortTime		
+kDistVals[4] portk kDistances[4], kPortTime		
 
 aLeftSigs[0], aRightSigs[0]  hrtfmove2	aInstSigs[0], kAzimuths[0], kElevations[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 kDistSquared0	pow	kDistVals[0], 2
@@ -947,11 +960,16 @@ kDistSquared3	pow	kDistVals[3], 2
 aLeftSigs[3] = aLeftSigs[3] / kDistSquared3 
 aRightSigs[3] = aRightSigs[3] / kDistSquared3 
 
+aLeftSigs[4], aRightSigs[4]  hrtfmove2	aInstSigs[4], kAzimuths[4], kElevations[4], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+kDistSquared4	pow	kDistVals[4], 2
+aLeftSigs[4] = aLeftSigs[4] / kDistSquared4 
+aRightSigs[4] = aRightSigs[4] / kDistSquared4 
+
 aL init 0
 aR init 0
 
-aL sum	aLeftSigs[0], aLeftSigs[1], aLeftSigs[2], aLeftSigs[3]
-aR sum	aRightSigs[0], aRightSigs[1], aRightSigs[2], aRightSigs[3]
+aL sum	aLeftSigs[0], aLeftSigs[1], aLeftSigs[2] * 4.0, aLeftSigs[3] * 4.0, aLeftSigs[4] * 4.0
+aR sum	aRightSigs[0], aRightSigs[1], aRightSigs[2] * 4.0, aRightSigs[3] * 4.0, aRightSigs[4] * 4.0
 
 ;aL = aL / iNumAudioSources
 ;aR = aR / iNumAudioSources
@@ -975,9 +993,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-;i "ModalSynth"			0	20	1	0
+i "ModalSynth"			0	20	1	0
 
-;i "ModalSamplerTrigger"		7	-1
+i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -988,9 +1006,9 @@ f0	86400 ;keep csound running for a day
 
 i "GranulatedRainTrigger"	2	-1
 
-i "GranularRainReverb"		2	-1
+i "GranulatedRainReverb"		2	-1
 
-;i "ClickPopStaticTrigger"	2	-1	20	
+i "ClickPopStaticTrigger"	2	-1	20	
 
 i "SpectralAnalysis"		2	-1
 

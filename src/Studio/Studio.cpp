@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 #include <math.h>
+#include <cmath>
 
 #ifdef __APPLE__ 
 #include "GLFW/glfw3.h"
@@ -40,12 +41,21 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_bRightNNToggle = false;
 	m_bLeftNNToggle = false;
 
+	float sphere2X = 5.0f * cos(120 * (PI / 180.0f));
+	float sphere2Z = 5.0f * sin(120 * (PI / 180.0f));
+	float sphere3X = 5.0f * cos(240 * (PI / 180.0f));
+	float sphere3Z = 5.0f * sin(240 * (PI / 180.0f));
+	float sphere4X = 5.0f * cos(360 * (PI / 180.0f));
+	float sphere4Z = 5.0f * sin(360 * (PI / 180.0f));
+
 	//m_vec3SpherePos1 = glm::vec3(7.79998f, -4.46797f, 7.72899f); 
 	m_vec3SpherePos1 = glm::vec3(26.0f, -5.0f, 26.0f); 
-	//m_vec3SpherePos2 = glm::vec3(2.5f, -2.0f, 2.5f); 
-	m_vec3SpherePos2 = glm::vec3(5.0f, -2.0f, 5.0f); 
-	//m_vec3SpherePos3 = glm::vec3(-2.5f, -2.0f, -2.5f); 
-	m_vec3SpherePos3 = glm::vec3(-5.0f, -2.0f, -5.0f); 
+	//m_vec3SpherePos2 = glm::vec3(5.0f, -2.0f, 5.0f); 
+	m_vec3SpherePos2 = glm::vec3(sphere2X, -2.0f, sphere2Z); 
+	//m_vec3SpherePos3 = glm::vec3(-5.0f, -2.0f, -5.0f); 
+	m_vec3SpherePos3 = glm::vec3(sphere3X, -2.0f, sphere3Z); 
+	m_vec3SpherePos4 = glm::vec3(sphere4X, -2.0f, sphere4Z);
+
 	m_fPrevSpecVal = 0.0;
 
 	m_pStTools = new StudioTools();
@@ -71,6 +81,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	m_gliSpherePos1 = glGetUniformLocation(shaderProg, "spherePos1");
 	m_gliSpherePos2 = glGetUniformLocation(shaderProg, "spherePos2");
 	m_gliSpherePos3 = glGetUniformLocation(shaderProg, "spherePos3");
+	m_gliSpherePos4 = glGetUniformLocation(shaderProg, "spherePos4");
 	m_gliRed = glGetUniformLocation(shaderProg, "redVal");
 	m_gliGreen = glGetUniformLocation(shaderProg, "greenVal");
 	m_gliBlue = glGetUniformLocation(shaderProg, "blueVal");
@@ -97,19 +108,19 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	m_pNoteLength = std::make_unique<RegressionModel::DataInfo>();
 	m_pNoteLength->name = "noteLength";
-	m_pNoteLength->value = 0.1;
+	m_pNoteLength->value = 0.2;
 	m_pNoteLength->normVal = 0.0;
-	m_pNoteLength->minVal = 0.05;
-	m_pNoteLength->maxVal = 0.95;
+	m_pNoteLength->minVal = 0.2;
+	m_pNoteLength->maxVal = 2.5;
 	m_pNoteLength->paramType = RegressionModel::OUTPUT;
 
 	outParamVec.push_back(std::move(m_pNoteLength));	
 
 	m_pWinSize = std::make_unique<RegressionModel::DataInfo>();
 	m_pWinSize->name = "winSize";
-	m_pWinSize->value = 81.0;
+	m_pWinSize->value = 300.0;
 	m_pWinSize->normVal = 0.0;
-	m_pWinSize->minVal = 80.0;
+	m_pWinSize->minVal = 240.0;
 	m_pWinSize->maxVal = 4800.0;
 	m_pWinSize->paramType = RegressionModel::OUTPUT;
 
@@ -205,6 +216,16 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	outParamVec.push_back(std::move(m_pResampleVal));
 
+	m_pGranRainMaxInsts = std::make_unique<RegressionModel::DataInfo>();
+	m_pGranRainMaxInsts->name = "granRainMaxInsts";
+	m_pGranRainMaxInsts->value = 3.0;
+	m_pGranRainMaxInsts->normVal = 0.0;
+	m_pGranRainMaxInsts->minVal = 1.0;
+	m_pGranRainMaxInsts->maxVal = 15.0;
+	m_pGranRainMaxInsts->paramType = RegressionModel::OUTPUT;
+
+	outParamVec.push_back(std::move(m_pGranRainMaxInsts));
+
 	m_pRControllerX = std::make_unique<RegressionModel::DataInfo>();
 	m_pRControllerX->name = "rControllerX";
 	m_pRControllerX->value = 0.0;
@@ -235,7 +256,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	inParamVec.push_back(std::move(m_pRControllerZ));
 
-	mySavedModel = "agFasModel.json";
+	mySavedModel = "agFasModel_21032022_1.json";
 
 	//Left NN parameter setup
 	m_pModSamp_noteFreq = std::make_unique<RegressionModel::DataInfo>();
@@ -388,7 +409,7 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 
 	leftNN_inParamVec.push_back(std::move(m_pLControllerZ));
 
-	mySavedModel_left = "agFasModel_left.json";
+	mySavedModel_left = "agFasModel_left_20032022_1.json";
 
 	//audio setup
 	CsoundSession* csSession = m_pStTools->PCsoundSetup(csd);
@@ -441,6 +462,9 @@ bool Studio::Setup(std::string csd, GLuint shaderProg)
 	// Pos 12 
 	sendNames.push_back("resampleVal");
 	m_vSendVals.push_back(m_cspResampleVal);
+	// Pos 13 
+	sendNames.push_back("granRainMaxInsts");
+	m_vSendVals.push_back(m_cspGranRain_maxInsts);
 
 	m_pStTools->BCsoundSend(csSession, sendNames, m_vSendVals);
 
@@ -533,7 +557,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	
 	// granulated rain sound source at origin
 	StudioTools::SoundSourceData soundSource1;
-	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, -2.0f, 0.0f, 1.0f);
+	glm::vec4 sourcePosWorldSpace = glm::vec4(0.0f, -1.0f, 0.0f, 1.0f);
 	soundSource1.position = sourcePosWorldSpace;
 
 	// clickPopStatic sound source mapped to moving sphere
@@ -571,11 +595,17 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 	glm::vec4 sourcePosWorldSpace4 = glm::vec4(m_vec3RotatedSpherePos3.x, m_vec3RotatedSpherePos3.y, m_vec3RotatedSpherePos3.z, 1.0f);
 	soundSource4.position = sourcePosWorldSpace4;
 
+	StudioTools::SoundSourceData soundSource5;
+	m_vec3RotatedSpherePos4 = rotYAntiClock * m_vec3SpherePos4;
+	glm::vec4 sourcePosWorldSpace5 = glm::vec4(m_vec3RotatedSpherePos4.x, m_vec3RotatedSpherePos4.y, m_vec3RotatedSpherePos4.z, 1.0f);
+	soundSource5.position = sourcePosWorldSpace5;
+
 	std::vector<StudioTools::SoundSourceData> soundSources;
 	soundSources.push_back(soundSource1);
 	soundSources.push_back(soundSource2);
 	soundSources.push_back(soundSource3);
 	soundSources.push_back(soundSource4);
+	soundSources.push_back(soundSource5);
 
 	m_pStTools->SoundSourceUpdate(soundSources, viewMat, translationVec);
 
@@ -713,6 +743,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
 			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
 			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
+			*m_vSendVals[13] = (MYFLT)outParamVec[12]->value;
 
 		} 
 		else if(!m_bCurrentRunState && m_bModelTrained)
@@ -730,7 +761,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
 			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
 			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
-
+			*m_vSendVals[13] = (MYFLT)outParamVec[12]->value;
 
 		} else if(!m_bCurrentRunState && !m_bModelTrained)
 		{
@@ -746,6 +777,7 @@ void Studio::Update(glm::mat4 viewMat, MachineLearning& machineLearning, glm::ve
 			*m_vSendVals[10] = (MYFLT)outParamVec[9]->value;
 			*m_vSendVals[11] = (MYFLT)outParamVec[10]->value;
 			*m_vSendVals[12] = (MYFLT)outParamVec[11]->value;
+			*m_vSendVals[13] = (MYFLT)outParamVec[12]->value;
 
 		}
 
@@ -909,6 +941,7 @@ void Studio::Draw(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, GLuint
 	glUniform3f(m_gliSpherePos1, m_vec3RotatedSpherePos1.x, m_vec3RotatedSpherePos1.y, m_vec3RotatedSpherePos1.z);
 	glUniform3f(m_gliSpherePos2, m_vec3RotatedSpherePos2.x, m_vec3RotatedSpherePos2.y, m_vec3RotatedSpherePos2.z);
 	glUniform3f(m_gliSpherePos3, m_vec3RotatedSpherePos3.x, m_vec3RotatedSpherePos3.y, m_vec3RotatedSpherePos3.z);
+	glUniform3f(m_gliSpherePos4, m_vec3RotatedSpherePos4.x, m_vec3RotatedSpherePos4.y, m_vec3RotatedSpherePos4.z);
 	glUniform1f(m_gliSpecCentVal, m_fSpecCentVal);
 	glUniform1f(m_gliRed, m_fRed);
 	glUniform1f(m_gliGreen, m_fGreen);

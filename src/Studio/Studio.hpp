@@ -2,7 +2,7 @@
 #define STUDIO_HPP
 
 //#define NUM_HRTF_VALS 3
-#define NUM_SOUND_SOURCES 4 
+#define NUM_SOUND_SOURCES 5 
 
 #include <string>
 #include <vector>
@@ -171,6 +171,7 @@ private:
 	std::unique_ptr<RegressionModel::DataInfo> m_pReverbFeedback;
 	std::unique_ptr<RegressionModel::DataInfo> m_pReverbCutoff;
 	std::unique_ptr<RegressionModel::DataInfo> m_pResampleVal;
+	std::unique_ptr<RegressionModel::DataInfo> m_pGranRainMaxInsts;
 	std::vector<std::unique_ptr<RegressionModel::DataInfo>> outParamVec;
 	
 	std::unique_ptr<RegressionModel::DataInfo> m_pRControllerX;
@@ -213,6 +214,7 @@ private:
 	MYFLT* m_cspReverbFeedback;
 	MYFLT* m_cspReverbCutoff;
 	MYFLT* m_cspResampleVal;
+	MYFLT* m_cspGranRain_maxInsts;
 
 	std::string mySavedModel;
 	std::string mySavedModel_left;
@@ -249,5 +251,9 @@ private:
 	float m_fGranRainSpecAmpOut;
 	std::deque<float> m_dGranRainAmpVals;
 	GLint m_gliGranRainAmp;
+
+	glm::vec3 m_vec3SpherePos4;
+	GLint m_gliSpherePos4;
+	glm::vec3 m_vec3RotatedSpherePos4;
 };
 #endif

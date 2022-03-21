@@ -8,7 +8,7 @@
 
 #include "CsoundSession.hpp"
 
-#define NUM_SOUND_SOURCES 4 
+#define NUM_SOUND_SOURCES 5 
 
 class StudioTools {
 

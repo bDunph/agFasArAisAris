@@ -38,6 +38,7 @@ uniform float fractalAngle;
 uniform vec3 spherePos1;
 uniform vec3 spherePos2;
 uniform vec3 spherePos3;
+uniform vec3 spherePos4;
 uniform float crackleVal;
 uniform float redVal;
 uniform float greenVal;
@@ -61,7 +62,7 @@ vec4 orbit;
 
 float fbmVal;
 float fbmVal_left;
-float markerDists[3];
+float markerDists[4];
 
 // function from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
 mat3 rotationMatrix(vec3 axis, float angle)
@@ -165,7 +166,7 @@ float kifSDF(vec3 p)
     }
     //return length(p) * pow(SCALE, -float(n));
     //return length(p) * pow(scaleVal, -float(n) * (1 + granRainAmp));
-    return length(p) * pow(scaleVal * (1 + granRainAmp), -float(n));
+    return length(p) * pow(scaleVal * (1 + (granRainAmp * 0.25)), -float(n));
 }
 
 
@@ -208,10 +209,11 @@ float DE(vec3 p)
 	markerDists[0] = markerDist1 + sinDisp;
 	markerDists[1] = controlAreaSphere(p + spherePos2, MARKER_RAD);
 	markerDists[2] = controlAreaSphere(p + spherePos3, MARKER_RAD);
+	markerDists[3] = controlAreaSphere(p + spherePos4, MARKER_RAD);
 
 	float platformDist = platformSDF(p, PLANE_NORMAL);
 
-	return min(kifDist, min(sphereDist, min(planeDist, min(markerDists[0], min(markerDists[1], min(markerDists[2], platformDist))))));
+	return min(kifDist, min(sphereDist, min(planeDist, min(markerDists[0], min(markerDists[1], min(markerDists[2], min(markerDists[3], platformDist)))))));
 }
 
 float march(vec3 o, vec3 r)
@@ -377,8 +379,8 @@ void main()
 		//vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
 		vec3 matCol1 = vec3(pow(redVal, log(smootherVal)), pow(greenVal, log(smootherVal)), pow(blueVal, log(smootherVal)));
 		//vec3 matCol2 = vec3(pow(0.333 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.417 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
-		//vec3 matCol2 = vec3(pow(0.333 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.487 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
-		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.487, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.333 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.487 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
+		//vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.487, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 
 		// lighting
