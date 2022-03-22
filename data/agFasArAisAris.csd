@@ -993,9 +993,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-i "ModalSynth"			0	20	1	0
+;i "ModalSynth"			0	20	1	0
 
-i "ModalSamplerTrigger"		7	-1
+;i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -1008,7 +1008,7 @@ i "GranulatedRainTrigger"	2	-1
 
 i "GranulatedRainReverb"		2	-1
 
-i "ClickPopStaticTrigger"	2	-1	20	
+;i "ClickPopStaticTrigger"	2	-1	20	
 
 i "SpectralAnalysis"		2	-1
 
