@@ -968,8 +968,8 @@ aRightSigs[4] = aRightSigs[4] / kDistSquared4
 aL init 0
 aR init 0
 
-aL sum	aLeftSigs[0], aLeftSigs[1], aLeftSigs[2] * 4.0, aLeftSigs[3] * 4.0, aLeftSigs[4] * 4.0
-aR sum	aRightSigs[0], aRightSigs[1], aRightSigs[2] * 4.0, aRightSigs[3] * 4.0, aRightSigs[4] * 4.0
+aL sum	aLeftSigs[0], aLeftSigs[1], aLeftSigs[2] * 5.0, aLeftSigs[3] * 5.0, aLeftSigs[4] * 5.0
+aR sum	aRightSigs[0], aRightSigs[1], aRightSigs[2] * 5.0, aRightSigs[3] * 5.0, aRightSigs[4] * 5.0
 
 ;aL = aL / iNumAudioSources
 ;aR = aR / iNumAudioSources
@@ -993,9 +993,9 @@ f0	86400 ;keep csound running for a day
 ; score events
 ;********************************************************************
 
-;i "ModalSynth"			0	20	1	0
+i "ModalSynth"			0	20	1	0
 
-;i "ModalSamplerTrigger"		7	-1
+i "ModalSamplerTrigger"		7	-1
 
 ;i1	8	6	2	300
 
@@ -1008,7 +1008,7 @@ i "GranulatedRainTrigger"	2	-1
 
 i "GranulatedRainReverb"		2	-1
 
-;i "ClickPopStaticTrigger"	2	-1	20	
+i "ClickPopStaticTrigger"	2	-1	20	
 
 i "SpectralAnalysis"		2	-1
 

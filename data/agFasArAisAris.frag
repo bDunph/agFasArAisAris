@@ -379,8 +379,8 @@ void main()
 		//vec3 matCol1 = vec3(pow(0.392, log(smootherVal)), pow(0.19, log(smootherVal)), pow(0.04, log(smootherVal)));
 		vec3 matCol1 = vec3(pow(redVal, log(smootherVal)), pow(greenVal, log(smootherVal)), pow(blueVal, log(smootherVal)));
 		//vec3 matCol2 = vec3(pow(0.333 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.417 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 + (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
-		//vec3 matCol2 = vec3(pow(0.333 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.487 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
-		vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.487, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
+		vec3 matCol2 = vec3(pow(0.333 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.487 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)), pow(0.184 * (modSamp_rmsOut * 80.0), 1.0 / log(smootherVal)));
+		//vec3 matCol2 = vec3(pow(0.333, 1.0 / log(smootherVal)), pow(0.487, 1.0 / log(smootherVal)), pow(0.184, 1.0 / log(smootherVal)));
 		totMatCol = mix(matCol1, matCol2, clamp(6.0*orbit.x, 0.0, 1.0));
 
 		// lighting
